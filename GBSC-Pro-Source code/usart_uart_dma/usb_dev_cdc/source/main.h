@@ -29,9 +29,6 @@
 #include "string.h"
 #include "stdbool.h"
 
-// Debug UART
-void DebugUart_Init(void);
-
 #define GPIO_PORT_ASW  GPIO_PORT_B
 
 #define GPIO_PIN_ASW1  GPIO_PIN_15
@@ -62,20 +59,20 @@ void DebugUart_Init(void);
 #define RES_CHANGED  true//true  false
 
 
-// �Ĵ�����ַ
-#define VID_SEL_REG  0x02  // ��Ƶ��ʽѡ��Ĵ���
-#define AUTO_DETECT_REG 0x07  // �Զ������ƼĴ���
+// Register address
+#define VID_SEL_REG  0x02  // Video Format Selection Register
+#define AUTO_DETECT_REG 0x07  // Automatic Detection Register
 
-// ������Ƶ��ʽ�ĺ�
-#define VID_SEL_PAL    0x80  // PAL ��ʽ
-#define VID_SEL_NTSC   0x50  // NTSC M ��ʽ
-#define VID_SEL_SECAM  0xE0  // SECAM ��ʽ
-#define VID_SEL_AUTO   0x00  // �Զ����ģʽ
+// Macro definitions for video format selection
+#define VID_SEL_PAL    0x80  // PAL Format
+#define VID_SEL_NTSC   0x50  // NTSC M Format
+#define VID_SEL_SECAM  0xE0  // SECAM Format
+#define VID_SEL_AUTO   0x00  // Automatic Mode
 
-// �����Զ������ʽ�ĺ�
-#define AD_PAL_EN      0x01  // ����PAL���
-#define AD_NTSC_EN     0x02  // ����NTSC���
-#define AD_SECAM_EN    0x04  // ����SECAM���
+// Macro definitions for automatic detection
+#define AD_PAL_EN      0x01  // Enable PAL Detection
+#define AD_NTSC_EN     0x02  // Enable NTSC Detection
+#define AD_SECAM_EN    0x04  // Enable SECAM Detection
 
 
 #define LED_ERR_RED     0x80
@@ -98,7 +95,7 @@ void DebugUart_Init(void);
 #define AV_INPUT false
 #define SV_INPUT true
 
-//ȫ�ֶ���
+// Global variable declarations
 /*LED_state*/
 extern uint8_t led_state;
 extern uint8_t led_sw;

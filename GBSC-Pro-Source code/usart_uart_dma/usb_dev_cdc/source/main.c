@@ -26,6 +26,8 @@
  * Include files
  ******************************************************************************/
 #include "main.h"
+#include "debug_uart.h"
+#include "adv_cli.h"
 
 /**
  * @addtogroup HC32F460_DDL_Examples
@@ -68,15 +70,15 @@ static uint8_t ContrastCount = 0xb0;
 
 static void vd_Button_Init(void)
 {
-    /* configuration structure initialization */ // ������ƶ˿�
+    /* configuration structure initialization */ // Output Control Port
     stc_gpio_init_t stcGpioInit;
     (void)GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PullUp = PIN_PU_ON;         // ����
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;       // �������
-    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // ����
-    //    stcGpioInit.u16PinOutputType = PIN_OUT_TYPE_CMOS;   //comsǿ���
-    //    stcGpioInit.u16ExtInt = PIN_EXTINT_OFF;   //��ʹ���ⲿ�ж�
-    //    stcGpioInit.u16PinDrv = PIN_HIGH_DRV;   //����
+    stcGpioInit.u16PullUp = PIN_PU_ON;         // Pull UP
+    stcGpioInit.u16PinDir = PIN_DIR_OUT;       // Output direction
+    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // numeric
+    //    stcGpioInit.u16PinOutputType = PIN_OUT_TYPE_CMOS;   // CMOS output
+    //    stcGpioInit.u16ExtInt = PIN_EXTINT_OFF;   // Disable external interrupt
+    //    stcGpioInit.u16PinDrv = PIN_HIGH_DRV;   // High drive
 
     stcGpioInit.u16PinState = PIN_STAT_RST; // ����
 
@@ -86,19 +88,19 @@ static void vd_Button_Init(void)
 
     //////////////////Line
     (void)GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PullUp = PIN_PU_ON;         // ����
-    stcGpioInit.u16PinDir = PIN_DIR_IN;        // ���뷽��
-    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // ����
-    stcGpioInit.u16PinState = PIN_STAT_SET;    // ����
+    stcGpioInit.u16PullUp = PIN_PU_ON;         // Pull UP
+    stcGpioInit.u16PinDir = PIN_DIR_IN;        // Input direction
+    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // Digital
+    stcGpioInit.u16PinState = PIN_STAT_SET;    // Set
 
     (void)GPIO_Init(GPIO_PORT_B, GPIO_PIN_05, &stcGpioInit);
 
     ///////////////ASW/////////////////////
     (void)GPIO_StructInit(&stcGpioInit);
-    stcGpioInit.u16PullUp = PIN_PU_OFF;        // ����
-    stcGpioInit.u16PinDir = PIN_DIR_OUT;       // �������
-    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // ����
-    stcGpioInit.u16PinState = PIN_STAT_RST;    // ����
+    stcGpioInit.u16PullUp = PIN_PU_OFF;        // Pull down
+    stcGpioInit.u16PinDir = PIN_DIR_OUT;       // Output direction
+    stcGpioInit.u16PinAttr = PIN_ATTR_DIGITAL; // Digital
+    stcGpioInit.u16PinState = PIN_STAT_RST;    // Reset
     stcGpioInit.u16PinDrv = PIN_HIGH_DRV;
     stcGpioInit.u16PinOutputType = PIN_OUT_TYPE_CMOS;
 
@@ -107,14 +109,14 @@ static void vd_Button_Init(void)
     (void)GPIO_Init(GPIO_PORT_ASW, GPIO_PIN_ASW4, &stcGpioInit); // ASW04
 
     asw_02 = Read_ASW2();
-    //    stcGpioInit.u16PullUp = PIN_PU_OFF;         // ����
+    //    stcGpioInit.u16PullUp = PIN_PU_OFF;         // Pull down
     if (asw_02)
     {
-        stcGpioInit.u16PinState = PIN_STAT_SET; // ����
+        stcGpioInit.u16PinState = PIN_STAT_SET; // Set
     }
     else
     {
-        stcGpioInit.u16PinState = PIN_STAT_RST; // ����
+        stcGpioInit.u16PinState = PIN_STAT_RST; // Reset
     }
     (void)GPIO_Init(GPIO_PORT_ASW, GPIO_PIN_ASW2, &stcGpioInit); // ASW02
 
@@ -129,8 +131,8 @@ static void vd_Button_Init(void)
     }
     else
     {
-        stcGpioInit.u16PullUp = PIN_PU_ON;      // ����
-        stcGpioInit.u16PinState = PIN_STAT_SET; // ����
+        stcGpioInit.u16PullUp = PIN_PU_ON;      // Pull UP
+        stcGpioInit.u16PinState = PIN_STAT_SET; // Set
                                                 // led_state = LED_RED;
     }
     (void)GPIO_Init(GPIO_PORT_A, GPIO_PIN_08, &stcGpioInit);
@@ -153,9 +155,9 @@ static void Key_Init(void)
 
 static uint8_t Key_Read(uint8_t mode)
 {
-    static uint8_t key_up = 1; // �����ɿ���־
+    static uint8_t key_up = 1; // Key Release Indicator
     if (mode == 1)
-        key_up = 1; // ֧������
+        key_up = 1; // Supports repeatable press
 
     if (key_up && (GPIO_ReadInputPins(GPIO_PORT_B, GPIO_PIN_06) == 0))
     {
@@ -166,23 +168,23 @@ static uint8_t Key_Read(uint8_t mode)
     }
     else if (GPIO_ReadInputPins(GPIO_PORT_B, GPIO_PIN_06) == 1)
         key_up = 1;
-    return 0; // �ް�������
+    return 0; // Key not pressed
 }
 
-// �����Զ����ĳЩ��ʽ
+// Enable or disable automatic detection
 void enable_auto_detection(uint8_t enable)
 {
     static uint8_t art[2];
     if (enable)
     {
-        // ����PAL��NTSC��SECAM���Զ����
+        // Enable automatic detection for PAL, NTSC, and SECAM
         art[0] = AUTO_DETECT_REG;
         art[1] = AD_PAL_EN | AD_NTSC_EN | AD_SECAM_EN | 0x80;
         (void)I2C_Master_Transmit(DEVICE_ADDR, art, 2, TIMEOUT);
     }
     else
     {
-        // �����Զ����
+        // Disable automatic detection
         art[0] = AUTO_DETECT_REG;
         art[1] = 0x00;
         (void)I2C_Master_Transmit(DEVICE_ADDR, art, 2, TIMEOUT);
@@ -218,11 +220,6 @@ int32_t main(void)
     EFM_FWMC_Cmd(ENABLE);
     BSP_CLK_Init();
     BSP_LED_Init();
-
-    // Add support for debug UART
-    DebugUart_Init();
-    printf("\r\n[DEBUG UART] USART1 activated (PH2=TX, PC13=RX)\r\n");
-
     vd_Button_Init();
     Key_Init();
 #if (LL_TMR0_ENABLE == DDL_ON)
@@ -235,10 +232,21 @@ int32_t main(void)
     i2c_init();
     TMR0_Start(CM_TMR0_2, TMR0_CHA);
     uart_dma_init();
+
+    // Debug UART
+    DebugUart_Init();
+    printf("\r\n[SYSTEM] Debug UART initialized\r\n");
+
     Video_Sw(adv_sw);
     Signal_led(Input_signal);
+
+    // ADV CLI Init
+    ADVCLI_Init();
+
     for (;;)
     {
+        // ADV CLI task handling
+        ADVCLI_Task();
 
         if (Key_Read(0))
         {

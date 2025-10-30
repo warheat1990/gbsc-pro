@@ -509,6 +509,16 @@
               <FileType>1</FileType>
               <FilePath>..\source\videoprocess.c</FilePath>
             </File>
+            <File>
+              <FileName>debug_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\debug_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>adv_cli.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\adv_cli.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1045,6 +1055,16 @@
               <FileName>videoprocess.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\source\videoprocess.c</FilePath>
+            </File>
+            <File>
+              <FileName>debug_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\debug_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>adv_cli.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\source\adv_cli.c</FilePath>
             </File>
           </Files>
         </Group>
