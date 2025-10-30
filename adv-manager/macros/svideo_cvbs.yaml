@@ -1,0 +1,6 @@
+name: Set CVBS as input
+commands:
+  - wm 42 00 00 00
+  - wm 42 00 38 80
+  - wm 42 00 39 24
+  - wm 42 00 17 47

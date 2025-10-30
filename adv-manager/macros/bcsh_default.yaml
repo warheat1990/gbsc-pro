@@ -1,0 +1,6 @@
+name: Set default BCSH
+commands:
+  - wm 42 00 0A 00
+  - wm 42 00 08 80
+  - wm 42 00 E3 80
+  - wm 42 00 0B 00

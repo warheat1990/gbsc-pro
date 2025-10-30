@@ -1,0 +1,6 @@
+name: Enable I2P 2X
+commands:
+  - w 84 55 80
+  - w 84 5B 80
+  - w 84 5A 02
+  - wm 42 40 E0 01

@@ -1,0 +1,3 @@
+name: Enable ACE
+commands:
+  - wm 42 40 80 80

@@ -1,0 +1,4 @@
+name: Enable Smoothing
+commands:
+  - w 84 55 80
+  - w 84 5A 1A

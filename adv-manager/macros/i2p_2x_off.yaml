@@ -1,0 +1,6 @@
+name: Disable I2P 2X
+commands:
+  - wm 42 40 E0 01
+  - w 84 55 00
+  - w 84 5B 00
+  - w 84 5A 02

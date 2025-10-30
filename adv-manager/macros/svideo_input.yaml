@@ -1,0 +1,6 @@
+name: Set S-Video as input
+commands:
+  - wm 42 00 00 09
+  - wm 42 00 38 24
+  - wm 42 00 39 24
+  - wm 42 00 17 49
