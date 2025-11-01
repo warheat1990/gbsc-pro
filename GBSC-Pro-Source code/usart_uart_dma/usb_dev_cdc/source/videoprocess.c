@@ -29,7 +29,6 @@ uint8_t buff_send[APP_FRAME_LEN_MAX];
 uint8_t I2C_COMMANDS_I2P_ON[] =
 {
     0x84,0x55,0x80, // ADV7280 - I2C_DEINT_ENABLE: Enable I2P Converter
-    0x84,0x5B,0x00, // ADV7280 - ADV_TIMING_MODE_EN: Disable advanced timing mode
     0x84,0x5A,0x02, // ADV7280 - Not documented on page 99 - Configure I2P Parameters Smooth 1A (?)
 };
 
@@ -37,7 +36,6 @@ uint8_t I2C_COMMANDS_I2P_ON[] =
 //  I2C_COMMANDS_I2P_OFF_240p
 const uint8_t I2C_COMMANDS_I2P_OFF_p[] = {
    0x84,0x55,0x00, // ADV7280 - I2C_DEINT_ENABLE: Disable I2P Converter
-   0x84,0x5B,0x00, // ADV7280 - ADV_TIMING_MODE_EN: Enable advanced timing mode
    0x84,0x5A,0x02, // ADV7280 - Not documented on page 99 - Configure I2P Parameters Smooth 1A (?)
 };
 
