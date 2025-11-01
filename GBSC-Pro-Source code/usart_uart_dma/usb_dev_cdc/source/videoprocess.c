@@ -29,19 +29,13 @@ uint8_t buff_send[APP_FRAME_LEN_MAX];
 uint8_t I2C_COMMANDS_I2P_ON[] =
 {
     0x84,0x55,0x80, // ADV7280 - I2C_DEINT_ENABLE: Enable I2P Converter
-    0x84,0x5B,0x80, // ADV7280 - ADV_TIMING_MODE_EN: Disable advanced timing mode
+    0x84,0x5B,0x00, // ADV7280 - ADV_TIMING_MODE_EN: Disable advanced timing mode
     0x84,0x5A,0x02, // ADV7280 - Not documented on page 99 - Configure I2P Parameters Smooth 1A (?)
-    0x42,0x0E,0x40, // ADV7280 - ADI Control 1: User Sub Map 2
-    0x42,0xE0,0x01, // ADV7280 - FL Control: Enables fast lock mode
-    0x42,0x0E,0x00, // ADV7280 - ADI Control 1: main register
 };
 
 //  I2C_COMMANDS_I2P_OFF_p
 //  I2C_COMMANDS_I2P_OFF_240p
 const uint8_t I2C_COMMANDS_I2P_OFF_p[] = {
-   0x42,0x0E,0x40, // ADV7280 - ADI Control 1: User Sub Map 2
-   0x42,0xE0,0x01, // ADV7280 - FL Control: Enables fast lock mode
-   0x42,0x0E,0x00, // ADV7280 - ADI Control 1: main register
    0x84,0x55,0x00, // ADV7280 - I2C_DEINT_ENABLE: Disable I2P Converter
    0x84,0x5B,0x00, // ADV7280 - ADV_TIMING_MODE_EN: Enable advanced timing mode
    0x84,0x5A,0x02, // ADV7280 - Not documented on page 99 - Configure I2P Parameters Smooth 1A (?)
@@ -168,9 +162,6 @@ uint8_t I2C_AUTO_COMMANDS[] =
     0x42,0x0E,0x80, // ADV7280 - ADI Required Write
     0x42,0xD9,0x44, // ADV7280 - ADI Required Write
     0x42,0x0E,0x00, // ADV7280 - ADI Control 1: main register
-    0x42,0x0E,0x40, // ADV7280 - ADI Control 1: User Sub Map 2
-    0x42,0xE0,0x01, // ADV7280 - FL Control: Enables fast lock mode
-    0x42,0x0E,0x00, // ADV7280 - ADI Control 1: main register
 
     // Enable I2P
     0x42,0xFD,0x84, // ADV7280 - set the VPP address to 0x84
@@ -207,6 +198,59 @@ uint8_t Ace_Code_OFF[] =
     0x42,0x0E,0x00  // ADV7280 - ADI Control 1: main register
 };
 
+// 525p Encoder Configuration
+uint8_t I2C_COMMANDS_525p_CONFIG[] = {
+    0x56,0x30,0x04,
+    0x56,0x31,0x11,
+};
+
+// 625p Encoder Configuration
+uint8_t I2C_COMMANDS_625p_CONFIG[] = {
+    0x56,0x30,0x1C,
+    0x56,0x31,0x11,
+};
+
+// Function to configure video encoder
+void configure_video_encoder()
+{
+    // Extract bits [6:5:4] for AD_RESULT
+    uint8_t ad_result;
+    uint8_t buff[1] = { 0x10 };
+    Chip_Receive(DEVICE_ADDR, &buff[0], &ad_result, 1, TIMEOUT);
+
+    uint8_t ad_standard = (ad_result & 0x70) >> 4;
+    uint8_t is_525p = 0;
+    
+    // Determine if it's 525p or 625p
+    // AD_RESULT values:
+    // 0: NTSC M/NTSC J (525p)
+    // 1: NTSC 4.43 (525p)
+    // 2: PAL M (525p)
+    // 3: PAL 60 (525p)
+    // 4: PAL B/PAL G/PAL H/PAL I/PAL D (625p)
+    // 5: SECAM (625p)
+    // 6: PAL Combination N (625p)
+    // 7: SECAM 525 (525p)
+    
+    if (ad_standard == 0 || ad_standard == 1 || ad_standard == 2 || ad_standard == 3 || ad_standard == 7) {
+        is_525p = 1; // 525p
+    } else {
+        is_525p = 0; // 625p
+    }
+    
+    if (is_525p) {
+        // Send 525p configuration
+        (void)ADV_7280_Send_Buff(I2C_COMMANDS_525p_CONFIG, sizeof(I2C_COMMANDS_525p_CONFIG) / 3, TIMEOUT);
+        printf("525p format configured\n");
+    }
+
+    if (!is_525p) {
+        // Send 625p configuration
+        (void)ADV_7280_Send_Buff(I2C_COMMANDS_625p_CONFIG, sizeof(I2C_COMMANDS_625p_CONFIG) / 3, TIMEOUT);
+        printf("625p format configured\n");
+    }
+}
+
 void video_init(void)
 {
     uint8_t count = 0;
@@ -231,7 +275,10 @@ void video_init(void)
     printf(" Init adv_tv: 0x%02x", adv_tv);
     (void)I2C_Master_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT); // mode
 
+    // Configure video encoder based on detection
+    configure_video_encoder();
     set_bcsh();
+
     if (adv_double)
     {
         set_double_line(adv_double); // GPIO_ReadInputPins(GPIO_PORT_B,GPIO_PIN_05)
