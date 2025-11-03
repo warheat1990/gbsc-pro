@@ -8,6 +8,7 @@ import threading
 from queue import Queue, Empty
 from typing import Optional, Callable, List, Dict, Any
 from enum import Enum
+from PyQt6.QtCore import QObject, pyqtSignal
 from .utils.logger import get_logger
 
 class CommandType(Enum):
@@ -50,12 +51,17 @@ class SerialCommand:
         self.use_map_switching = use_map_switching
 
 
-class SerialBridge:
+class SerialBridge(QObject):
     """
     Thread-safe serial communication bridge.
 
     Handles serial communication in a background thread to avoid blocking the UI.
     """
+
+    # Signals for thread-safe callback execution
+    write_completed = pyqtSignal(object, bool)  # (callback, success)
+    read_completed = pyqtSignal(object, object)  # (callback, value)
+    dump_completed = pyqtSignal(object, object)  # (callback, values)
 
     def __init__(self, port: str = 'COM3', baudrate: int = 115200):
         """
@@ -65,6 +71,7 @@ class SerialBridge:
             port: Serial port name
             baudrate: Baud rate
         """
+        super().__init__()  # Initialize QObject
         self.port = port
         self.baudrate = baudrate
         self.serial: Optional[serial.Serial] = None
@@ -83,6 +90,26 @@ class SerialBridge:
             'bytes_sent': 0,
             'bytes_received': 0
         }
+
+        # Connect signals to slots for thread-safe callback execution
+        self.write_completed.connect(self._handle_write_completed)
+        self.read_completed.connect(self._handle_read_completed)
+        self.dump_completed.connect(self._handle_dump_completed)
+
+    def _handle_write_completed(self, callback, success):
+        """Handle write completion in main thread (slot for write_completed signal)."""
+        if callback:
+            callback(success)
+
+    def _handle_read_completed(self, callback, value):
+        """Handle read completion in main thread (slot for read_completed signal)."""
+        if callback:
+            callback(value)
+
+    def _handle_dump_completed(self, callback, values):
+        """Handle dump completion in main thread (slot for dump_completed signal)."""
+        if callback:
+            callback(values)
 
     def connect(self) -> bool:
         """
@@ -233,22 +260,26 @@ class SerialBridge:
                 if cmd.cmd_type == CommandType.WRITE:
                     success = self._write_register_sync(cmd.device_addr, cmd.map_value, cmd.register, cmd.value, cmd.use_map_switching)
                     if cmd.callback:
-                        cmd.callback(success)
+                        # Emit signal for thread-safe callback execution
+                        self.write_completed.emit(cmd.callback, success)
 
                 elif cmd.cmd_type == CommandType.READ:
                     value = self._read_register_sync(cmd.device_addr, cmd.map_value, cmd.register, cmd.use_map_switching)
                     if cmd.callback:
-                        cmd.callback(value)
+                        # Emit signal for thread-safe callback execution
+                        self.read_completed.emit(cmd.callback, value)
 
                 elif cmd.cmd_type == CommandType.DUMP:
                     values = self._read_registers_dump_sync(cmd.device_addr, cmd.map_value, cmd.register, cmd.value, cmd.use_map_switching)
                     if cmd.callback:
-                        cmd.callback(values)
+                        # Emit signal for thread-safe callback execution
+                        self.dump_completed.emit(cmd.callback, values)
 
                 elif cmd.cmd_type == CommandType.SEQUENCE:
                     success = self._execute_sequence_sync(cmd.device_addr, cmd.sequence)
                     if cmd.callback:
-                        cmd.callback(success)
+                        # Emit signal for thread-safe callback execution
+                        self.write_completed.emit(cmd.callback, success)
 
                 self.command_queue.task_done()
 
