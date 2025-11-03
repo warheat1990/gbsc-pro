@@ -478,6 +478,59 @@ class MainWindow(QMainWindow):
         self.console.log_message(f"Reloading all registers...", "#0066cc")
         self._auto_read_registers()
 
+    def _reload_modified_registers(self, register_list):
+        """
+        Reload specific registers that were modified (e.g., by a macro).
+
+        Args:
+            register_list: List of (device_addr, map_val, reg_addr) tuples
+        """
+        if not self.serial.is_connected():
+            return
+
+        if not self.register_widgets:
+            return
+
+        self.logger.info(f"Reloading {len(register_list)} modified registers")
+
+        # Create a queue of registers to read
+        self._reload_queue = register_list.copy()
+        self._reload_index = 0
+
+        def read_next_register():
+            """Read the next register in the queue."""
+            if self._reload_index >= len(self._reload_queue):
+                # All registers reloaded - cleanup
+                self.logger.info("Completed reloading modified registers")
+                self._reload_queue = []
+                self._reload_index = 0
+                return
+
+            device_addr, map_val, reg_addr = self._reload_queue[self._reload_index]
+
+            def on_read(value):
+                if value is not None:
+                    # Find and update the widget for this register
+                    for widget in self.register_widgets:
+                        if (widget.device_addr == device_addr and
+                            widget.map_value == map_val and
+                            widget.register.address == reg_addr):
+                            # Update the register value and refresh the widget
+                            widget.register.update_value(value)
+                            widget._update_widgets_from_register()
+                            widget._update_bit_display()
+                            break
+
+                # Move to next register
+                self._reload_index += 1
+                read_next_register()
+
+            # Read the register
+            self.serial.read_register(device_addr, map_val, reg_addr, on_read, use_map_switching=True)
+
+        # Start reading from first register
+        read_next_register()
+
     def _auto_read_registers(self):
         """Automatically read all register values from device (called on connect/load)."""
         if not self.serial.is_connected():
@@ -801,6 +854,7 @@ class MainWindow(QMainWindow):
         self._macro_command_queue = macro.commands.copy()
         self._macro_command_index = 0
         self._macro_name = macro.name
+        self._macro_written_registers = []  # Track (device_addr, map_val, reg_addr) tuples
 
         def execute_next_command():
             """Execute the next command in the macro queue."""
@@ -809,6 +863,10 @@ class MainWindow(QMainWindow):
                 self.logger.info(f"Completed macro '{self._macro_name}'")
                 self.console.log_message(f"Completed macro: {self._macro_name}", "#009900")
                 self.status_bar.showMessage(f"Completed macro: {self._macro_name}")
+
+                # Reload only the registers that were written during macro execution
+                if self._macro_written_registers:
+                    self._reload_modified_registers(self._macro_written_registers)
                 return
 
             # Get current command
@@ -868,6 +926,8 @@ class MainWindow(QMainWindow):
                     def on_write(success):
                         if success:
                             self.console.log_message(f"  OK", "#009900")
+                            # Track this register for later reload
+                            self._macro_written_registers.append((addr, map_val, reg))
                         else:
                             self.console.log_message(f"  ERR", "#cc0000")
                         self._macro_command_index += 1
@@ -884,6 +944,8 @@ class MainWindow(QMainWindow):
                     def on_write(success):
                         if success:
                             self.console.log_message(f"  OK", "#009900")
+                            # Track this register for later reload (use 0x00 as map for no map switching)
+                            self._macro_written_registers.append((addr, 0x00, reg))
                         else:
                             self.console.log_message(f"  ERR", "#cc0000")
                         self._macro_command_index += 1
