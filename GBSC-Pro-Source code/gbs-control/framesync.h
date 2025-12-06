@@ -9,7 +9,7 @@
 #endif
 #else // Arduino
 // fastest, but non portable (Uno pin 11 = PB3, Mega2560 pin 11 = PB5)
-// #define digitalRead(x) bitRead(PINB, 3)
+//#define digitalRead(x) bitRead(PINB, 3)
 #include "fastpin.h"
 #define digitalRead(x) fastRead<x>()
 // no define for DEBUG_IN_PIN
@@ -19,87 +19,78 @@
 
 // FS_DEBUG:      full verbose debug over serial
 // FS_DEBUG_LED:  just blink LED (off = adjust phase, on = normal phase)
-// #define FS_DEBUG
-// #define FS_DEBUG_LED
+//#define FS_DEBUG
+//#define FS_DEBUG_LED
 // #define FRAMESYNC_DEBUG
 
 #ifdef FRAMESYNC_DEBUG
-#define fsDebugPrintf(...) ; // SerialM.printf(__VA_ARGS__)
+#define fsDebugPrintf(...) SerialM.printf(__VA_ARGS__)
 #else
 #define fsDebugPrintf(...)
 #endif
 
-namespace MeasurePeriod
-{
+namespace MeasurePeriod {
     volatile uint32_t stopTime, startTime;
     volatile uint32_t armed;
 
     void _risingEdgeISR_prepare();
     void _risingEdgeISR_measure();
 
-    void start()
-    {
+    void start() {
         startTime = 0;
         stopTime = 0;
         armed = 0;
         attachInterrupt(DEBUG_IN_PIN, _risingEdgeISR_prepare, RISING);
     }
 
-    void ICACHE_RAM_ATTR _risingEdgeISR_prepare()
+    void IRAM_ATTR _risingEdgeISR_prepare()
     {
         noInterrupts();
-        // startTime = ESP.getCycleCount();
+        //startTime = ESP.getCycleCount();
         __asm__ __volatile__("rsr %0,ccount"
-                             : "=a"(startTime));
+                            : "=a"(startTime));
         detachInterrupt(DEBUG_IN_PIN);
         armed = 1;
         attachInterrupt(DEBUG_IN_PIN, _risingEdgeISR_measure, RISING);
         interrupts();
     }
 
-    void ICACHE_RAM_ATTR _risingEdgeISR_measure()
+    void IRAM_ATTR _risingEdgeISR_measure()
     {
         noInterrupts();
-        // stopTime = ESP.getCycleCount();
+        //stopTime = ESP.getCycleCount();
         __asm__ __volatile__("rsr %0,ccount"
-                             : "=a"(stopTime));
+                            : "=a"(stopTime));
         detachInterrupt(DEBUG_IN_PIN);
         interrupts();
     }
 }
 
-void setExternalClockGenFrequencySmooth(uint32_t freq)
-{
+void setExternalClockGenFrequencySmooth(uint32_t freq) {
     uint32_t current = rto->freqExtClockGen;
 
     rto->freqExtClockGen = freq;
 
     constexpr uint32_t STEP_SIZE_HZ = 1000;
 
-    if (current > rto->freqExtClockGen)
-    {
-        if ((current - rto->freqExtClockGen) < 750000)
-        {
-            while (current > (rto->freqExtClockGen + STEP_SIZE_HZ))
-            {
+    if (current > rto->freqExtClockGen) {
+        if ((current - rto->freqExtClockGen) < 750000) {
+            while (current > (rto->freqExtClockGen + STEP_SIZE_HZ)) {
                 current -= STEP_SIZE_HZ;
                 Si.setFreq(0, current);
                 handleWiFi(0);
             }
         }
-    }
-    else if (current < rto->freqExtClockGen)
-    {
-        if ((rto->freqExtClockGen - current) < 750000)
-        {
-            while ((current + STEP_SIZE_HZ) < rto->freqExtClockGen)
-            {
+    } else if (current < rto->freqExtClockGen) {
+        if ((rto->freqExtClockGen - current) < 750000) {
+            while ((current + STEP_SIZE_HZ) < rto->freqExtClockGen) {
                 current += STEP_SIZE_HZ;
                 Si.setFreq(0, current);
                 handleWiFi(0);
             }
         }
     }
+
     Si.setFreq(0, rto->freqExtClockGen);
 }
 
@@ -133,16 +124,13 @@ private:
         MeasurePeriod::start();
 
         // typical: 300000 at 80MHz, 600000 at 160MHz
-        for (uint32_t i = 0; i < 3000000; i++)
-        {
-            if (MeasurePeriod::armed)
-            {
+        for (uint32_t i = 0; i < 3000000; i++) {
+            if (MeasurePeriod::armed) {
                 MeasurePeriod::armed = 0;
                 delay(7);
                 WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
             }
-            if (MeasurePeriod::stopTime > 0)
-            {
+            if (MeasurePeriod::stopTime > 0) {
                 break;
             }
         }
@@ -151,8 +139,7 @@ private:
         ESP.wdtEnable(0);
         WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
-        if ((*start >= *stop) || *stop == 0 || *start == 0)
-        {
+        if ((*start >= *stop) || *stop == 0 || *start == 0) {
             // ESP.getCycleCount() overflow oder no pulse, just fail this round
             return false;
         }
@@ -171,18 +158,17 @@ private:
 
         // calling code needs to ensure debug bus is ready to sample vperiod
 
-        if (!vsyncInputSample(&inStart, &inStop))
-        {
+        if (!vsyncInputSample(&inStart, &inStop)) {
             return false;
         }
 
         GBS::TEST_BUS_SEL::write(0x2); // 0x2 = VDS (t3t50t4) // measure VDS vblank (VB ST/SP)
         inPeriod = (inStop - inStart); //>> 1;
-        if (!vsyncOutputSample(&outStart, &outStop))
-        {
+        if (!vsyncOutputSample(&outStart, &outStop)) {
             return false;
         }
         outPeriod = (outStop - outStart); //>> 1;
+
 
         diff = (outStart - inStart) % inPeriod;
         if (periodInput)
@@ -214,23 +200,19 @@ private:
         uint16_t inHtotal = HSYNC_RST::read();
         uint32_t inPeriod, outPeriod;
 
-        if (inHtotal == 0)
-        {
+        if (inHtotal == 0) {
             return false;
         } // safety
-        if (!sampleVsyncPeriods(&inPeriod, &outPeriod))
-        {
+        if (!sampleVsyncPeriods(&inPeriod, &outPeriod)) {
             return false;
         }
 
-        if (inPeriod == 0 || outPeriod == 0)
-        {
+        if (inPeriod == 0 || outPeriod == 0) {
             return false;
         } // safety
 
         // allow ~4 negative (inPeriod is < outPeriod) clock cycles jitter
-        if ((inPeriod > outPeriod ? inPeriod - outPeriod : outPeriod - inPeriod) <= 4)
-        {
+        if ((inPeriod > outPeriod ? inPeriod - outPeriod : outPeriod - inPeriod) <= 4) {
             /*if (inPeriod >= outPeriod) {
         Serial.print("inPeriod >= out: ");
         Serial.println(inPeriod - outPeriod);
@@ -240,20 +222,17 @@ private:
         Serial.println(outPeriod - inPeriod);
       }*/
             bestHtotal = inHtotal;
-        }
-        else
-        {
+        } else {
             // large htotal can push intermediates to 33 bits
             bestHtotal = (uint64_t)(inHtotal * (uint64_t)inPeriod) / (uint64_t)outPeriod;
         }
 
         // new 08.11.19: skip this step, IF period measurement should be stable enough to give repeatable results
-        // if (bestHtotal == (inHtotal + 1)) { bestHtotal -= 1; } // works well
-        // if (bestHtotal == (inHtotal - 1)) { bestHtotal += 1; } // check with SNES + vtotal = 1000 (1280x960)
+        //if (bestHtotal == (inHtotal + 1)) { bestHtotal -= 1; } // works well
+        //if (bestHtotal == (inHtotal - 1)) { bestHtotal += 1; } // check with SNES + vtotal = 1000 (1280x960)
 
 #ifdef FS_DEBUG
-        if (bestHtotal != inHtotal)
-        {
+        if (bestHtotal != inHtotal) {
             Serial.print(F("                     wants new htotal, oldbest: "));
             Serial.print(inHtotal);
             Serial.print(F(" newbest: "));
@@ -275,8 +254,7 @@ public:
 #ifdef FS_DEBUG
         Serial.print("FS reset(), with correction: ");
 #endif
-        if (syncLastCorrection != 0)
-        {
+        if (syncLastCorrection != 0) {
 #ifdef FS_DEBUG
             Serial.println("Yes");
 #endif
@@ -284,8 +262,7 @@ public:
             VRST_SST::read(vtotal, vsst);
             uint16_t timeout = 0;
             vtotal -= syncLastCorrection;
-            if (frameTimeLockMethod == 0)
-            { // moves VS position
+            if (frameTimeLockMethod == 0) { // moves VS position
                 vsst -= syncLastCorrection;
             }
 
@@ -298,8 +275,7 @@ public:
             GBS::VDS_VSYNC_RST::write(vtotal);
         }
 #ifdef FS_DEBUG
-        else
-        {
+        else {
             Serial.println("No");
         }
 #endif
@@ -336,8 +312,7 @@ public:
         // being less.  Increasing the vertical frame size slightly
         // should then push the output frame time to being larger than
         // the input.
-        if (!findBestHTotal(bestHTotal))
-        {
+        if (!findBestHTotal(bestHTotal)) {
             return 0;
         }
 
@@ -349,8 +324,7 @@ public:
     static uint32_t getPulseTicks()
     {
         uint32_t inStart, inStop;
-        if (!vsyncInputSample(&inStart, &inStop))
-        {
+        if (!vsyncInputSample(&inStart, &inStop)) {
             return 0;
         }
         return inStop - inStart;
@@ -374,22 +348,19 @@ public:
         syncLockReady = 0;
         delayLock = 0;
 
-        // 我们应该清除 maybeFreqExt_per_videoFps 吗？
+        // Should we clear maybeFreqExt_per_videoFps?
         //
-        // 希望清除是安全的。
-        // 在 15 kHz 和 31 kHz 输入之间切换时调用，或
-        // 当长时间没有视频且 // 输出关闭时。
-        // 输出关闭。(在 240p 和 480i 之间切换时，cleanup() 不会被调用。
-        // 在 240p 和 480i 之间切换时不会调用 cleanup()）。当出现新的视频信号时、
-        // 有人会调用 externalClockGenSyncInOutRate() -> // FrameSync::initial().
-        // 帧同步::initFrequency() 来重新初始化输出帧。
-        // 同步。
+        // Clearing is hopefully safe. cleanup() appears to only be
+        // called when switching between 15 kHz and 31 kHz inputs, or
+        // when no video is present for an extended period of time and
+        // the output shuts off. (cleanup() is not called when switching
+        // between 240p and 480i.) When a new video signal is present,
+        // someone calls externalClockGenSyncInOutRate() ->
+        // FrameSync::initFrequency() to reinitialize the output frame
+        // sync.
         //
-        // 希望不清零是安全的。参见 reset()
-        // 解释。
-
-
-
+        // Not clearing is hopefully safe. See reset() for an
+        // explanation.
         maybeFreqExt_per_videoFps = -1;
     }
 
@@ -401,16 +372,13 @@ public:
         MeasurePeriod::start();
 
         // typical: 300000 at 80MHz, 600000 at 160MHz
-        for (uint32_t i = 0; i < 3000000; i++)
-        {
-            if (MeasurePeriod::armed)
-            {
+        for (uint32_t i = 0; i < 3000000; i++) {
+            if (MeasurePeriod::armed) {
                 MeasurePeriod::armed = 0;
                 delay(7);
                 WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
             }
-            if (MeasurePeriod::stopTime > 0)
-            {
+            if (MeasurePeriod::stopTime > 0) {
                 break;
             }
         }
@@ -419,8 +387,7 @@ public:
         ESP.wdtEnable(0);
         WiFi.setSleepMode(WIFI_NONE_SLEEP);
 
-        if ((*start >= *stop) || *stop == 0 || *start == 0)
-        {
+        if ((*start >= *stop) || *stop == 0 || *start == 0) {
             // ESP.getCycleCount() overflow oder no pulse, just fail this round
             return false;
         }
@@ -443,8 +410,7 @@ public:
         if (!syncLockReady)
             return false;
 
-        if (delayLock < 2)
-        {
+        if (delayLock < 2) {
             delayLock++;
             return true;
         }
@@ -461,26 +427,21 @@ public:
 
 #ifdef FS_DEBUG
         Serial.printf("phase: %7d target: %7d", phase, target);
-        if (correction == syncLastCorrection)
-        {
+        if (correction == syncLastCorrection) {
             // terminate line if returning early
             Serial.println();
         }
 #endif
 #ifdef FS_DEBUG_LED
-        if (correction == 0)
-        {
+        if (correction == 0) {
             digitalWrite(15, LOW); // LED ON
-        }
-        else
-        {
+        } else {
             digitalWrite(15, HIGH); // LED OFF
         }
 #endif
 
         // return early?
-        if (correction == syncLastCorrection)
-        {
+        if (correction == syncLastCorrection) {
             return true;
         }
 
@@ -489,8 +450,7 @@ public:
         uint16_t timeout = 0;
         VRST_SST::read(vtotal, vsst);
         vtotal += delta;
-        if (frameTimeLockMethod == 0)
-        { // moves VS position
+        if (frameTimeLockMethod == 0) { // moves VS position
             vsst += delta;
         }
         // else it is method 1: leaves VS position alone
@@ -512,13 +472,11 @@ public:
         return true;
     }
 
-    static void clearFrequency()
-    {
+    static void clearFrequency() {
         maybeFreqExt_per_videoFps = -1;
     }
 
-    static void initFrequency(float outFramesPerS, uint32_t freqExtClockGen)
-    {
+    static void initFrequency(float outFramesPerS, uint32_t freqExtClockGen) {
         /*
         This value can be interpreted in multiple ways:
 
@@ -536,16 +494,14 @@ public:
     // offset closer to the desired value.
     static bool runFrequency()
     {
-        if (maybeFreqExt_per_videoFps < 0)
-        {
-            ; // SerialM.printf(
-              //  "Error: trying to tune external clock frequency while clock frequency uninitialized!\n");
+        if (maybeFreqExt_per_videoFps < 0) {
+            SerialM.printf(
+                "Error: trying to tune external clock frequency while clock frequency uninitialized!\n");
             return true;
         }
 
         // Compare to externalClockGenSyncInOutRate().
-        if (GBS::PAD_CKIN_ENZ::read() != 0)
-        {
+        if (GBS::PAD_CKIN_ENZ::read() != 0) {
             // Failed due to external factors (PAD_CKIN_ENZ=0 on
             // startup), not bad input signal, don't return frame sync
             // error.
@@ -554,22 +510,19 @@ public:
             return true;
         }
 
-        if (rto->outModeHdBypass)
-        {
+        if (rto->outModeHdBypass) {
             fsDebugPrintf(
                 "Skipping FrameSyncManager::runFrequency(), rto->outModeHdBypass\n");
             return true;
         }
-        if (GBS::PLL648_CONTROL_01::read() != 0x75)
-        {
-            ; //SerialM.printf(\
-                "Error: trying to tune external clock frequency while set to internal clock, PLL648_CONTROL_01=%d!\n",\
+        if (GBS::PLL648_CONTROL_01::read() != 0x75) {
+            SerialM.printf(
+                "Error: trying to tune external clock frequency while set to internal clock, PLL648_CONTROL_01=%d!\n",
                 GBS::PLL648_CONTROL_01::read());
             return true;
         }
 
-        if (!syncLockReady)
-        {
+        if (!syncLockReady) {
             fsDebugPrintf(
                 "Skipping FrameSyncManager::runFrequency(), !syncLockReady\n");
             return false;
@@ -582,7 +535,7 @@ public:
         const float esp8266_clock_freq = ESP.getCpuFreqMHz() * 1000000;
 
         // ESP CPU cycles
-        int32_t periodInput; // int32_t periodOutput;
+        int32_t periodInput;  // int32_t periodOutput;
         int32_t phase;
 
         // Frame/s
@@ -593,23 +546,20 @@ public:
         // input sync changes (but does not eliminate it, eg. when resetting a
         // SNES).
         bool success = false;
-        for (int attempt = 0; attempt < 2; attempt++)
-        {
+        for (int attempt = 0; attempt < 2; attempt++) {
             // Measure input period and output latency.
             bool ret = vsyncPeriodAndPhase(&periodInput, nullptr, &phase);
             // TODO make vsyncPeriodAndPhase() restore TEST_BUS_SEL, not the caller?
             GBS::TEST_BUS_SEL::write(0x0);
-            if (!ret)
-            {
-                ; // SerialM.printf("runFrequency(): vsyncPeriodAndPhase failed, retrying...\n");
+            if (!ret) {
+                SerialM.printf("runFrequency(): vsyncPeriodAndPhase failed, retrying...\n");
                 continue;
             }
 
             fpsInput = esp8266_clock_freq / (float)periodInput;
-            if (fpsInput < 47.0f || fpsInput > 86.0f)
-            {
-                ; //SerialM.printf(\
-                    "runFrequency(): fpsInput wrong: %f, retrying...\n",\
+            if (fpsInput < 47.0f || fpsInput > 86.0f) {
+                SerialM.printf(
+                    "runFrequency(): fpsInput wrong: %f, retrying...\n",
                     fpsInput);
                 continue;
             }
@@ -619,16 +569,14 @@ public:
             // vsyncPeriodAndPhase() sets it to 2.
             GBS::TEST_BUS_SEL::write(0x0);
             uint32_t periodInput2 = getPulseTicks();
-            if (periodInput2 == 0)
-            {
-                ; // SerialM.printf("runFrequency(): getPulseTicks failed, retrying...\n");
+            if (periodInput2 == 0) {
+                SerialM.printf("runFrequency(): getPulseTicks failed, retrying...\n");
                 continue;
             }
             float fpsInput2 = esp8266_clock_freq / (float)periodInput2;
-            if (fpsInput2 < 47.0f || fpsInput2 > 86.0f)
-            {
-                ; //SerialM.printf(\
-                    "runFrequency(): fpsInput2 wrong: %f, retrying...\n",\
+            if (fpsInput2 < 47.0f || fpsInput2 > 86.0f) {
+                SerialM.printf(
+                    "runFrequency(): fpsInput2 wrong: %f, retrying...\n",
                     fpsInput2);
                 continue;
             }
@@ -636,11 +584,10 @@ public:
             // Check that the two FPS measurements are sufficiently close.
             float diff = fabs(fpsInput2 - fpsInput);
             float relDiff = diff / std::min(fpsInput, fpsInput2);
-            if (relDiff != relDiff || diff > 0.5f || relDiff > 0.00833f)
-            {
-                ; //SerialM.printf(\
-                    "FrameSyncManager::runFrequency() measured inconsistent FPS %f and %f, retrying...\n",\
-                    fpsInput,\
+            if (relDiff != relDiff || diff > 0.5f || relDiff > 0.00833f) {
+                SerialM.printf(
+                    "FrameSyncManager::runFrequency() measured inconsistent FPS %f and %f, retrying...\n",
+                    fpsInput,
                     fpsInput2);
                 continue;
             }
@@ -648,9 +595,8 @@ public:
             success = true;
             break;
         }
-        if (!success)
-        {
-            ; // SerialM.printf("FrameSyncManager::runFrequency() failed!\n");
+        if (!success) {
+            SerialM.printf("FrameSyncManager::runFrequency() failed!\n");
             return false;
         }
 
@@ -661,8 +607,8 @@ public:
         // If latency increases, boost frequency, and vice versa.
         const float latency_err_frames =
             (float)(phase - target) // cycles
-            / esp8266_clock_freq    // s
-            * fpsInput;             // frames
+            / esp8266_clock_freq // s
+            * fpsInput; // frames
 
         // 0.0038f is 2/525, the difference between SNES and Wii 240p.
         // This number is somewhat arbitrary, but works well in
@@ -676,10 +622,8 @@ public:
         // input FPS to 0.06%. This is sufficient as long as fpsInput does not
         // vary drastically from frame to frame.
         constexpr float MAX_CORRECTION = 0.0006f;
-        if (correction > MAX_CORRECTION)
-            correction = MAX_CORRECTION;
-        if (correction < -MAX_CORRECTION)
-            correction = -MAX_CORRECTION;
+        if (correction > MAX_CORRECTION) correction = MAX_CORRECTION;
+        if (correction < -MAX_CORRECTION) correction = -MAX_CORRECTION;
 
         const float rawFpsOutput = fpsInput * (1 + correction);
 
@@ -697,10 +641,9 @@ public:
         fpsOutput = std::min(fpsOutput, prevFpsOutput * (1 + MAX_FPS_CHANGE));
         fpsOutput = std::max(fpsOutput, prevFpsOutput * (1 - MAX_FPS_CHANGE));
 
-        if (fabs(rawFpsOutput - prevFpsOutput) >= 1.f)
-        {
-            ; //SerialM.printf(\
-                "FPS excursion detected! Measured input FPS %f, previous output FPS %f",\
+        if (fabs(rawFpsOutput - prevFpsOutput) >= 1.f) {
+            SerialM.printf(
+                "FPS excursion detected! Measured input FPS %f, previous output FPS %f",
                 fpsInput, prevFpsOutput);
         }
 

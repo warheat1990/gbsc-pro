@@ -912,13 +912,13 @@ section[name="alert"] {
                 <div>save preset</div>
               </button>
               <button
-              class="gbs-button gbs-button__control-action gbs-button__secondary"
-              onclick="removePreset()"
-              active
-            >
-              <div class="gbs-icon">highlight_remove</div>
-              <div>remove preset</div>
-            </button>
+                class="gbs-button gbs-button__control-action gbs-button__secondary"
+                onclick="removePreset()"
+                active
+              >
+                <div class="gbs-icon">highlight_remove</div>
+                <div>remove preset</div>
+              </button>
             </div>
           </fieldset>
         </section>
@@ -1516,6 +1516,7 @@ section[name="alert"] {
             </ul>
           </fieldset>
         </section>
+
         <section name="preferences" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
@@ -1752,22 +1753,17 @@ section[name="alert"] {
                 </td>
                 <td class="gbs-icon">toggle_off</td>
               </tr>
-			    <td>
-                  IR Remote Control: Key Codes
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Reading the code of the IR remote control buttons.</li>
-                  </ul>
-                </td>
-			    <td
-				 class="gbs-icon"
-                 gbs-message="I"
-                 gbs-message-type="user"
-                 gbs-click="normal"                
-				 style="cursor: pointer"
-                >
-                 swap_horiz
-                </td>
+              
+              <td>
+                IR Remote Control: Key Codes
+                <!-- prettier-ignore -->
+                <ul class="gbs-help">
+                  <li>Reading the code of the IR remote control buttons.</li>
+                </ul>
+              </td>
+              <td class="gbs-icon" gbs-message="I" gbs-message-type="user" gbs-click="normal" style="cursor: pointer">
+                  swap_horiz
+              </td>
             </table>
           </fieldset>
         </section>
@@ -2816,13 +2812,13 @@ const doBackup = () => {
     let backupFiles;
     let done = 0;
     let total = 0;
-    fetch("/spiffs/dir")
+    fetch("/filesystem/dir")
         .then((r) => r.json())
         .then((files) => {
         backupFiles = files;
         total = files.length;
         const funcs = files.map((path) => () => {
-            return fetch(`/spiffs/download?file=${path}&${+new Date()}`).then((response) => {
+            return fetch(`/filesystem/download?file=${path}&${+new Date()}`).then((response) => {
                 GBSControl.ui.progressBackup.setAttribute("gbs-progress", `${done}/${total}`);
                 done++;
                 return checkFetchResponseStatus(response) && response.arrayBuffer();
@@ -2886,7 +2882,7 @@ const doRestore = (file) => {
         const fileContents = fileBuffer.slice(pos, pos + headerObject[fileName]);
         const formData = new FormData();
         formData.append("file", new Blob([fileContents], { type: "application/octet-stream" }), fileName.substr(1));
-        return fetch("/spiffs/upload", {
+        return fetch("/filesystem/upload", {
             method: "POST",
             body: formData,
         }).then((response) => {

@@ -7,12 +7,7 @@
 #include "OLEDMenuItem.h"
 #include "OLEDMenuConfig.h"
 #define IMAGE_ITEM(name) name##_WIDTH, name##_HEIGHT, name
-
 #define CENTER_IMAGE(name) (OLED_MENU_WIDTH - name##_WIDTH) / 2, (OLED_MENU_HEIGHT - name##_HEIGHT) / 2, name##_WIDTH, name##_HEIGHT, name
-
-
-
-
 enum class OLEDMenuState
 {
     IDLE = 0,
@@ -35,9 +30,9 @@ private:
     OLEDMenuItem allItems[OLED_MENU_MAX_ITEMS_NUM];
     OLEDMenuItem *itemStack[OLED_MENU_MAX_DEPTH];
     uint8_t itemSP;
-    OLEDMenuItem *itemUnderCursor; // 空表示当前选择了状态栏
+    OLEDMenuItem *itemUnderCursor; // null means the status bar is currently selected
     OLEDMenuState state;
-    uint8_t cursor; // 只是缓存 itemUnderCursor 的索引，可能不会及时更新。
+    uint8_t cursor; // just a cache of the index of itemUnderCursor. may not be updated in time. use itemUnderCursor to control the cursor instead
     uint16_t numTotalItem;
     int8_t scrollDir;
     uint16_t numRegisteredItem;
@@ -122,7 +117,7 @@ public:
     {
         if (this->state == OLEDMenuState::ITEM_HANDLING)
         {
-            // 只能由项目处理程序调用
+            // can only be called by item handlers
             this->state = OLEDMenuState::FREEZING;
         }
     }

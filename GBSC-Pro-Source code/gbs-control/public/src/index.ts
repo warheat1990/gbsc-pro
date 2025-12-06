@@ -466,6 +466,24 @@ const loadPreset = () => {
   });
 };
 
+const removePreset = () => {
+  fetch(`/slot/remove?0&nocache=${new Date().getTime()}`).then(() => {
+      setTimeout(() => {
+          clearTimeout(GBSControl.wsTimeout);
+          // GBSControl.wsTimeout = setTimeout(timeOutWs, 6000); //TODO: calc timeout
+          fetch(`/slot/remove?1&nocache=${new Date().getTime()}`).then(() => {
+              setTimeout(() => {
+                  fetchSlotNames().then((success) => {
+                      if (success) {
+                          updateSlotNames();
+                      }
+                  });
+              }, 500);
+          });
+      }, 200);
+  });
+};
+
 const getSlotsHTML = () => {
   // prettier-ignore
   return [
@@ -731,13 +749,13 @@ const doBackup = () => {
   let backupFiles: string[];
   let done = 0;
   let total = 0;
-  fetch("/spiffs/dir")
+  fetch("/filesystem/dir")
     .then((r) => r.json())
     .then((files: string[]) => {
       backupFiles = files;
       total = files.length;
       const funcs = files.map((path: string) => () => {
-        return fetch(`/spiffs/download?file=${path}&${+new Date()}`).then(
+        return fetch(`/filesystem/download?file=${path}&${+new Date()}`).then(
           (response) => {
             GBSControl.ui.progressBackup.setAttribute(
               "gbs-progress",
@@ -828,7 +846,7 @@ const doRestore = (file: ArrayBuffer) => {
       fileName.substr(1)
     );
 
-    return fetch("/spiffs/upload", {
+    return fetch("/filesystem/upload", {
       method: "POST",
       body: formData,
     }).then((response) => {

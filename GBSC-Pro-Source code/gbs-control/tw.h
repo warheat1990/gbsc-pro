@@ -6,8 +6,7 @@
 namespace tw
 {
 
-    enum class Signage
-    {
+    enum class Signage {
         UNSIGNED,
         SIGNED
     };
@@ -71,8 +70,7 @@ namespace tw
             Wire.endTransmission();
             Wire.requestFrom(addr, size, static_cast<uint8_t>(true));
             uint8_t rcvBytes = 0;
-            while (Wire.available())
-            {
+            while (Wire.available()) {
                 output[rcvBytes++] = Wire.read();
             }
 
@@ -118,8 +116,7 @@ namespace tw
             // Append the rest of the bytes to the value.  Note the correction
             // by -BitOffset to line the positions up with the least significant
             // byte above.
-            for (uint8_t i = 1; i < byteSize(BitOffset, BitWidth); ++i)
-            {
+            for (uint8_t i = 1; i < byteSize(BitOffset, BitWidth); ++i) {
                 value |= static_cast<RegValue<BitWidth, Signage::UNSIGNED>>(data[i]) << (8 * i - BitOffset);
             }
             // Mask off extraneous bits from the most significant byte
@@ -149,16 +146,13 @@ namespace tw
         {
             static const uint8_t bs = byteSize(BitOffset, BitWidth);
             // Special case when only one byte is covered
-            if (bs == 1)
-            {
+            if (bs == 1) {
                 // Create a mask of the specified width and position
                 static const uint8_t mask = static_cast<uint8_t>(((1u << BitWidth) - 1) << BitOffset);
                 // Move value into position, mask it, and combine with existing
                 // data
                 data[0] = (data[0] & ~mask) | ((value << BitOffset) & mask);
-            }
-            else
-            {
+            } else {
                 // For the least significant byte, create a mask from the bit
                 // offset up
                 static const uint8_t mask = static_cast<uint8_t>(0xFFu << BitOffset);
@@ -167,8 +161,7 @@ namespace tw
                 data[0] = (data[0] & ~mask) | ((value << BitOffset) & mask);
                 // For remaining bytes other than the most significant, the entire
                 // byte is covered, so simply shift into position and truncate
-                for (uint8_t i = 1; i < bs - 1; ++i)
-                {
+                for (uint8_t i = 1; i < bs - 1; ++i) {
                     data[i] = value >> (8 * i - BitOffset);
                 }
                 // For the most significant byte, create a mask for the covered
@@ -280,7 +273,7 @@ namespace tw
         class Tie
         {
         public:
-            static void read(typename Regs::Value &...values)
+            static void read(typename Regs::Value &... values)
             {
                 static const uint8_t start = detail::RegRange<Regs...>::start;
                 static const uint8_t end = detail::RegRange<Regs...>::end;
@@ -332,8 +325,7 @@ namespace tw
         static void setSeg(SegValue seg)
         {
             static SegValue curSeg = Attrs::SegInitial;
-            if (curSeg != seg)
-            {
+            if (curSeg != seg) {
                 Segment::write(seg);
                 curSeg = seg;
             }
@@ -372,7 +364,7 @@ namespace tw
             typedef typename Base::template Tie<Regs...> BaseTie;
 
         public:
-            static void read(typename Regs::Value &...values)
+            static void read(typename Regs::Value &... values)
             {
                 setSeg(segment);
                 BaseTie::read(values...);

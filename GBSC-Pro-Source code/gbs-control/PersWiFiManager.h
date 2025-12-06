@@ -55,7 +55,10 @@ private:
     WiFiChangeHandlerFunction _connectHandler;
     WiFiChangeHandlerFunction _apHandler;
 
-}; // class
+    unsigned long _lastConnectionCheck;
+    unsigned long _connectionLostTime;
+
+}; //class
 
 #endif
 #endif

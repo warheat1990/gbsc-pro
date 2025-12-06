@@ -229,8 +229,16 @@
                 onclick="savePreset()"
                 active
               >
-                <div class="gbs-icon">fiber_manual_record</div>
+                <div class="gbs-icon">add_circle_outline</div>
                 <div>save preset</div>
+              </button>
+              <button
+                class="gbs-button gbs-button__control-action gbs-button__secondary"
+                onclick="removePreset()"
+                active
+              >
+                <div class="gbs-icon">highlight_remove</div>
+                <div>remove preset</div>
               </button>
             </div>
           </fieldset>
@@ -716,7 +724,117 @@
                 <li>Peaking increases contrast around horizontal brightness steps, and is recommended.</li>
                 <li>Step Response increases the sharpness of horizontal color steps, and is recommended.</li>
               </ul>
+          </fieldset>
+          <fieldset class="gbs-fieldset filters">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div class="gbs-icon">wb_sunny</div>
+              <div>Сolor correction</div>
+            </legend>
+            <div class="gbs-flex">
+              <button
+                gbs-message="Z"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">add_circle_outline</div>
+                <div>Brightness</div>
+              </button>
+              <button
+                gbs-message="T"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">remove_circle_outline</div>
+                <div>Brightness</div>
+              </button>
             </div>
+            <div class="gbs-flex">
+              <button
+                gbs-message="N"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">add_circle_outline</div>
+                <div>Contrast</div>
+              </button>
+              <button
+                gbs-message="M"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">remove_circle_outline</div>
+                <div>Contrast</div>
+              </button>
+            </div>
+            <div class="gbs-flex">
+              <button
+                gbs-message="Q"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">add_circle_outline</div>
+                <div>Pb/U gain</div>
+              </button>
+              <button
+                gbs-message="H"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">remove_circle_outline</div>
+                <div>Pb/U gain</div>
+              </button>
+            </div>
+            <div class="gbs-flex">
+              <button
+                gbs-message="P"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+                >
+                <div class="gbs-icon">add_circle_outline</div>
+                <div>Pr/V gain</div>
+              </button>
+              <button
+                gbs-message="S"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+                >
+                <div class="gbs-icon">remove_circle_outline</div>
+                <div>Pr/V gain</div>
+              </button>
+            </div>
+            <div class="gbs-flex">
+              <button
+                gbs-message="O"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+              <div class="gbs-icon">info</div>
+              <div>Info</div>
+              </button>
+              <button
+                gbs-message="U"
+                gbs-message-type="user"
+                gbs-click="repeat"
+                class="gbs-button gbs-button__control"
+              >
+                <div class="gbs-icon">settings_backup_restore</div>
+                <div>Default</div>
+              </button>
+            </div>
+            <ul class="gbs-help">
+              <!-- prettier-ignore -->
+              <li>Pb/U gain - change blue-luma gain.</li>
+              <li>Pr/V gain - change red-luma gain.</li>
+            </ul>
           </fieldset>
         </section>
 
@@ -956,6 +1074,17 @@
                 </td>
                 <td class="gbs-icon">toggle_off</td>
               </tr>
+              
+              <td>
+                IR Remote Control: Key Codes
+                <!-- prettier-ignore -->
+                <ul class="gbs-help">
+                  <li>Reading the code of the IR remote control buttons.</li>
+                </ul>
+              </td>
+              <td class="gbs-icon" gbs-message="I" gbs-message-type="user" gbs-click="normal" style="cursor: pointer">
+                  swap_horiz
+              </td>
             </table>
           </fieldset>
         </section>

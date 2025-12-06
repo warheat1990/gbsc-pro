@@ -30,8 +30,8 @@ private:
     using UReg = Register<Seg, ByteOffset, BitOffset, BitWidth, tw::Signage::UNSIGNED>;
 
 public:
-    // STATUS Registers----------状态寄存器
-    // Arbitary names for STATUS_IF register------STATUS_IF 寄存器的任意名称
+    // STATUS Registers
+    // Arbitary names for STATUS_IF register
     typedef UReg<0x00, 0x00, 0, 8> STATUS_00; // whole register for convenience
     typedef UReg<0x00, 0x00, 0, 1> STATUS_IF_VT_OK;
     typedef UReg<0x00, 0x00, 1, 1> STATUS_IF_HT_OK;
@@ -82,7 +82,7 @@ public:
     typedef UReg<0x00, 0x05, 3, 1> STATUS_IF_VT_BAD;
     typedef UReg<0x00, 0x05, 4, 1> STATUS_IF_INP_SW;
 
-/* new_S*/  
+    /* new_S*/  
     typedef UReg<0x00, 0x00, 0, 8> REG_S0_00;
     typedef UReg<0x00, 0x01, 0, 8> REG_S0_01;
     typedef UReg<0x00, 0x02, 0, 8> REG_S0_02;
@@ -93,8 +93,6 @@ public:
     typedef UReg<0x00, 0x07, 0, 8> REG_S0_07;
     typedef UReg<0x00, 0x08, 0, 8> REG_S0_08;
 
-
-
     typedef UReg<0x00, 0x04, 6, 2> INTERLACE_PROGRESSIVE_RECOGNIZE;
     typedef UReg<0x00, 0x05, 0, 1> USER_DEFINE;
     typedef UReg<0x00, 0x06, 0, 8> H_TOTAL_LOW;
@@ -102,13 +100,9 @@ public:
     typedef UReg<0x00, 0x07, 1, 7> V_TOTAL_LOW;
     typedef UReg<0x00, 0x08, 0, 4> V_TOTAL_HIGH;
 
-
     typedef UReg<0x04, 0x2B, 4, 1> PB_DB_FIELD_EN;
 
-
-    
-
-/* new_E*/
+    /* new_E*/
 
     typedef UReg<0x00, 0x06, 0, 9> HPERIOD_IF;
     typedef UReg<0x00, 0x07, 1, 11> VPERIOD_IF;
@@ -145,7 +139,7 @@ public:
     typedef UReg<0x00, 0x0F, 4, 1> STATUS_INT_INP_NO_SYNC;
     typedef UReg<0x00, 0x0F, 5, 1> STATUS_INT_INP_HSYNC;
     typedef UReg<0x00, 0x0F, 6, 1> STATUS_INT_INP_VSYNC;
-    typedef UReg<0x00, 0x0F, 7, 1> STATUS_INT_INP_CSYNC; // Needs confirmation
+    typedef UReg<0x00, 0x0F, 7, 1> STATUS_INT_INP_CSYNC; //Needs confirmation
 
     typedef UReg<0x00, 0x10, 0, 4> STATUS_VDS_FR_NUM;
     typedef UReg<0x00, 0x10, 4, 1> STATUS_VDS_OUT_VSYNC;
@@ -182,7 +176,6 @@ public:
     typedef UReg<0x00, 0x2F, 0, 8> TEST_BUS_2F;
 
     // Miscellaneous Registers
-    //杂项登记册
     typedef UReg<0x00, 0x40, 0, 1> PLL_CKIS;
     typedef UReg<0x00, 0x40, 1, 1> PLL_DIVBY2Z;
     typedef UReg<0x00, 0x40, 2, 1> PLL_IS;
@@ -217,14 +210,12 @@ public:
     typedef UReg<0x00, 0x48, 0, 1> PAD_BOUT_EN; // aka debug pin
     typedef UReg<0x00, 0x48, 6, 1> PAD_SYNC1_IN_ENZ;
     typedef UReg<0x00, 0x48, 7, 1> PAD_SYNC2_IN_ENZ;
-
     typedef UReg<0x00, 0x49, 0, 8> PAD_CONTROL_01_0x49; // fake name
     typedef UReg<0x00, 0x49, 0, 1> PAD_CKIN_ENZ;
     typedef UReg<0x00, 0x49, 1, 1> PAD_CKOUT_ENZ;
     typedef UReg<0x00, 0x49, 2, 1> PAD_SYNC_OUT_ENZ;
     typedef UReg<0x00, 0x49, 3, 1> PAD_BLK_OUT_ENZ;
     typedef UReg<0x00, 0x49, 4, 1> PAD_TRI_ENZ;
-
     typedef UReg<0x00, 0x4A, 0, 3> PAD_OSC_CNTRL;
     typedef UReg<0x00, 0x4B, 1, 1> DAC_RGBS_BYPS2DAC;
     typedef UReg<0x00, 0x4B, 2, 1> DAC_RGBS_ADC2DAC;
@@ -232,11 +223,11 @@ public:
     typedef UReg<0x00, 0x4D, 5, 1> TEST_BUS_EN;
     typedef UReg<0x00, 0x4F, 5, 1> OUT_SYNC_CNTRL;
     typedef UReg<0x00, 0x4F, 6, 2> OUT_SYNC_SEL;
-  //NEW   
+    //NEW   
     // typedef UReg<0x00, 0x50, 0, 1> OUT_BLANK_SEL_0;
     // typedef UReg<0x00, 0x50, 1, 1> OUT_BLANK_SEL_1;
     // typedef UReg<0x00, 0x54, 0, 8> GPIO_VAL;
-  //END
+    //END
 
     typedef UReg<0x00, 0x52, 0, 8> GPIO_CONTROL_00;
     typedef UReg<0x00, 0x53, 0, 8> GPIO_CONTROL_01;
@@ -247,7 +238,6 @@ public:
     typedef UReg<0x00, 0x59, 0, 8> INTERRUPT_CONTROL_01;
 
     // IF Registers
-    //IF 寄存器
     typedef UReg<0x01, 0x00, 0, 1> IF_IN_DREG_BYPS;
     typedef UReg<0x01, 0x00, 1, 1> IF_MATRIX_BYPS;
     typedef UReg<0x01, 0x00, 2, 1> IF_UV_REVERT;
@@ -299,9 +289,8 @@ public:
     typedef UReg<0x01, 0x2C, 3, 1> GBS_RUNTIME_UNUSED_BIT;
     typedef UReg<0x01, 0x2C, 4, 1> GBS_RUNTIME_FTL_ADJUSTED;
     typedef UReg<0x01, 0x2D, 0, 8> GBS_PRESET_DISPLAY_CLOCK;
-  
+
     // HDBypass
-    //高清旁路
     typedef UReg<0x01, 0x30, 1, 1> HD_MATRIX_BYPS;
     typedef UReg<0x01, 0x30, 2, 1> HD_DYN_BYPS;
     typedef UReg<0x01, 0x30, 3, 1> HD_SEL_BLK_IN;
@@ -323,7 +312,6 @@ public:
     typedef UReg<0x01, 0x55, 0, 8> HD_BLK_RV_DATA;
 
     // Mode Detect
-    //模式检测
     typedef UReg<0x01, 0x60, 0, 5> MD_HPERIOD_LOCK_VALUE;
     typedef UReg<0x01, 0x60, 5, 3> MD_HPERIOD_UNLOCK_VALUE;
     typedef UReg<0x01, 0x61, 0, 5> MD_VPERIOD_LOCK_VALUE;
@@ -347,7 +335,6 @@ public:
     typedef UReg<0x01, 0x7F, 0, 7> MD_HD1250P_CNTRL; // changed to meaning 24khz
 
     // Deinterlacer / Scaledown registers
-    //脱嵌/缩放寄存器
     typedef UReg<0x02, 0x00, 0, 8> DEINT_00;
     typedef UReg<0x02, 0x00, 7, 1> DIAG_BOB_PLDY_RAM_BYPS;
     typedef UReg<0x02, 0x02, 6, 1> MADPT_Y_VSCALE_BYPS;
@@ -398,14 +385,14 @@ public:
     typedef UReg<0x03, 0x00, 7, 1> VDS_SRESET;
     typedef UReg<0x03, 0x01, 0, 12> VDS_HSYNC_RST;
     typedef UReg<0x03, 0x02, 4, 11> VDS_VSYNC_RST;
-    typedef UReg<0x03, 0x04, 0, 12> VDS_HB_ST     ;
-    typedef UReg<0x03, 0x05, 4, 12> VDS_HB_SP     ;
-    typedef UReg<0x03, 0x07, 0, 11> VDS_VB_ST     ;
-    typedef UReg<0x03, 0x08, 4, 11> VDS_VB_SP     ;
-    typedef UReg<0x03, 0x0A, 0, 12> VDS_HS_ST     ;
-    typedef UReg<0x03, 0x0B, 4, 12> VDS_HS_SP     ;
-    typedef UReg<0x03, 0x0D, 0, 11> VDS_VS_ST     ;
-    typedef UReg<0x03, 0x0E, 4, 11> VDS_VS_SP     ;
+    typedef UReg<0x03, 0x04, 0, 12> VDS_HB_ST;
+    typedef UReg<0x03, 0x05, 4, 12> VDS_HB_SP;
+    typedef UReg<0x03, 0x07, 0, 11> VDS_VB_ST;
+    typedef UReg<0x03, 0x08, 4, 11> VDS_VB_SP;
+    typedef UReg<0x03, 0x0A, 0, 12> VDS_HS_ST;
+    typedef UReg<0x03, 0x0B, 4, 12> VDS_HS_SP;
+    typedef UReg<0x03, 0x0D, 0, 11> VDS_VS_ST;
+    typedef UReg<0x03, 0x0E, 4, 11> VDS_VS_SP;
     typedef UReg<0x03, 0x10, 0, 12> VDS_DIS_HB_ST;
     typedef UReg<0x03, 0x11, 4, 12> VDS_DIS_HB_SP;
     typedef UReg<0x03, 0x13, 0, 11> VDS_DIS_VB_ST;

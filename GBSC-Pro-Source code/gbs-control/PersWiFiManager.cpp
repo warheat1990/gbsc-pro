@@ -21,71 +21,111 @@ PersWiFiManager::PersWiFiManager(AsyncWebServer &s, DNSServer &d)
     _server = &s;
     _dnsServer = &d;
     _apPass = "";
-} // PersWiFiManager
+    _lastConnectionCheck = 0;
+    _connectionLostTime = 0;
+} //PersWiFiManager
 
 bool PersWiFiManager::attemptConnection(const String &ssid, const String &pass)
 {
-    // attempt to connect to wifi
+    //attempt to connect to wifi
+    // Configure WiFi settings to avoid ESP8266 Core 3.1.x bug
+    // Enable persistence only when explicitly saving new credentials
+    if (ssid.length() > 0) {
+        WiFi.persistent(true);  // Save new credentials to flash
+    } else {
+        WiFi.persistent(false); // Use saved credentials without re-writing
+    }
+    WiFi.setAutoConnect(false);
+    WiFi.setAutoReconnect(true);
+    
+    // Ensure WiFi hardware is fully awake and ready
+    WiFi.forceSleepWake();
+    delay(100);
+    
+    // Properly disconnect before mode change
+    WiFi.disconnect(false); // false = don't erase credentials
+    delay(200); // Increased delay for stability
     WiFi.mode(WIFI_STA);
+    delay(200); // Increased delay for stability
     WiFi.hostname(device_hostname_partial); // _full // before WiFi.begin();
-    if (ssid.length())
-    {
+    delay(100); // Give time for hostname to be set
+    
+    if (ssid.length()) {
         if (pass.length())
             WiFi.begin(ssid.c_str(), pass.c_str());
         else
             WiFi.begin(ssid.c_str());
-    }
-    else
-    {
+        // Disable persistence after saving
+        WiFi.persistent(false);
+    } else {
         WiFi.begin();
     }
 
-    // if in nonblock mode, skip this loop
+    //if in nonblock mode, skip this loop
     _connectStartTime = millis(); // + 1;
-    while (!_connectNonBlock && _connectStartTime)
-    {
+    while (!_connectNonBlock && _connectStartTime) {
         handleWiFi();
         delay(10);
     }
 
     return (WiFi.status() == WL_CONNECTED);
 
-} // attemptConnection
+} //attemptConnection
 
 void PersWiFiManager::handleWiFi()
 {
-    if (!_connectStartTime)
+    if (!_connectStartTime) {
+        // Routine checks when not in initial connection phase
+        if (WiFi.getMode() == WIFI_STA) {
+            if (WiFi.status() == WL_CONNECTED) {
+                _connectionLostTime = 0; // Reset counter
+            } else {
+                // Not connected
+                if (_connectionLostTime == 0) {
+                    _connectionLostTime = millis();
+                }
+                
+                // If disconnected for more than 30 seconds, try to restart WiFi
+                if ((millis() - _connectionLostTime) > 30000) {
+                     _connectionLostTime = 0;
+                     WiFi.reconnect();
+                }
+            }
+        }
         return;
+    }
 
-    if (WiFi.status() == WL_CONNECTED)
-    {
+    if (WiFi.status() == WL_CONNECTED) {
         _connectStartTime = 0;
         if (_connectHandler)
             _connectHandler();
         return;
     }
 
-    // if failed or not connected and time is up
-    if ((WiFi.status() == WL_CONNECT_FAILED) || ((WiFi.status() != WL_CONNECTED) && ((millis() - _connectStartTime) > (1000 * WIFI_CONNECT_TIMEOUT))))
-    {
+    //if failed or not connected and time is up
+    if ((WiFi.status() == WL_CONNECT_FAILED) || ((WiFi.status() != WL_CONNECTED) && ((millis() - _connectStartTime) > (1000 * WIFI_CONNECT_TIMEOUT)))) {
         startApMode();
-        _connectStartTime = 0; // reset connect start time
+        _connectStartTime = 0; //reset connect start time
     }
 
-} // handleWiFi
+} //handleWiFi
 
 void PersWiFiManager::startApMode()
 {
-    // start AP mode
+    //start AP mode
     IPAddress apIP(192, 168, 4, 1);
+    WiFi.disconnect(true); // true = erase STA credentials from this session
+    delay(100);
     WiFi.mode(WIFI_AP);
+    delay(100);
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
     _apPass.length() ? WiFi.softAP(getApSsid().c_str(), _apPass.c_str(), 11) : WiFi.softAP(getApSsid().c_str());
 
     _dnsServer->stop();
-    // 设置所有其他域将使用哪个返回代码（例如，发送
-    // 例如，发送 ServerFailure 而不是 NonExistentDomain 将减少客户端发送的查询次数。
-    // 客户端发送的查询次数）
+    delay(50);
+    // set which return code will be used for all other domains (e.g. sending
+    // ServerFailure instead of NonExistentDomain will reduce number of queries
+    // sent by clients)
     // default is DNSReplyCode::NonExistentDomain
     //_dnsServer->setErrorReplyCode(DNSReplyCode::ServerFailure);
     // modify TTL associated  with the domain name (in seconds) // default is 60 seconds
@@ -95,19 +135,18 @@ void PersWiFiManager::startApMode()
 
     if (_apHandler)
         _apHandler();
-} // startApMode
+} //startApMode
 
 void PersWiFiManager::setConnectNonBlock(bool b)
 {
     _connectNonBlock = b;
-} // setConnectNonBlock
+} //setConnectNonBlock
 
 void PersWiFiManager::setupWiFiHandlers()
 {
     // note: removed DNS server setup here
 
-    _server->on("/wifi/list", HTTP_GET, [](AsyncWebServerRequest *request)
-                {
+    _server->on("/wifi/list", HTTP_GET, [](AsyncWebServerRequest *request) {
         //scan for wifi networks
         int n = WiFi.scanComplete();
         String s = "";
@@ -134,8 +173,7 @@ void PersWiFiManager::setupWiFiHandlers()
             //build plain text string of wifi info
             //format [signal%]:[encrypted 0 or 1]:SSID
             for (int i = 0; i < n && s.length() < 2000; i++) { //check s.length to limit memory usage
-                if (ix[i] != -1) 
-                {
+                if (ix[i] != -1) {
                     s += String(i ? "\n" : "") + ((constrain(WiFi.RSSI(ix[i]), -100, -50) + 100) * 2) + "," + ((WiFi.encryptionType(ix[i]) == ENC_TYPE_NONE) ? 0 : 1) + "," + WiFi.SSID(ix[i]);
                 }
             }
@@ -143,7 +181,8 @@ void PersWiFiManager::setupWiFiHandlers()
             WiFi.scanDelete();
         }
         //send string to client
-        request->send(200, "text/plain", s); }); //_server->on /wifi/list
+        request->send(200, "text/plain", s);
+    }); //_server->on /wifi/list
 
     // #ifdef WIFI_HTM_PROGMEM
     //   _server->on("/wifi.htm", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -152,18 +191,18 @@ void PersWiFiManager::setupWiFiHandlers()
     //   });
     // #endif
 
-} // setupWiFiHandlers
+} //setupWiFiHandlers
 
 bool PersWiFiManager::begin(const String &ssid, const String &pass)
 {
     setupWiFiHandlers();
-    return attemptConnection(ssid, pass); // switched order of these two for return
-} // begin
+    return attemptConnection(ssid, pass); //switched order of these two for return
+} //begin
 
 String PersWiFiManager::getApSsid()
 {
     return _apSsid.length() ? _apSsid : "gbscontrol";
-} // getApSsid
+} //getApSsid
 
 void PersWiFiManager::setApCredentials(const String &apSsid, const String &apPass)
 {
@@ -171,7 +210,7 @@ void PersWiFiManager::setApCredentials(const String &apSsid, const String &apPas
         _apSsid = apSsid;
     if (apPass.length() >= 8)
         _apPass = apPass;
-} // setApCredentials
+} //setApCredentials
 
 void PersWiFiManager::onConnect(WiFiChangeHandlerFunction fn)
 {

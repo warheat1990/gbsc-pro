@@ -71,7 +71,7 @@ void setup() {
 	// USE_SERIAL.begin(921600);
 	USE_SERIAL.begin(115200);
 
-	Serial.setDebugOutput(true);
+	//Serial.setDebugOutput(true);
 	USE_SERIAL.setDebugOutput(true);
 
 	USE_SERIAL.println();

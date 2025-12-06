@@ -1,11 +1,11 @@
 #define DEBUG_SERIAL //uncomment for Serial debugging statements
 
 #ifdef DEBUG_SERIAL
-//#define //DEBUG_BEGIN Serial.begin(115200)
-//#define //DEBUG_PRINT(x) Serial.println(x)
+#define DEBUG_BEGIN Serial.begin(115200)
+#define DEBUG_PRINT(x) Serial.println(x)
 #else
-//#define //DEBUG_PRINT(x) 
-//#define //DEBUG_BEGIN
+#define DEBUG_PRINT(x) 
+#define DEBUG_BEGIN
 #endif
 
 //includes
@@ -35,7 +35,7 @@ int x;
 String y;
 
 void setup() {
-  //DEBUG_BEGIN; //for terminal debugging
+  DEBUG_BEGIN; //for terminal debugging
   DEBUG_PRINT();
 
   //allows serving of files from SPIFFS
