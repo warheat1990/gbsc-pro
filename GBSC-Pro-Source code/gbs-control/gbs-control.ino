@@ -234,9 +234,10 @@ static unsigned char B_VAL = 0;
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
 void Color_Conversion(void) {
-    GBS::VDS_Y_OFST::write((signed char)((float)(0.299f * (R_VAL - 128)) + (float)(0.587f * (G_VAL - 128)) + (float)(0.114f * (B_VAL - 128))));
-    GBS::VDS_U_OFST::write((signed char)((float)(-0.169f * (R_VAL - 128)) - (float)(0.331f * (G_VAL - 128)) + (float)(0.500f * (B_VAL - 128)))); //
-    GBS::VDS_V_OFST::write((signed char)((float)(0.500f * (R_VAL - 128)) - (float)(0.419f * (G_VAL - 128)) - (float)(0.081f * (B_VAL - 128))));
+    // ITU-R BT.601 standard RGB to YUV conversion
+    GBS::VDS_Y_OFST::write((signed char)((0.299f * (R_VAL - 128)) + (0.587f * (G_VAL - 128)) + (0.114f * (B_VAL - 128))));
+    GBS::VDS_U_OFST::write((signed char)((-0.14713f * (R_VAL - 128)) - (0.28886f * (G_VAL - 128)) + (0.436f * (B_VAL - 128))));
+    GBS::VDS_V_OFST::write((signed char)((0.615f * (R_VAL - 128)) - (0.51499f * (G_VAL - 128)) - (0.10001f * (B_VAL - 128))));
 }
 
 #include <IRremoteESP8266.h>
@@ -293,7 +294,7 @@ typedef enum {
 char adl = 0;
 boolean IR = 0;
 int COl_L = 1;
-int Volume = 0;
+uint8_t Volume = 0;
 boolean MUTE_R = 0;
 static int oled_menuItem = 0;
 static int oled_menuItem_last = 0;
@@ -302,8 +303,8 @@ boolean NEW_OLED_MENU = true;
 
 static uint8_t SvModeOption, AvModeOption;
 static uint8_t SvModeOptionChanged, AvModeOptionChanged;
-static bool SmoothOption;
-static bool LineOption;
+static uint8_t SmoothOption;
+static uint8_t LineOption;
 static bool SettingLineOptionChanged, SettingSmoothOptionChanged;
 static uint8_t Bright = 128;
 static uint8_t Contrast = 128;
@@ -1342,9 +1343,10 @@ void applyYuvPatches()
         applyComponentColorMixing();
     }
 
-    R_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.402 * (GBS::VDS_V_OFST::read())))) + 128;
-    G_VAL = ((GBS::VDS_Y_OFST::read() - (float)(0.344136  * (GBS::VDS_U_OFST::read())) - 0.714136 * GBS::VDS_V_OFST::read())) + 128;
-    B_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.772 * (GBS::VDS_U_OFST::read())))) + 128;
+    // ITU-R BT.601 standard YUV to RGB conversion
+    R_VAL = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
+    G_VAL = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
+    B_VAL = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;
 }
 
 // blue only mode: t0t44t1 t0t44t4
@@ -1370,9 +1372,10 @@ void applyRGBPatches()
         applyComponentColorMixing();
     }
 
-    R_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.402 * (GBS::VDS_V_OFST::read())))) + 128;
-    G_VAL = ((GBS::VDS_Y_OFST::read() - (float)(0.344136  * (GBS::VDS_U_OFST::read())) - 0.714136 * GBS::VDS_V_OFST::read())) + 128;
-    B_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.772 * (GBS::VDS_U_OFST::read())))) + 128;
+    // ITU-R BT.601 standard YUV to RGB conversion
+    R_VAL = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
+    G_VAL = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
+    B_VAL = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;
 }
 
 /// Write ADC gain registers, and save in adco->r_gain to properly transfer it
@@ -7862,7 +7865,9 @@ void setup()
             if (uopt->disableExternalClockGenerator > 1)
                 uopt->disableExternalClockGenerator = 0;
 
-            Volume = (uint8_t)(f.read() - '0');
+            Volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if (Volume > 50)
+                Volume = 0;
             // InCurrent = (uint8_t)(f.read() - '0');
             SeleInputSource = (uint8_t)(f.read() - '0');
 
@@ -7891,6 +7896,8 @@ void setup()
                 BriorCon = 1;
 
             Info = (uint8_t)(f.read() - '0');
+            if (Info < 1 || Info > 6)
+                Info = 1;
 
             RGB_Com = (uint8_t)(f.read() - '0');
             if (RGB_Com > 1)
@@ -10095,9 +10102,10 @@ void handleType2Command(char argument)
                 GBS::ADC_BOFCTRL::write(adco->b_off);
                 SerialM.println("YPbPr:defauit");
             }
-            R_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.402 * (GBS::VDS_V_OFST::read())))) + 128;
-            G_VAL = ((GBS::VDS_Y_OFST::read() - (float)(0.344136  * (GBS::VDS_U_OFST::read())) - 0.714136 * GBS::VDS_V_OFST::read())) + 128;
-            B_VAL = ((GBS::VDS_Y_OFST::read() + (float)(1.772 * (GBS::VDS_U_OFST::read())))) + 128;   
+            // ITU-R BT.601 standard YUV to RGB conversion
+            R_VAL = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
+            G_VAL = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
+            B_VAL = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;   
             break;
         case 'I':
             if (IR == 0) {
@@ -10227,6 +10235,7 @@ void startWebserver()
     server.on("/bin/slots.bin", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (ESP.getFreeHeap() > 10000) {
             SlotMetaArray slotsObject;
+            memset(&slotsObject, 0, sizeof(slotsObject));
             File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
 
             if (!slotsBinaryFileRead) {
@@ -10242,7 +10251,10 @@ void startWebserver()
                     char emptySlotName[25] = "Empty                   ";
                     strncpy(slotsObject.slot[i].name, emptySlotName, 25);
                 }
-                slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
+                size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
+                if (written != sizeof(slotsObject)) {
+                    SerialM.println(F("Error: Failed to write slots.bin!"));
+                }
                 slotsBinaryFileWrite.close();
             } else {
                 slotsBinaryFileRead.close();
@@ -10281,6 +10293,7 @@ void startWebserver()
 
             if (params > 0) {
                 SlotMetaArray slotsObject;
+                memset(&slotsObject, 0, sizeof(slotsObject));
                 File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
 
                 if (slotsBinaryFileRead) {
@@ -10301,7 +10314,10 @@ void startWebserver()
                         strncpy(slotsObject.slot[i].name, emptySlotName, 25);
                     }
 
-                    slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
+                    size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
+                    if (written != sizeof(slotsObject)) {
+                        SerialM.println(F("Error: Failed to write slots.bin!"));
+                    }
                     slotsBinaryFileWrite.close();
                 }
 
@@ -10330,10 +10346,14 @@ void startWebserver()
                 slotsObject.slot[slotIndex].wantPeaking = uopt->wantPeaking;
 
                 File slotsBinaryOutputFile = LittleFS.open(SLOTS_FILE, "w");
-                slotsBinaryOutputFile.write((byte *)&slotsObject, sizeof(slotsObject));
+                size_t written = slotsBinaryOutputFile.write((byte *)&slotsObject, sizeof(slotsObject));
+                if (written != sizeof(slotsObject)) {
+                    SerialM.println(F("Error: Failed to write slots.bin!"));
+                    result = false;
+                } else {
+                    result = true;
+                }
                 slotsBinaryOutputFile.close();
-
-                result = true;
             }
         }
 
@@ -10343,24 +10363,32 @@ void startWebserver()
 
     server.on("/slot/remove", HTTP_GET, [](AsyncWebServerRequest *request) {
         bool result = false;
-        int params = request->params();
-        const AsyncWebParameter *p = request->getParam(0);
-        char param = p->name().charAt(0);
-        if (params > 0)
-        {
-            if (param == '0')
-            {
-                SerialM.println("Wait...");
-                result = true;
-            }
-            else
-            {
-                Ascii8 slot = uopt->presetSlot;
-                Ascii8 nextSlot;
-                auto currentSlot = slotIndexMap.indexOf(slot);
 
-                SlotMetaArray slotsObject;
+        if (ESP.getFreeHeap() > 10000) {
+            int params = request->params();
+            const AsyncWebParameter *p = request->getParam(0);
+            char param = p->name().charAt(0);
+            if (params > 0)
+            {
+                if (param == '0')
+                {
+                    SerialM.println("Wait...");
+                    result = true;
+                }
+                else
+                {
+                    Ascii8 slot = uopt->presetSlot;
+                    Ascii8 nextSlot;
+                    auto currentSlot = slotIndexMap.indexOf(slot);
+
+                    SlotMetaArray slotsObject;
+                    memset(&slotsObject, 0, sizeof(slotsObject));
                 File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
+                if (!slotsBinaryFileRead) {
+                    SerialM.println(F("Error: slots.bin not found!"));
+                    request->send(500, "application/json", "false");
+                    return;
+                }
                 slotsBinaryFileRead.read((byte *)&slotsObject, sizeof(slotsObject));
                 slotsBinaryFileRead.close();
                 String slotName = slotsObject.slot[currentSlot].name;
@@ -10378,7 +10406,7 @@ void startWebserver()
 
                 uint8_t loopCount = 0;
                 uint8_t flag = 1;
-                while (flag != 0)
+                while (flag != 0 && (currentSlot + loopCount + 1) < SLOTS_TOTAL)
                 {
                     slot = slotIndexMap[currentSlot + loopCount];
                     nextSlot = slotIndexMap[currentSlot + loopCount + 1];
@@ -10406,10 +10434,16 @@ void startWebserver()
                 }
 
                 File slotsBinaryFileWrite = LittleFS.open(SLOTS_FILE, "w");
-                slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
+                size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
                 slotsBinaryFileWrite.close();
-                SerialM.println("Preset \"" + slotName + "\" removed");
-                result = true;
+                if (written != sizeof(slotsObject)) {
+                    SerialM.println(F("Error: Failed to write slots.bin!"));
+                    result = false;
+                } else {
+                    SerialM.println("Preset \"" + slotName + "\" removed");
+                    result = true;
+                }
+                }
             }
         }
 
@@ -10485,6 +10519,7 @@ void startWebserver()
 
     server.on("/gbs/restore-filters", HTTP_GET, [](AsyncWebServerRequest *request) {
         SlotMetaArray slotsObject;
+        memset(&slotsObject, 0, sizeof(slotsObject));
         File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
         bool result = false;
         if (slotsBinaryFileRead) {
@@ -10834,7 +10869,8 @@ void saveUserPrefs()
     f.write(uopt->enableCalibrationADC + '0');          // #17
     f.write(uopt->scanlineStrength + '0');              // #18
     f.write(uopt->disableExternalClockGenerator + '0'); // #19
-    f.write(Volume + '0');
+    f.write(Volume / 10 + '0');
+    f.write(Volume % 10 + '0');
     f.write(SeleInputSource + '0');
     f.write(SvModeOption / 10 + '0');
     f.write(SvModeOption % 10 + '0');
