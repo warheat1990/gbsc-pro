@@ -203,7 +203,9 @@ struct adcOptions *adco = &adcopts;
 String slotIndexMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~()!*:,";
 
 char serialCommand;               // Serial / Web Server commands
+String serialCommandBuffer = "";  // Buffering for Web Server commands
 char userCommand;               // Serial / Web Server commands
+String userCommandBuffer = "";  // Buffering for Web Server commands
 static uint8_t lastSegment = 0xFF; // GBS segment for direct access
 //uint8_t globalDelay; // used for dev / debug
 
@@ -582,66 +584,75 @@ void OSD_writeString(int startPos, int row, const char *str)
 }
 
 #if defined(ESP8266)
-// serial mirror class for websocket logs
+// Buffered serial mirror class for websocket logs
+// 
+// Why buffering?
+// - printf() calls write() for each character individually, creating separate WebSocket frames
+// - Buffering collects characters and sends them as a single frame (on newline or buffer full)
+// - String concatenation would also fragment heap; this 128-byte static buffer is predictable
+// - Works automatically for all SerialM.print/println/printf calls
 class SerialMirror : public Stream
 {
-    size_t write(const uint8_t *data, size_t size)
-    {
-        if (ESP.getFreeHeap() > 20000) {
-            webSocket.broadcastTXT(data, size);
-        } else {
-            webSocket.disconnect();
+private:
+    static constexpr size_t WS_BUFFER_SIZE = 128;
+    char wsBuffer[WS_BUFFER_SIZE];
+    size_t wsBufferPos = 0;
+    unsigned long lastFlushTime = 0;
+    static constexpr unsigned long FLUSH_INTERVAL_MS = 50;
+
+    void flushToWebSocket() {
+        if (wsBufferPos > 0 && ESP.getFreeHeap() > 10000) {
+            webSocket.broadcastTXT((uint8_t*)wsBuffer, wsBufferPos);
+        }
+        wsBufferPos = 0;
+        lastFlushTime = millis();
+    }
+
+    void addToBuffer(char c) {
+        if (wsBufferPos >= WS_BUFFER_SIZE - 1) {
+            flushToWebSocket();
+        }
+        wsBuffer[wsBufferPos++] = c;
+        
+        // Flush on newline or after interval
+        if (c == '\n' || (millis() - lastFlushTime) > FLUSH_INTERVAL_MS) {
+            flushToWebSocket();
+        }
+    }
+
+public:
+    size_t write(const uint8_t *data, size_t size) {
+        for (size_t i = 0; i < size; i++) {
+            addToBuffer((char)data[i]);
         }
         // Serial.write(data, size);
         return size;
     }
 
-    size_t write(const char *data, size_t size)
-    {
-        if (ESP.getFreeHeap() > 20000) {
-            webSocket.broadcastTXT(data, size);
-        } else {
-            webSocket.disconnect();
+    size_t write(const char *data, size_t size) {
+        for (size_t i = 0; i < size; i++) {
+            addToBuffer(data[i]);
         }
         // Serial.write(data, size);
         return size;
     }
 
-    size_t write(uint8_t data)
-    {
-        if (ESP.getFreeHeap() > 20000) {
-            webSocket.broadcastTXT(&data, 1);
-        } else {
-            webSocket.disconnect();
-        }
+    size_t write(uint8_t data) {
+        addToBuffer((char)data);
         // Serial.write(data);
         return 1;
     }
 
-    size_t write(char data)
-    {
-        if (ESP.getFreeHeap() > 20000) {
-            webSocket.broadcastTXT(&data, 1);
-        } else {
-            webSocket.disconnect();
-        }
+    size_t write(char data) {
+        addToBuffer(data);
         // Serial.write(data);
         return 1;
     }
 
-    int available()
-    {
-        return 0;
-    }
-    int read()
-    {
-        return -1;
-    }
-    int peek()
-    {
-        return -1;
-    }
-    void flush() {}
+    int available() { return 0; }
+    int read() { return -1; }
+    int peek() { return -1; }
+    void flush() { flushToWebSocket(); }
 };
 
 SerialMirror SerialM;
@@ -7566,7 +7577,7 @@ void IRAM_ATTR isrRotaryEncoderRotateForNewMenu()
     static unsigned long lastNavUpdateTime = 0;
     static OLEDMenuNav lastNav;
     EncoderState newState = static_cast<EncoderState>((digitalRead(pin_clk) << 1) | digitalRead(pin_data));
-    OLEDMenuNav newNav;
+    OLEDMenuNav newNav = OLEDMenuNav::IDLE;
     switch (encoderState) {
         case STATE_00:
             if (newState == STATE_01) newNav = REVERSE_ROTARY_ENCODER_FOR_OLED_MENU ? OLEDMenuNav::DOWN : OLEDMenuNav::UP;
@@ -8210,10 +8221,8 @@ void updateWebSocketData()
             }
 
             // send ping and stats
-            if (ESP.getFreeHeap() > 14000) {
+            if (ESP.getFreeHeap() > 6000) {
                 webSocket.broadcastTXT(toSend, MESSAGE_LEN);
-            } else {
-                webSocket.disconnect();
             }
         }
     }
@@ -8228,7 +8237,7 @@ void handleWiFi(boolean instant)
         dnsServer.processNextRequest();
 
         if ((millis() - lastTimePing) > 953) { // slightly odd value so not everything happens at once
-            webSocket.broadcastPing();
+            // Note: ping/pong now handled by webSocket.enableHeartbeat() in setup()
         }
         if (((millis() - lastTimePing) > 973) || instant) {
             if ((webSocket.connectedClients(false) > 0) || instant) { // true = with compliant ping
@@ -8296,6 +8305,9 @@ if ((millis() - Tim_web) >= 300) {
     // Serial takes precedence
     if (Serial.available()) {
         serialCommand = Serial.read();
+    } else if (serialCommandBuffer.length() > 0) {
+        serialCommand = serialCommandBuffer.charAt(0);
+        serialCommandBuffer.remove(0, 1);
     } else if (inputStage > 0) {
         // multistage with no more data
         SerialM.println(F(" abort"));
@@ -9173,6 +9185,11 @@ if ((millis() - Tim_web) >= 300) {
             }
             handleWiFi(1);
         }
+    }
+
+    if (userCommand == '@' && userCommandBuffer.length() > 0) {
+        userCommand = userCommandBuffer.charAt(0);
+        userCommandBuffer.remove(0, 1);
     }
 
     if (userCommand != '@') {
@@ -10157,11 +10174,11 @@ void startWebserver()
             if (params > 0) {
                 const AsyncWebParameter *p = request->getParam(0);
                 //Serial.println(p->name());
-                serialCommand = p->name().charAt(0);
+                serialCommandBuffer += p->name().charAt(0);
 
                 // hack, problem with '+' command received via url param
-                if (serialCommand == ' ') {
-                    serialCommand = '+';
+                if (serialCommandBuffer.charAt(serialCommandBuffer.length() - 1) == ' ') {
+                    serialCommandBuffer.setCharAt(serialCommandBuffer.length() - 1, '+');
                 }
             }
             request->send(200); // reply
@@ -10176,7 +10193,7 @@ void startWebserver()
             if (params > 0) {
                 const AsyncWebParameter *p = request->getParam(0);
                 //Serial.println(p->name());
-                userCommand = p->name().charAt(0);
+                userCommandBuffer += p->name().charAt(0);
             }
             request->send(200); // reply
         }
@@ -10515,6 +10532,9 @@ void startWebserver()
 
     server.begin();    // Webserver for the site
     webSocket.begin(); // Websocket for interaction
+    // Enable heartbeat: ping every 2000ms, pong timeout 3000ms, disconnect after 2 missed pongs
+    // This keeps the connection alive during idle periods (client has 2.7s timeout)
+    webSocket.enableHeartbeat(2000, 3000, 2);
     yield();
 
 #ifdef HAVE_PINGER_LIBRARY
@@ -12686,9 +12706,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == 92) {
-        uint8_t curU;
+        //uint8_t curU;
         // = GBS::VDS_UCOS_GAIN::read();
-        uint8_t curV = GBS::VDS_VCOS_GAIN::read();
+        //uint8_t curV = GBS::VDS_VCOS_GAIN::read();
         if (OLED_clear_flag)
             display.clear();
         OLED_clear_flag = ~0;
