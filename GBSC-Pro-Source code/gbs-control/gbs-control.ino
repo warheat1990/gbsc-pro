@@ -7261,7 +7261,7 @@ void setup()
     OSD_clear();
     OSD();
     PT_MUTE(0x78);
-    PT_2257(70); // audible
+    PT_2257(12); // -12 dB (display shows 38/50)
 
     pinMode(pin_clk, INPUT_PULLUP);
     pinMode(pin_data, INPUT_PULLUP);
@@ -7923,7 +7923,7 @@ void loop()
     }
 
 if ((millis() - lastSystemTime) >= 400) {
-    PT_2257(Volume + 12);
+    PT_2257(Volume); // 0-50 maps directly to 0-50 dB
     lastSystemTime = millis();
 }
 

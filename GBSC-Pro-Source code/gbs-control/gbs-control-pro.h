@@ -50,6 +50,7 @@ typedef enum {
     OSD_Resolution_1024 = 69,                        // 1280x1024
     OSD_Resolution_960 = 70,                         // 1280x960
     OSD_Resolution_720 = 71,                         // 1280x720
+    OSD_Resolution_480 = 72,                         // 480p/576p
     OSD_Resolution_pass = 74,                        // Pass-through
     OSD_Resolution_RetainedSettings = 169,           // Retained settings (moved here for logical grouping)
 

@@ -826,12 +826,11 @@ void OSD_selectOption()
                     OSD_menu_F(OSD_CROSS_BOTTOM);
                     OSD_menu_F('3');
                     break;
-                // case IRKeyDown:
-                //   selectedMenuLine = 2;
-                //   OSD_menu_F('4');
-                //   oled_menuItem = OSD_Resolution_pass;
-
-                //   break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_menu_F('4');
+                    oled_menuItem = OSD_Resolution_480;
+                    break;
                 case IRKeyOk:
                     // uopt->preferScalingRgbhv = true;
                     userCommand = 'g';
@@ -846,57 +845,49 @@ void OSD_selectOption()
         }
     }
 
-    // if (oled_menuItem == 72)
-    // {
+    else if (oled_menuItem == OSD_Resolution_480) {
 
-    //     if(oledClearFlag)
-    // display.clear();
-    // oledClearFlag = ~0;display.setColor(OLEDDISPLAY_COLOR::WHITE);
-    // display.setTextAlignment(TEXT_ALIGN_LEFT);
-    //     display.setFont(ArialMT_Plain_10);
-    //     display.drawString(1, 0, "Menu->Output");
-    //     display.setFont(ArialMT_Plain_16);
-    //     display.drawString(1, 28, "480p/576p");
-    //     display.display();
+        if (oledClearFlag)
+            display.clear();
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->Output");
+        display.drawString(1, 28, "480p/576p");
+        display.display();
 
-    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
-    //     {
-    //         OSD_c1(icon4, P0, blue_fill);
-    //         OSD_c3(icon4, P0, blue_fill);
-    //         OSD_c2(icon4, P0, yellow);
-    //     }
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+        }
 
-    //     if (irrecv.decode(&results))
-    //     {
-    //         switch (results.value)
-    //         {
-    //         case IRKeyMenu:
-    //             OSD_menu_F(OSD_CROSS_MID);
-    //             OSD_menu_F('1');
-    //             oled_menuItem = OSD_Resolution;
-    //             break;
-    //         case IRKeyUp:
-    //             selectedMenuLine = 1;
-    //             OSD_menu_F('4');
-    //             oled_menuItem = OSD_Resolution_720;
-    //             break;
-    //         case IRKeyDown:
-    //             selectedMenuLine = 3;
-    //             OSD_menu_F('4');
-    //             oled_menuItem = 73;
-    //             break;
-    //         case IRKeyOk:
-    //             userCommand = 'h';
-    //             break;
-    //         case IRKeyExit:
-    //             oled_menuItem = OSD_Input;
-    //             OSD_clear();
-    //             OSD();
-    //             break;
-    //         }
-    //         irrecv.resume();
-    //     }
-    // }
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_menu_F(OSD_CROSS_MID);
+                    OSD_menu_F('1');
+                    oled_menuItem = OSD_Resolution;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_menu_F('4');
+                    oled_menuItem = OSD_Resolution_720;
+                    break;
+                case IRKeyOk:
+                    userCommand = 'h';
+                    break;
+                case IRKeyExit:
+                    OSD_menu_F(OSD_CROSS_TOP);
+                    OSD_menu_F('1');
+                    oled_menuItem = OSD_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+    }
 
     // if (oled_menuItem == 73)
     // {
@@ -1051,6 +1042,8 @@ void OSD_selectOption()
                             userCommand = 'f';
                         else if (tentativeResolution == Output720P) // 1280x720
                             userCommand = 'g';
+                        else if (tentativeResolution == Output480P) // 480p/576p
+                            userCommand = 'h';
                         else if (tentativeResolution == Output1024P) // 1280x1024
                             userCommand = 'p';
                         else if (tentativeResolution == Output1080P) // 1920x1080
@@ -6334,12 +6327,12 @@ void OSD_selectOption()
                 case kRecv2: // ++
                     Volume = MAX(Volume - 1, 0);
                     osdDisplayValue = 50 - Volume;
-                    PT_2257(Volume + 12);
+                    PT_2257(Volume); // 0-50 maps to 0-50 dB (actually 0-39 dB usable)
                     break;
                 case kRecv3: // --
                     Volume = MIN(Volume + 1, 50);
                     osdDisplayValue = 50 - Volume;
-                    PT_2257(Volume + 12);
+                    PT_2257(Volume); // 0-50 maps to 0-50 dB (actually 0-39 dB usable)
                     break;
                 case IRKeyMenu:
                     selectedMenuLine = 1;
@@ -6694,6 +6687,8 @@ void OSD_selectOption()
                 userCommand = 'f';
             else if (tentativeResolution == Output720P) // 1280x720
                 userCommand = 'g';
+            else if (tentativeResolution == Output480P) // 480p/576p
+                userCommand = 'h';
             else if (tentativeResolution == Output1024P) // 1280x1024
                 userCommand = 'p';
             else if (tentativeResolution == Output1080P) // 1920x1080
@@ -7083,22 +7078,11 @@ void handle_4(void)
         A1_yellow = yellowT;
         A2_main0 = main0;
         A3_main0 = main0;
+    } else if (selectedMenuLine == 2) {
+        A1_yellow = main0;
+        A2_main0 = yellowT;
+        A3_main0 = main0;
     }
-    // else if (selectedMenuLine == 2)
-    // {
-    //   A1_yellow = main0;
-    //   // if(Info == InfoVGA)
-    //     A2_main0 = yellowT;
-    //   // else
-    //   //   A2_main0 = 0x14;
-    //   A3_main0 = main0;
-    // }
-    // else if (selectedMenuLine == 3)
-    // {
-    //     A1_yellow = main0;
-    //     A2_main0 = main0;
-    //     A3_main0 = yellowT;
-    // }
 
     colour1 = blue;
 
@@ -7108,16 +7092,13 @@ void handle_4(void)
     number_stroca = stroca2;
     __('2', _27);
 
-    // number_stroca = stroca3;
-    // __(icon6, _27);
-
     colour1 = A1_yellow;
     number_stroca = stroca1;
     Osd_Display(1, "1280x720");
 
-    // colour1 = A2_main0;
-    // number_stroca = stroca2;
-    // Osd_Display(1, "Pass through");
+    colour1 = A2_main0;
+    number_stroca = stroca2;
+    Osd_Display(1, "480p/576p");
     // colour1 = A3_main0;
     // number_stroca = stroca3;
     // __(D, _1), __(o, _2), __(w, _3), __(n, _4), __(s, _5), __(c, _6), __(a, _7), __(l, _8), __(e, _9), __(n1, _11), __(n5, _12), __(K, _13), __(H, _14), __(z, _15);
