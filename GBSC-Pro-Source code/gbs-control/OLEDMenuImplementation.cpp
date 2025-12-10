@@ -41,10 +41,10 @@ unsigned long oledMenuFreezeTimeoutInMS;
 #define VGA_Sync 1
 #define RGBs_Sync 2
 #define Ypbpr_Sync 3
-extern uint8_t RGB_Com;
+extern uint8_t rgbComponentMode;
 
-extern void ChangeAvModeOption(uint8_t num);
-extern void ChangeSvModeOption(uint8_t num);
+extern void ChangeAVModeOption(uint8_t num);
+extern void ChangeSVModeOption(uint8_t num);
 extern void doPostPresetLoadSteps();
 extern void writeProgramArrayNew(const uint8_t *programArray, boolean skipMDSection);
 
@@ -64,10 +64,9 @@ unsigned char Adv_COMPATIBILITY_ON[7] = {0x41, 0x44, 'S', 0xA0};
 unsigned char Adv_COMPATIBILITY_OFF[7] = {0x41, 0x44, 'S', 0xA1};
 unsigned char Adv_BCSH[7] = {0x41, 0x44, 'N'};
 
-extern uint8_t syncFound;
 extern uint8_t InputChanged;
-extern uint8_t SeleInputSource;
-extern uint8_t BriorCon;
+extern uint8_t selectedInputSource;
+extern uint8_t brightnessOrContrastOption;
 extern uint8_t Info;
 
 bool resolutionMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime)
@@ -556,120 +555,120 @@ void SetReg(unsigned char reg, unsigned char val) {
 
 void InputVGA_mode(uint8_t mode) {
     Checksum_Sendmode(VGA, !mode);
-    SeleInputSource = S_VGA;
+    selectedInputSource = S_VGA;
     Info = InfoVGA;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputRGsB_mode(uint8_t mode) {
     Checksum_Sendmode(RGsB, !mode);
-    SeleInputSource = S_RGBs;
+    selectedInputSource = S_RGBs;
     Info = InfoRGsB;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputRGBs_mode(uint8_t mode) {
     Checksum_Sendmode(RGBs, !mode);
-    SeleInputSource = S_RGBs;
+    selectedInputSource = S_RGBs;
     Info = InfoRGBs;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputRGBs(void) {
     sender.send(RGBs);
-    SeleInputSource = S_RGBs;
+    selectedInputSource = S_RGBs;
     Info = InfoRGBs;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputYUV(void) {
     sender.send(Ypbpr);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     Info = InfoYUV;
     resetSyncProcessor();
-    BriorCon = 1;
+    brightnessOrContrastOption = 1;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputNULL(void) {
     sender.send(Ypbpr);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     resetSyncProcessor();
     rto->sourceDisconnected = true;
 }
 
 void InputRGsB(void) {
     sender.send(RGsB);
-    SeleInputSource = S_RGBs;
+    selectedInputSource = S_RGBs;
     Info = InfoRGsB;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputVGA(void) {
     Checksum_Sendmode(VGA, 1);
-    SeleInputSource = S_VGA;
+    selectedInputSource = S_VGA;
     Info = InfoVGA;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(RGB1);
     GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
     GBS::ADC_INPUT_SEL::write(RGB1);
-    BriorCon = 0;
+    brightnessOrContrastOption = 0;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputINFO(void) {
     sender.send(INFO);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(YUV0);
-    BriorCon = 2;
+    brightnessOrContrastOption = 2;
     rto->sourceDisconnected = true;
     saveUserPrefs();
 }
 
 void InputSV(void) {
     sender.send(Adv_7391_SV);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     Info = InfoSV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(YUV0);
-    BriorCon = 2;
+    brightnessOrContrastOption = 2;
     rto->sourceDisconnected = true;
     rto->isInLowPowerMode = false;
     saveUserPrefs();
@@ -677,13 +676,13 @@ void InputSV(void) {
 
 void InputSV_mode(uint8_t mode) {
     Checksum_Sendmode(Adv_7391_SV, mode);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     Info = InfoSV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(YUV0);
-    BriorCon = 2;
+    brightnessOrContrastOption = 2;
     rto->sourceDisconnected = true;
     rto->isInLowPowerMode = false;
     saveUserPrefs();
@@ -691,13 +690,13 @@ void InputSV_mode(uint8_t mode) {
 
 void InputAV(void) {
     sender.send(Adv_7391_AV);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     Info = InfoAV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(YUV0);
-    BriorCon = 2;
+    brightnessOrContrastOption = 2;
     rto->sourceDisconnected = true;
     rto->isInLowPowerMode = false;
     saveUserPrefs();
@@ -705,13 +704,13 @@ void InputAV(void) {
 
 void InputAV_mode(uint8_t mode) {
     Checksum_Sendmode(Adv_7391_AV, mode);
-    SeleInputSource = S_YUV;
+    selectedInputSource = S_YUV;
     Info = InfoAV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
     GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
     GBS::ADC_INPUT_SEL::write(YUV0);
-    BriorCon = 2;
+    brightnessOrContrastOption = 2;
     rto->sourceDisconnected = true;
     rto->isInLowPowerMode = false;
     saveUserPrefs();
@@ -812,9 +811,9 @@ bool Adv7391TvModeSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMe
     uopt->TVMODE_presetPreference = preset;
 
     if (Info == InfoAV) {
-        ChangeAvModeOption(0);
+        ChangeAVModeOption(0);
     } else if (Info == InfoSV) {
-        ChangeSvModeOption(0);
+        ChangeSVModeOption(0);
     }
 
     if (Info == InfoSV || Info == InfoAV) {
@@ -970,12 +969,12 @@ bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
         sender.send(Adv_SM_ON);
     }
     else if (preset == SETTING_PresetPreference::MT_COMPATIBILITY_OFF) {
-        RGB_Com = COMPATIBILITY_OFF;
-        Send_Compatibility(RGB_Com);
+        rgbComponentMode = COMPATIBILITY_OFF;
+        Send_Compatibility(rgbComponentMode);
     }
     else if (preset == SETTING_PresetPreference::MT_COMPATIBILITY_ON) {
-        RGB_Com = COMPATIBILITY_ON;
-        Send_Compatibility(RGB_Com);
+        rgbComponentMode = COMPATIBILITY_ON;
+        Send_Compatibility(rgbComponentMode);
     }
 #ifdef ACE    
     else if (preset == SETTING_PresetPreference::MT_ACE_OFF) {
