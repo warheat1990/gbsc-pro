@@ -235,7 +235,8 @@ bool resetMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav,
             break;
     }
     display->display();
-    webSocket.close();
+    // Drop all websocket clients but keep the server running
+    webSocket.disconnect();
     delay(50);
     switch (item->tag) {
         case MT_RESET_WIFI:

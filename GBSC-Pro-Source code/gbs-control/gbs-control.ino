@@ -9510,7 +9510,7 @@ void handleType2Command(char argument)
             break;
         case '1':
             // reset to defaults button
-            webSocket.close();
+            webSocket.disconnect();
             loadDefaultUserOptions();
             saveUserPrefs();
             Serial.println(F("options set to defaults, restarting"));
@@ -9572,7 +9572,7 @@ void handleType2Command(char argument)
             //
             break;
         case 'a':
-            webSocket.close();
+            webSocket.disconnect();
             Serial.println(F("restart"));
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
@@ -17366,7 +17366,7 @@ void OSD_IR()
         //         display.drawString(8, 35, "Please Wait...");
         //         display.display();
         //     }
-        //     webSocket.close();
+        //     webSocket.disconnect();
         //     delay(60);
         //     ESP.reset();
         //     oled_menuItem = 0;
