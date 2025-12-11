@@ -553,7 +553,7 @@ void OSD_selectOption()
         }
     }
 
-    // if (oled_menuItem == 66)
+    // if (oled_menuItem == OSD_Developer)
     // {
 
     //     if(oledClearFlag)
@@ -606,9 +606,9 @@ void OSD_selectOption()
     // }
 
     else if (oled_menuItem == OSD_ResetDefault) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.drawString(1, 0, "Menu-");
@@ -650,8 +650,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Resolution_1080) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -694,9 +695,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Resolution_1024) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -744,9 +745,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Resolution_960) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -795,9 +796,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Resolution_720) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -846,9 +847,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Resolution_480) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -889,9 +890,8 @@ void OSD_selectOption()
         }
     }
 
-    // if (oled_menuItem == 73)
+    // if (oled_menuItem == OSD_Resolution_Downscale)
     // {
-
     //     if(oledClearFlag)
     // display.clear();
     // oledClearFlag = ~0;display.setColor(OLEDDISPLAY_COLOR::WHITE);
@@ -919,7 +919,7 @@ void OSD_selectOption()
     //         case IRKeyUp:
     //             selectedMenuLine = 2;
     //             OSD_menu_F('4');
-    //             oled_menuItem = 72;
+    //             oled_menuItem = OSD_Resolution_480;
     //             break;
     //         case IRKeyDown:
     //             oled_menuItem = OSD_Resolution_pass;
@@ -940,9 +940,9 @@ void OSD_selectOption()
     // }
 
     else if (oled_menuItem == OSD_Resolution_pass) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1003,9 +1003,9 @@ void OSD_selectOption()
             irrecv.resume();
         }
     } else if (oled_menuItem == OSD_Resolution_RetainedSettings) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1067,8 +1067,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_Main) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1124,9 +1125,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_Scale) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1186,9 +1187,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_Position) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1246,7 +1247,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_ScaleAdjust) {
-
         if (results.value == IRKeyOk) {
             OSD_menu_F('6');
             OSD_c1(0x3E, P5, main0);
@@ -1346,7 +1346,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_PositionAdjust) {
-
         if (results.value == IRKeyOk) {
             OSD_menu_F('6');
             OSD_c2(0x3E, P6, main0);
@@ -1451,7 +1450,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ScreenSettings_Advanced) {
-
         if (results.value == IRKeyOk) {
             OSD_menu_F('6');
             OSD_c3(0x3E, P8, main0);
@@ -1558,8 +1556,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_Bright) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1623,9 +1622,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_Contrast) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1686,9 +1685,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_Saturation) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1746,9 +1745,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_Sharpness) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1806,9 +1805,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_ColorTemp) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1865,9 +1864,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_Advanced) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1926,9 +1925,9 @@ void OSD_selectOption()
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_R) // D
     {
-        // int8_t cur = GBS::VDS_Y_OFST::read();
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -1992,15 +1991,15 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_G) {
-        // int8_t cur = GBS::VDS_U_OFST::read();
         if (uopt->enableAutoGain == 1) {
             uopt->enableAutoGain = 0;
             saveUserPrefs();
         } else {
             uopt->enableAutoGain = 0;
         }
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2060,9 +2059,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_B) {
-        // int8_t cur = GBS::VDS_V_OFST::read();
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2130,8 +2129,9 @@ void OSD_selectOption()
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_Preset) {
         uint8_t cur = GBS::VDS_Y_GAIN::read();
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2188,11 +2188,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_Save) {
-        // uint8_t curU;
-        //  = GBS::VDS_UCOS_GAIN::read();
-        // uint8_t curV = GBS::VDS_VCOS_GAIN::read();
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2257,9 +2255,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_ColorSettings_RGB_Load) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2309,9 +2307,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SV) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2370,9 +2368,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_AV) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2440,9 +2438,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_Upscaling) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2501,9 +2499,8 @@ void OSD_selectOption()
         }
     }
 
-    // else if (oled_menuItem == 97)
+    // else if (oled_menuItem == OSD_SystemSettings_ComponentVGA)
     // {
-
     //     display.clear();
     //     display.drawString(1, 0, "Menu-");
     //     display.drawString(1, 28, "Component/VGA");
@@ -2555,9 +2552,9 @@ void OSD_selectOption()
     // }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Line) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2620,9 +2617,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Smooth_Main) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2679,9 +2676,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Bright_Main) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2738,9 +2735,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Contrast_Main) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2797,9 +2794,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Saturation_Main) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2857,9 +2854,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Mode) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -2930,9 +2927,8 @@ void OSD_selectOption()
         }
     }
 
-    // else if (oled_menuItem == 104)
+    // else if (oled_menuItem == OSD_Advanced_MemoryAdjust)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "MEM left / righ");
@@ -2956,7 +2952,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyDown:
     //       selectedMenuLine = 2;
@@ -2979,7 +2975,7 @@ void OSD_selectOption()
     //   }
     // }
 
-    // else if (oled_menuItem == 105)
+    // else if (oled_menuItem == OSD_Advanced_HSyncAdjust)
     // {
 
     //   display.clear();
@@ -3004,7 +3000,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyUp:
     //       selectedMenuLine = 1;
@@ -3032,9 +3028,8 @@ void OSD_selectOption()
     //   }
     // }
 
-    // else if (oled_menuItem == 106)
+    // else if (oled_menuItem == OSD_Advanced_HTotalAdjust)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "HTotal - / +");
@@ -3058,7 +3053,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyUp:
     //       selectedMenuLine = 2;
@@ -3086,9 +3081,8 @@ void OSD_selectOption()
     //   }
     // }
 
-    // else if (oled_menuItem == 107)
+    // else if (oled_menuItem == OSD_Advanced_DebugView)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "Debug view");
@@ -3112,7 +3106,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyUp:
     //       oled_menuItem = 106;
@@ -3140,9 +3134,8 @@ void OSD_selectOption()
     //   }
     // }
 
-    // else if (oled_menuItem == 108)
+    // else if (oled_menuItem == OSD_Advanced_ADCFilter)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "ADC filter");
@@ -3165,7 +3158,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyUp:
     //       selectedMenuLine = 1;
@@ -3193,9 +3186,8 @@ void OSD_selectOption()
     //   }
     // }
 
-    // else if (oled_menuItem == 153)
+    // else if (oled_menuItem == OSD_Advanced_FreezeCapture)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "Freeze capture");
@@ -3219,7 +3211,7 @@ void OSD_selectOption()
     //     case IRKeyMenu:
     //       OSD_menu_F(OSD_CROSS_MID);
     //       OSD_menu_F('2');
-    //       oled_menuItem = 66;
+    //       oled_menuItem = OSD_Developer;
     //       break;
     //     case IRKeyUp:
     //       selectedMenuLine = 2;
@@ -3249,7 +3241,6 @@ void OSD_selectOption()
 
     // else if (oled_menuItem == OSD_SystemSettings_Volume)
     // {
-
     //   display.clear();
     //   display.drawString(1, 0, "Menu-");
     //   display.drawString(1, 28, "Enable OTA");
@@ -3297,9 +3288,9 @@ void OSD_selectOption()
     // }
 
     else if (oled_menuItem == OSD_SystemSettings_Restart) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.drawString(1, 0, "Menu-");
@@ -3347,7 +3338,6 @@ void OSD_selectOption()
 
     // else if (oled_menuItem == OSD_SystemSettings_Info)
     // {
-
     //     display.clear();
     //     display.drawString(1, 0, "Menu-");
     //     display.drawString(1, 28, "Reset defaults");
@@ -3390,8 +3380,9 @@ void OSD_selectOption()
     // }
 
     else if (oled_menuItem == OSD_Input) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3444,8 +3435,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Input_RGBs) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3509,8 +3501,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Input_RGsB) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3569,9 +3562,9 @@ void OSD_selectOption()
             irrecv.resume();
         }
     } else if (oled_menuItem == OSD_Input_VGA) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3632,8 +3625,9 @@ void OSD_selectOption()
             irrecv.resume();
         }
     } else if (oled_menuItem == OSD_Input_YPBPR) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3684,8 +3678,9 @@ void OSD_selectOption()
             irrecv.resume();
         }
     } else if (oled_menuItem == OSD_Input_SV) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3734,7 +3729,6 @@ void OSD_selectOption()
         display.display();
 
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-
             OSD_c1(icon4, P0, blue_fill);
             OSD_c2(icon4, P0, yellow);
             OSD_c3(icon4, P0, blue_fill);
@@ -3786,8 +3780,9 @@ void OSD_selectOption()
             irrecv.resume();
         }
     } else if (oled_menuItem == OSD_Input_AV) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3851,7 +3846,6 @@ void OSD_selectOption()
                     infoState = 0;
                     InputAV_mode(AVModeOption + 1);
                     // rto->isInLowPowerMode = false;
-
                     break;
                 case IRKeyMenu:
                     selectedMenuLine = 1;
@@ -3893,8 +3887,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -3952,8 +3947,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_DoubleLine) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4015,8 +4011,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Smooth) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4078,8 +4075,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Bright) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4145,8 +4143,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_contrast) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4215,8 +4214,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_saturation) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4281,8 +4281,9 @@ void OSD_selectOption()
 
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_default) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4331,8 +4332,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_SystemSettings_SVAVInput_Compatibility) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4397,9 +4399,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Main) {
-
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -4450,7 +4452,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_SaveConfirm) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4494,7 +4495,6 @@ void OSD_selectOption()
 
     else if (oled_menuItem == OSD_Profile_Save) // save
     {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4537,7 +4537,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Load) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4580,7 +4579,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Operation1) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4623,7 +4621,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Operation2) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4666,7 +4663,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Operation3) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -4709,7 +4705,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_SelectSlot) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -4760,7 +4755,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot1) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -4811,7 +4805,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot2) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -4862,7 +4855,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot3) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -4913,7 +4905,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot4) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -4964,7 +4955,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot5) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5015,7 +5005,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot6) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5066,7 +5055,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot7) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5109,7 +5097,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot8) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5152,7 +5139,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot9) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5195,7 +5181,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot10) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5238,7 +5223,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot11) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5281,7 +5265,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot12) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5324,7 +5307,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot13) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5367,7 +5349,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot14) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5410,7 +5391,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot15) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5453,7 +5433,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot16) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5496,7 +5475,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot17) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5539,7 +5517,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot18) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5582,7 +5559,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Slot19) {
-
         if (results.value == IRKeyUp) {
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
@@ -5625,7 +5601,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_SelectPreset) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5676,7 +5651,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset1) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5727,7 +5701,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset2) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5778,7 +5751,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset3) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5829,7 +5801,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset4) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5880,7 +5851,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset5) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5931,7 +5901,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset6) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -5982,7 +5951,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset7) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6033,7 +6001,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset8) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6084,7 +6051,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset9) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6135,7 +6101,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset10) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6186,7 +6151,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset11) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6237,7 +6201,6 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Profile_Preset12) {
-
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
             OSD_c1(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -6288,8 +6251,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Volume_Adjust) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -6363,8 +6327,9 @@ void OSD_selectOption()
     }
 
     else if (oled_menuItem == OSD_Info_Display) {
-        if (oledClearFlag)
+        if (oledClearFlag) {
             display.clear();
+        }
         oledClearFlag = ~0;
         display.setColor(OLEDDISPLAY_COLOR::WHITE);
         display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -6849,7 +6814,6 @@ void OSD_IR()
                     OSD();
                     audioMuted = 1;
                 } else if (audioMuted == 1) {
-
                     PT_MUTE(0x78);
                     NEW_OLED_MENU = false;
                     background_up(stroca1, _9, blue_fill);
@@ -7723,23 +7687,23 @@ void handle_j(void)
         OSD_c3(F, P24, main0);
         OSD_c3(F, P25, main0); // OFF
     }
-/*
-upscaling
-    // OSD_c3(0x3E, P21, main0);
-    // OSD_c3(0x3E, P22, main0);
-    // if (uopt->preferScalingRgbhv)
-    // {
-    //   OSD_c3(O, P23, main0);
-    //   OSD_c3(N, P24, main0);
-    //   OSD_c3(F, P25, blue_fill);
-    // }
-    // else
-    // {
-    //   OSD_c3(O, P23, main0);
-    //   OSD_c3(F, P24, main0);
-    //   OSD_c3(F, P25, main0);
-    // }
-*/
+    /*
+    upscaling
+        // OSD_c3(0x3E, P21, main0);
+        // OSD_c3(0x3E, P22, main0);
+        // if (uopt->preferScalingRgbhv)
+        // {
+        //   OSD_c3(O, P23, main0);
+        //   OSD_c3(N, P24, main0);
+        //   OSD_c3(F, P25, blue_fill);
+        // }
+        // else
+        // {
+        //   OSD_c3(O, P23, main0);
+        //   OSD_c3(F, P24, main0);
+        //   OSD_c3(F, P25, main0);
+        // }
+    */
 };
 void handle_k(void)
 {

@@ -51,6 +51,7 @@ typedef enum {
     OSD_Resolution_960 = 70,                         // 1280x960
     OSD_Resolution_720 = 71,                         // 1280x720
     OSD_Resolution_480 = 72,                         // 480p/576p
+    // OSD_Resolution_Downscale = 73,                // Downscale (UNUSED/COMMENTED)
     OSD_Resolution_pass = 74,                        // Pass-through
     OSD_Resolution_RetainedSettings = 169,           // Retained settings (moved here for logical grouping)
 
@@ -58,6 +59,7 @@ typedef enum {
     OSD_ScreenSettings = 63,                         // Screen Settings
     OSD_ColorSettings = 64,                          // Color Settings
     OSD_SystemSettings = 65,                         // System Settings
+    // OSD_Developer = 66,                           // Developer menu (UNUSED/COMMENTED)
     OSD_ResetDefault = 67,                           // Reset default
 
     // Screen Settings submenu
@@ -87,6 +89,7 @@ typedef enum {
     OSD_SystemSettings_SV = 94,                      // S-Video settings
     OSD_SystemSettings_AV = 95,                      // AV settings
     OSD_SystemSettings_Upscaling = 96,               // Use upscaling option
+    // OSD_SystemSettings_ComponentVGA = 97,         // Component/VGA settings (UNUSED/COMMENTED)
     OSD_SystemSettings_SVAVInput_Line = 98,          // Line option
     OSD_SystemSettings_SVAVInput_Smooth_Main = 99,   // Smooth option (main menu)
     OSD_SystemSettings_SVAVInput_Bright_Main = 100,  // Brightness SV/AV (main menu)
@@ -96,6 +99,13 @@ typedef enum {
     OSD_SystemSettings_Volume = 109,                 // Volume control
     OSD_SystemSettings_Restart = 110,                // Restart menu
     OSD_SystemSettings_Info = 111,                   // System info
+
+    // Advanced/Debug Settings (UNUSED/COMMENTED)
+    // OSD_Advanced_MemoryAdjust = 104,              // Memory adjustment (MEM left/right)
+    // OSD_Advanced_HSyncAdjust = 105,               // HSync adjustment (HS left/right)
+    // OSD_Advanced_HTotalAdjust = 106,              // Horizontal total adjustment (HTotal -/+)
+    // OSD_Advanced_DebugView = 107,                 // Debug view
+    // OSD_Advanced_ADCFilter = 108,                 // ADC filter settings
 
     // Profile/Slot Management
     OSD_Profile_Main = 112,                          // Profile main menu
@@ -141,6 +151,7 @@ typedef enum {
 
     // Info display
     OSD_Info_Display = 152,                          // Info display screen
+    // OSD_Advanced_FreezeCapture = 153,             // Freeze capture (UNUSED/COMMENTED)
 
     // Input menu
     OSD_Input = 154,                                 // Input menu
