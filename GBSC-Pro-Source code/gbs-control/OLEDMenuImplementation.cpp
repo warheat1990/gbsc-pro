@@ -428,25 +428,25 @@ bool osdMenuHanlder(OLEDMenuManager *manager, OLEDMenuItem *, OLEDMenuNav nav, b
 }
 
 // GBS-C Pro
-class ChecksumSender {
+class PacketSender {
     public:
-    explicit ChecksumSender(HardwareSerial& serial = Serial): m_serial(serial) {
+    explicit PacketSender(HardwareSerial& serial = Serial): m_serial(serial) {
         initRandomSeed();
     }
 
-    void send(const unsigned char* buff) {
+    void send(const unsigned char* buff, uint8_t mode = 0) {
         unsigned char buff_lin[7];
         buff_lin[0] = buff[0];
         buff_lin[1] = buff[1];
         buff_lin[2] = buff[2];
-        buff_lin[3] = buff[3];
+        buff_lin[3] = buff[3] | (mode & 0x0f);
         buff_lin[4] = random(254);
         buff_lin[5] = 0xfe;
         buff_lin[6] = buff_lin[0] + buff_lin[1] + buff_lin[2] + buff_lin[3] + buff_lin[4] + buff_lin[5];
         m_serial.write(buff_lin, sizeof(buff_lin));
     }
 
-    void send(const unsigned char* buff, unsigned char reg, unsigned char val) {
+    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
         unsigned char buff_lin[7];
         copyBaseData(buff, buff_lin);
         buff_lin[3] = reg;
@@ -478,19 +478,7 @@ class ChecksumSender {
     }
 };
 
-ChecksumSender sender;
-
-void Checksum_Sendmode(const unsigned char *buff, uint8_t mode) {     
-    unsigned char buff_lin[7];
-    buff_lin[0] = buff[0];
-    buff_lin[1] = buff[1];
-    buff_lin[2] = buff[2];
-    buff_lin[3] = buff[3] | (mode & 0x0f);
-    buff_lin[4] = random(254);
-    buff_lin[5] = 0xfe;
-    buff_lin[6] = buff_lin[0] + buff_lin[1] + buff_lin[2] + buff_lin[3] + buff_lin[4] + buff_lin[5];
-    Serial.write(buff_lin, 7);
-}
+PacketSender packetSender;
 
 static void LoadDefault() {
     loadDefaultUserOptions();
@@ -550,11 +538,11 @@ static void resetModeDetect() {
 }
 
 void SetReg(unsigned char reg, unsigned char val) {
-  sender.send(Adv_BCSH,reg,val);
+  packetSender.writeReg(Adv_BCSH,reg,val);
 }
 
 void InputVGA_mode(uint8_t mode) {
-    Checksum_Sendmode(VGA, !mode);
+    packetSender.send(VGA, !mode);
     selectedInputSource = S_VGA;
     Info = InfoVGA;
     resetSyncProcessor();
@@ -567,7 +555,7 @@ void InputVGA_mode(uint8_t mode) {
 }
 
 void InputRGsB_mode(uint8_t mode) {
-    Checksum_Sendmode(RGsB, !mode);
+    packetSender.send(RGsB, !mode);
     selectedInputSource = S_RGBs;
     Info = InfoRGsB;
     resetSyncProcessor();
@@ -580,7 +568,7 @@ void InputRGsB_mode(uint8_t mode) {
 }
 
 void InputRGBs_mode(uint8_t mode) {
-    Checksum_Sendmode(RGBs, !mode);
+    packetSender.send(RGBs, !mode);
     selectedInputSource = S_RGBs;
     Info = InfoRGBs;
     resetSyncProcessor();
@@ -593,7 +581,7 @@ void InputRGBs_mode(uint8_t mode) {
 }
 
 void InputRGBs(void) {
-    sender.send(RGBs);
+    packetSender.send(RGBs);
     selectedInputSource = S_RGBs;
     Info = InfoRGBs;
     resetSyncProcessor();
@@ -606,7 +594,7 @@ void InputRGBs(void) {
 }
 
 void InputYUV(void) {
-    sender.send(Ypbpr);
+    packetSender.send(Ypbpr);
     selectedInputSource = S_YUV;
     Info = InfoYUV;
     resetSyncProcessor();
@@ -616,14 +604,14 @@ void InputYUV(void) {
 }
 
 void InputNULL(void) {
-    sender.send(Ypbpr);
+    packetSender.send(Ypbpr);
     selectedInputSource = S_YUV;
     resetSyncProcessor();
     rto->sourceDisconnected = true;
 }
 
 void InputRGsB(void) {
-    sender.send(RGsB);
+    packetSender.send(RGsB);
     selectedInputSource = S_RGBs;
     Info = InfoRGsB;
     resetSyncProcessor();
@@ -636,7 +624,7 @@ void InputRGsB(void) {
 }
 
 void InputVGA(void) {
-    Checksum_Sendmode(VGA, 1);
+    packetSender.send(VGA, 1);
     selectedInputSource = S_VGA;
     Info = InfoVGA;
     resetSyncProcessor();
@@ -649,7 +637,7 @@ void InputVGA(void) {
 }
 
 void InputINFO(void) {
-    sender.send(INFO);
+    packetSender.send(INFO);
     selectedInputSource = S_YUV;
     resetSyncProcessor();
     GBS::ADC_SOGEN::write(YUV0);
@@ -661,7 +649,7 @@ void InputINFO(void) {
 }
 
 void InputSV(void) {
-    sender.send(Adv_7391_SV);
+    packetSender.send(Adv_7391_SV);
     selectedInputSource = S_YUV;
     Info = InfoSV;
     resetSyncProcessor();
@@ -675,7 +663,7 @@ void InputSV(void) {
 }
 
 void InputSV_mode(uint8_t mode) {
-    Checksum_Sendmode(Adv_7391_SV, mode);
+    packetSender.send(Adv_7391_SV, mode);
     selectedInputSource = S_YUV;
     Info = InfoSV;
     resetSyncProcessor();
@@ -689,7 +677,7 @@ void InputSV_mode(uint8_t mode) {
 }
 
 void InputAV(void) {
-    sender.send(Adv_7391_AV);
+    packetSender.send(Adv_7391_AV);
     selectedInputSource = S_YUV;
     Info = InfoAV;
     resetSyncProcessor();
@@ -703,7 +691,7 @@ void InputAV(void) {
 }
 
 void InputAV_mode(uint8_t mode) {
-    Checksum_Sendmode(Adv_7391_AV, mode);
+    packetSender.send(Adv_7391_AV, mode);
     selectedInputSource = S_YUV;
     Info = InfoAV;
     resetSyncProcessor();
@@ -718,32 +706,102 @@ void InputAV_mode(uint8_t mode) {
 
 void Send_TvMode(uint8_t Mode) {
     TvMode[3] = Mode;
-    sender.send(TvMode);
+    packetSender.send(TvMode);
     saveUserPrefs();
 }
 
 void Send_Line(bool line) {
     if (line)
-        sender.send(Adv_2X);
+        packetSender.send(Adv_2X);
     else
-        sender.send(Adv_1X);
+        packetSender.send(Adv_1X);
     saveUserPrefs();
 }
 
 void Send_Smooth(bool Smooth) {
     if (Smooth)
-        sender.send(Adv_SM_ON);
+        packetSender.send(Adv_SM_ON);
     else
-        sender.send(Adv_SM_OFF);
+        packetSender.send(Adv_SM_OFF);
     saveUserPrefs();
 }
 
 void Send_Compatibility(bool Com) {
     if (!Com)
-        sender.send(Adv_COMPATIBILITY_ON);
+        packetSender.send(Adv_COMPATIBILITY_ON);
     else
-        sender.send(Adv_COMPATIBILITY_OFF);
+        packetSender.send(Adv_COMPATIBILITY_OFF);
     saveUserPrefs();
+}
+
+// Apply the saved input source configuration at boot
+// This ensures the hardware is properly configured when loading from preferences
+void applySavedInputSource(void) {
+    // Apply hardware configuration based on selectedInputSource
+    // Note: Don't call saveUserPrefs() here as we're loading from file
+    switch (selectedInputSource) {
+        case S_RGBs: // RGBs input
+            Info = InfoRGBs;
+            resetSyncProcessor();
+            GBS::ADC_SOGEN::write(RGB1);
+            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
+            GBS::ADC_INPUT_SEL::write(RGB1);
+            brightnessOrContrastOption = 0;
+            rto->sourceDisconnected = true;
+            break;
+
+        case S_VGA: // VGA input
+            Info = InfoVGA;
+            resetSyncProcessor();
+            GBS::ADC_SOGEN::write(RGB1);
+            GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
+            GBS::ADC_INPUT_SEL::write(RGB1);
+            brightnessOrContrastOption = 0;
+            rto->sourceDisconnected = true;
+            break;
+
+        case S_YUV: // YPbPr/Component input
+            // Check which YUV mode is active based on Info
+            if (Info == InfoYUV) {
+                resetSyncProcessor();
+                brightnessOrContrastOption = 1;
+                rto->sourceDisconnected = true;
+            } else if (Info == InfoSV) {
+                resetSyncProcessor();
+                GBS::ADC_SOGEN::write(YUV0);
+                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
+                GBS::ADC_INPUT_SEL::write(YUV0);
+                brightnessOrContrastOption = 2;
+                rto->sourceDisconnected = true;
+            } else if (Info == InfoAV) {
+                resetSyncProcessor();
+                GBS::ADC_SOGEN::write(YUV0);
+                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
+                GBS::ADC_INPUT_SEL::write(YUV0);
+                brightnessOrContrastOption = 2;
+                rto->sourceDisconnected = true;
+            } else if (Info == InfoRGsB) {
+                resetSyncProcessor();
+                GBS::ADC_SOGEN::write(RGB1);
+                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
+                GBS::ADC_INPUT_SEL::write(RGB1);
+                brightnessOrContrastOption = 0;
+                rto->sourceDisconnected = true;
+            }
+            break;
+
+        default:
+            // Unknown input source, set to a safe default (RGBs)
+            selectedInputSource = S_RGBs;
+            Info = InfoRGBs;
+            resetSyncProcessor();
+            GBS::ADC_SOGEN::write(RGB1);
+            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
+            GBS::ADC_INPUT_SEL::write(RGB1);
+            brightnessOrContrastOption = 0;
+            rto->sourceDisconnected = true;
+            break;
+    }
 }
 
 bool Adv7391TvModeSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
@@ -818,7 +876,7 @@ bool Adv7391TvModeSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMe
 
     if (Info == InfoSV || Info == InfoAV) {
         TvMode[3] = modes[preset];
-        sender.send(TvMode);
+        packetSender.send(TvMode);
     }
 
     manager->freeze();
@@ -957,16 +1015,16 @@ bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
     uopt->SETTING_presetPreference = preset;
 
     if (preset == SETTING_PresetPreference::MT_7391_1X) {
-        sender.send(Adv_1X);
+        packetSender.send(Adv_1X);
     }
     else if (preset == SETTING_PresetPreference::MT_7391_2X) {
-        sender.send(Adv_2X);
+        packetSender.send(Adv_2X);
     }
     else if (preset == SETTING_PresetPreference::MT_SMOOTH_OFF) {
-        sender.send(Adv_SM_OFF);
+        packetSender.send(Adv_SM_OFF);
     }
     else if (preset == SETTING_PresetPreference::MT_SMOOTH_ON) {   
-        sender.send(Adv_SM_ON);
+        packetSender.send(Adv_SM_ON);
     }
     else if (preset == SETTING_PresetPreference::MT_COMPATIBILITY_OFF) {
         rgbComponentMode = COMPATIBILITY_OFF;
@@ -978,10 +1036,10 @@ bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
     }
 #ifdef ACE    
     else if (preset == SETTING_PresetPreference::MT_ACE_OFF) {
-        sender.send(Adv_ACE_OFF);
+        packetSender.send(Adv_ACE_OFF);
     }
     else if (preset == SETTING_PresetPreference::MT_ACE_ON) {
-        sender.send(Adv_ACE_ON);
+        packetSender.send(Adv_ACE_ON);
     }
 #endif
     manager->freeze();

@@ -5561,6 +5561,37 @@ void runAutoGain()
     }
 }
 
+// Check if scanlines are allowed based on current video signal
+// Scanlines only work with 240p/288p sources, or 480i/576i with Bob deinterlacing
+boolean areScanLinesAllowed()
+{
+    // If in bypass mode, scanlines not allowed
+    if (rto->outModeHdBypass) {
+        return false;
+    }
+
+    // Check if signal is progressive (240p/288p)
+    // videoStandardInput: 1 = NTSC-like (240p/480i), 2 = PAL-like (288p/576i)
+    if (rto->videoStandardInput == 1 || rto->videoStandardInput == 2) {
+        uint16_t VPERIOD_IF = GBS::VPERIOD_IF::read();
+        // Progressive: odd line counts (521, 523, 525 for NTSC or 623, 625, 627 for PAL)
+        // Interlaced: even line counts (522, 524, 526 for NTSC or 622, 624, 626 for PAL)
+        boolean isProgressive = (VPERIOD_IF == 521 || VPERIOD_IF == 523 || VPERIOD_IF == 525 ||
+                                  VPERIOD_IF == 623 || VPERIOD_IF == 625 || VPERIOD_IF == 627);
+
+        if (isProgressive) {
+            return true; // 240p/288p: scanlines allowed
+        } else {
+            // 480i/576i: scanlines only allowed with Bob deinterlacing (deintMode == 1)
+            return (uopt->deintMode == 1);
+        }
+    }
+
+    // For other signal types (unknown, 480p, 576p, 720p, 1080i/p, etc.), scanlines not allowed
+    // Note: videoStandardInput == 0 means signal not yet fully detected/stable
+    return false;
+}
+
 void enableScanlines()
 {
     if (GBS::GBS_OPTION_SCANLINES_ENABLED::read() == 0) {
@@ -6479,11 +6510,14 @@ void runSyncWatcher()
 
                 // scanlines
                 if (uopt->wantScanlines) {
-                    if (!rto->scanlinesEnabled && !rto->motionAdaptiveDeinterlaceActive && !preventScanlines) {
+                    if (!rto->scanlinesEnabled && !rto->motionAdaptiveDeinterlaceActive && !preventScanlines && areScanLinesAllowed()) {
                         enableScanlines();
                     } else if (!uopt->wantScanlines && rto->scanlinesEnabled) {
                         disableScanlines();
                     }
+                } else if (rto->scanlinesEnabled && !areScanLinesAllowed()) {
+                    // Disable scanlines if signal changed to incompatible type
+                    disableScanlines();
                 }
             }
         }
@@ -6963,13 +6997,16 @@ void runSyncWatcher()
             if (rto->videoStandardInput == 14) {
                 // scanlines
                 if (uopt->wantScanlines) {
-                    if (!rto->scanlinesEnabled && !rto->motionAdaptiveDeinterlaceActive) {
+                    if (!rto->scanlinesEnabled && !rto->motionAdaptiveDeinterlaceActive && areScanLinesAllowed()) {
                         if (GBS::IF_LD_RAM_BYPS::read() == 0) { // line doubler on?
                             enableScanlines();
                         }
                     } else if (!uopt->wantScanlines && rto->scanlinesEnabled) {
                         disableScanlines();
                     }
+                } else if (rto->scanlinesEnabled && !areScanLinesAllowed()) {
+                    // Disable scanlines if signal changed to incompatible type
+                    disableScanlines();
                 }
             }
 
@@ -7648,6 +7685,11 @@ void setup()
         }
         setResetParameters();
 
+        // Apply the saved input source configuration to hardware
+        // This must be called after prepareSyncProcessor() and calibrateAdcOffset()
+        // which set default/temporary values for ADC_INPUT_SEL, ADC_SOGEN, and SP_EXT_SYNC_SEL
+        applySavedInputSource();
+
         delay(4); // help wifi (presets are unloaded now)
         handleWiFi(1);
         delay(4);
@@ -7905,6 +7947,34 @@ void loop()
     
     OSD_selectOption();
     OSD_IR();
+
+    // Refresh menus when video signal properties change
+    static uint8_t prevVideoStandardInput = 0;
+    static uint16_t prevVPERIOD_IF = 0;
+    static boolean prevOutModeHdBypass = false;
+    static uint8_t prevDeintMode = 0;
+
+    uint16_t currentVPERIOD_IF = GBS::VPERIOD_IF::read();
+    boolean signalChanged = (rto->videoStandardInput != prevVideoStandardInput ||
+                             currentVPERIOD_IF != prevVPERIOD_IF ||
+                             rto->outModeHdBypass != prevOutModeHdBypass ||
+                             uopt->deintMode != prevDeintMode);
+
+    if (signalChanged) {
+        prevVideoStandardInput = rto->videoStandardInput;
+        prevVPERIOD_IF = currentVPERIOD_IF;
+        prevOutModeHdBypass = rto->outModeHdBypass;
+        prevDeintMode = uopt->deintMode;
+        // Refresh OLED display
+        extern uint8_t oledClearFlag;
+        oledClearFlag = ~0;
+        // Refresh OSD TV display
+        extern char lastOsdCommand;
+        extern void OSD_menu_F(char incomingByte);
+        if (lastOsdCommand != 0) {
+            OSD_menu_F(lastOsdCommand);
+        }
+    }
 
 #if HAVE_BUTTONS
     static unsigned long lastButton = micros();

@@ -77,7 +77,6 @@ void initOLEDMenu();
 // GBS-C Pro
 bool InputSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav);
 void Checksum_Send(const unsigned char *buff);
-void Checksum_Sendmode(const unsigned char *buff, uint8_t mode);
 void InputRGBs(void);
 void InputRGsB(void);
 void InputVGA(void);
@@ -97,5 +96,6 @@ void InputVGA_mode(uint8_t mode);
 void InputNULL(void);
 void SetReg(unsigned char reg, unsigned char val);
 void Signalized(void);
+void applySavedInputSource(void);
 
 #endif
