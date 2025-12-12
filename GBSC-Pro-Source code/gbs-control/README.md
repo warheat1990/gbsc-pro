@@ -1,12 +1,18 @@
-# gbs-control
+# GBS-Control Pro
 
-## About This Fork
+Enhanced firmware for Tvia Trueview5725 based upscalers with extended input support and modern web interface.
 
-This is a modified fork adapted for building and flashing exclusively through PlatformIO. This is my attempt to improve the original repository. My main motivation was to stabilize WiFi issues that were present in the original codebase. I'm not submitting merge requests to the original repo due to vibe coding. I test this fork on a GBSC board purchased from AliExpress.
+## Overview
 
-**Latest releases available at:** https://github.com/Kwakx/gbs-control-nx/releases
+GBS-Control Pro builds upon the original GBS-Control firmware, maintaining all its core features while adding:
 
----
+- **Extended Input Support**: In addition to RGB/VGA/Component, now supports Composite and S-Video inputs with dedicated processing options
+- **IR Remote Control**: On-screen display (OSD) menu system controllable via infrared remote
+- **Modern Web Interface**: Redesigned responsive UI with 72 named preset slots, backup/restore functionality, and integrated WiFi management
+- **Advanced Video Processing**: 2X line multiplication and smooth scaling options for enhanced image quality
+- **Multiple Video Formats**: Automatic detection and manual selection for PAL, NTSC, SECAM and their variants
+
+All original GBS-Control features are preserved, including low lag processing, motion adaptive deinterlacing, automatic ADC calibration, and support for sources ranging from 8-bit consoles to VGA resolutions up to 1600x1200.
 
 ## Building and Installation
 
@@ -33,7 +39,7 @@ This project uses PlatformIO for building and flashing. Follow these steps to se
 
 4. **Build and Upload**
    - Open PlatformIO PROJECT TASKS sidebar (PlatformIO icon in the left sidebar)
-   - Navigate to your project environment (e.g., "gbsc")
+   - Navigate to your project environment (e.g., "gbsc-pro")
    - Follow these steps in order:
      1. **General** → **Build** - Compile the firmware
      2. **Platform** → **Erase Flash** - Erase the flash (recommended for clean install)

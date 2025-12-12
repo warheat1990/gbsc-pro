@@ -225,6 +225,7 @@ void UpDisplay(void)
         }
     }
 }
+
 void Mode_Option(void)
 {
     // Parameter validation with debugging information
@@ -257,6 +258,7 @@ void Mode_Option(void)
         Send_Smooth(smoothOption);
     }
 }
+
 boolean CheckInputFrequency()
 {
     unsigned char freq = 0;
@@ -272,20 +274,68 @@ boolean CheckInputFrequency()
     freq_last = freq;
     return 1;
 }
+
 void OSD_DISPLAY(const int T, const char C)
 {
     __(T, (C * 2) + 1);
 }
+
 void ChangeSVModeOption(uint8_t num)
 {
     SVModeOption = num;
     saveUserPrefs();
 }
+
 void ChangeAVModeOption(uint8_t num)
 {
     AVModeOption = num;
     saveUserPrefs();
 }
+
+const size_t PRO_STATUS_MESSAGE_LEN = 5;
+
+const char* proStatusPacket()
+{
+    static char buffer[PRO_STATUS_MESSAGE_LEN];
+    buffer[0] = '$';
+
+    uint8_t inputType = 1;
+    if (selectedInputSource == S_RGBs) {
+        inputType = (Info == InfoRGsB) ? 2 : 1;
+    }
+    else if (selectedInputSource == S_VGA) {
+        inputType = 3;
+    }
+    else if (selectedInputSource == S_YUV) {
+        if (Info == InfoYUV) inputType = 4;
+        else if (Info == InfoSV) inputType = 5;
+        else if (Info == InfoAV) inputType = 6;
+    }
+
+    buffer[1] = '0' + inputType;
+
+    // Format: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'
+    uint8_t format = (uint8_t)uopt->TVMODE_presetPreference;
+    if (format > 11) {
+        format = 0; // Default to Auto if out of range
+    }
+    if (format <= 9) {
+        buffer[2] = '0' + format;
+    } else if (format == 10) {
+        buffer[2] = 'A';
+    } else {
+        buffer[2] = 'B';
+    }
+
+    // 2X: '0' or '1' (ensure valid range)
+    buffer[3] = '0' + (lineOption ? 1 : 0);
+
+    // Smooth: '0' or '1' (ensure valid range)
+    buffer[4] = '0' + (smoothOption ? 1 : 0);
+
+    return buffer;
+}
+
 void Osd_Display(uint8_t start, const char str[])
 {
     static uint8_t start_last = 0;
@@ -318,6 +368,7 @@ void Osd_Display(uint8_t start, const char str[])
             OSD_DISPLAY(str[count], count + start);
     }
 }
+
 void OSD_writeString(int startPos, int row, const char *str)
 {
     int pos = startPos;
@@ -351,6 +402,7 @@ void OSD_writeString(int startPos, int row, const char *str)
         str++;
     }
 }
+
 void OSD_selectOption()
 {
     if (oled_menuItem == OSD_None) {
@@ -6878,7 +6930,6 @@ void OSD_IR()
         delay(5);
     }
 }
-
 
 void handle_0(void)
 {

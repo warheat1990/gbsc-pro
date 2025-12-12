@@ -245,6 +245,9 @@ extern uint8_t rgbComponentMode;
 extern uint8_t keepSettings;
 extern uint8_t tentativeResolution;
 
+// Status Packet
+extern const size_t PRO_STATUS_MESSAGE_LEN;
+
 // Color Display Variables
 extern int A1_yellow;
 extern int A2_main0;
@@ -266,6 +269,7 @@ boolean CheckInputFrequency(void);
 void OSD_DISPLAY(const int T, const char C);
 void ChangeSVModeOption(uint8_t num);
 void ChangeAVModeOption(uint8_t num);
+const char* proStatusPacket();
 void Osd_Display(uint8_t start, const char str[]);
 void OSD_writeString(int startPos, int row, const char *str);
 

@@ -7899,6 +7899,7 @@ void updateWebSocketData()
             // send ping and stats
             if (ESP.getFreeHeap() > 6000) {
                 webSocket.broadcastTXT(toSend, MESSAGE_LEN);
+                webSocket.broadcastTXT(proStatusPacket(), PRO_STATUS_MESSAGE_LEN);
             }
         }
     }
@@ -10246,6 +10247,130 @@ void startWebserver()
 
         fail:
         request->send(200, "application/json", result ? "true" : "false");
+    });
+
+    server.on("/pro", HTTP_POST, [](AsyncWebServerRequest *request) {
+        // Handle input source selection (i parameter)
+        if (request->hasArg("i")) {
+            uint8_t i = request->arg("i").toInt();
+
+            switch (i) {
+                case 1:
+                    InputRGBs();
+                    request->send(200, "application/json", "true");
+                    break;
+                case 2:
+                    InputRGsB();
+                    request->send(200, "application/json", "true");
+                    break;
+                case 3:
+                    InputVGA();
+                    request->send(200, "application/json", "true");
+                    break;
+                case 4:
+                    InputYUV();
+                    request->send(200, "application/json", "true");
+                    break;
+                case 5:
+                    InputSV();
+                    request->send(200, "application/json", "true");
+                    break;
+                case 6:
+                    InputAV();
+                    request->send(200, "application/json", "true");
+                    break;
+                default:
+                    request->send(400, "application/json", "false");
+                    break;
+            }
+            return;
+        }
+
+        // Handle video format selection (f parameter)
+        // 0=Auto, 1=PAL, 2=NTSC-M, 3=PAL-60, 4=NTSC443, 5=NTSC-J,
+        // 6=PAL-N w/ p, 7=PAL-M w/o p, 8=PAL-M, 9=PAL Cmb -N, 10=PAL Cmb -N w/ p, 11=SECAM
+        if (request->hasArg("f")) {
+            uint8_t f = request->arg("f").toInt();
+
+            if (f <= 11) {
+                // Format selection only applies to composite/s-video inputs
+                if (Info == InfoAV || Info == InfoSV) {
+                    uopt->TVMODE_presetPreference = (TVMODE_PresetPreference)f;
+
+                    // Call the same functions as the OSD menu handler
+                    if (Info == InfoAV) {
+                        ChangeAVModeOption(f);
+                    } else if (Info == InfoSV) {
+                        ChangeSVModeOption(f);
+                    }
+
+                    // Send the TvMode command
+                    Send_TvMode(modes[f]);
+
+                    const char* formatNames[] = {"Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"};
+                    SerialM.print(F("Video format: "));
+                    SerialM.println(formatNames[f]);
+
+                    request->send(200, "application/json", "true");
+                } else {
+                    // Format not applicable for current input type
+                    request->send(400, "application/json", "false");
+                }
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle 2X toggle (x parameter)
+        // 0=1X (off), 1=2X (on)
+        if (request->hasArg("x")) {
+            uint8_t x = request->arg("x").toInt();
+
+            if (x <= 1) {
+                lineOption = x;
+                Send_Line(lineOption); // Send command immediately like OSD menu
+                SerialM.println(lineOption ? F("2X enabled") : F("2X disabled"));
+
+                // If 2X is disabled, also disable Smooth (smooth only works with 2X)
+                if (!lineOption && smoothOption) {
+                    smoothOption = 0;
+                    Send_Smooth(smoothOption);
+                    SerialM.println(F("Smooth disabled (requires 2X)"));
+                }
+
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Smooth toggle (s parameter)
+        // 0=off, 1=on
+        // Note: Smooth only works when 2X is enabled
+        if (request->hasArg("s")) {
+            uint8_t s = request->arg("s").toInt();
+
+            if (s <= 1) {
+                // Force smooth off if 2X is not enabled
+                if (!lineOption && s == 1) {
+                    smoothOption = 0;
+                    SerialM.println(F("Smooth not enabled (requires 2X)"));
+                } else {
+                    smoothOption = s;
+                    SerialM.println(smoothOption ? F("Smooth enabled") : F("Smooth disabled"));
+                }
+                Send_Smooth(smoothOption); // Send command immediately like OSD menu
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // No valid parameter provided
+        request->send(400, "application/json", "false");
     });
 
     //webSocket.onEvent(webSocketEvent);

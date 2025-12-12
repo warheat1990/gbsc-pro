@@ -64,6 +64,22 @@ unsigned char Adv_COMPATIBILITY_ON[7] = {0x41, 0x44, 'S', 0xA0};
 unsigned char Adv_COMPATIBILITY_OFF[7] = {0x41, 0x44, 'S', 0xA1};
 unsigned char Adv_BCSH[7] = {0x41, 0x44, 'N'};
 
+// Mode Mapping Table definition
+const uint8_t modes[12] = {
+    0x04,  // 0: Auto
+    0x84,  // 1: Pal
+    0x54,  // 2: Ntsc_M
+    0x64,  // 3: Pal_60
+    0x74,  // 4: Ntsc443
+    0x44,  // 5: Ntsc_J
+    0x94,  // 6: Pal_N_wp
+    0xA4,  // 7: Pal_M_wop
+    0xB4,  // 8: Pal_M
+    0xC4,  // 9: Pal_Cmb_N
+    0xD4,  // 10: Pal_Cmb_N_wp
+    0xE4   // 11: Secam
+};
+
 extern uint8_t InputChanged;
 extern uint8_t selectedInputSource;
 extern uint8_t brightnessOrContrastOption;

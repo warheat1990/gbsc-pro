@@ -246,7 +246,79 @@ const createWebSocket = () => {
       messageDataAt5,
     ] = message.data;
 
-    if (messageDataAt0 != "#") {
+    if (messageDataAt0 === "$") {
+      // Pro status: $[inputType][format][2x][smooth] where inputType is 1-6, format is 0-9/A/B, 2x/smooth are 0/1
+      const inputType: string = messageDataAt1;
+      const formatChar: string = messageDataAt2;
+      const line2xChar: string = messageDataAt3;
+      const smoothChar: string = messageDataAt4;
+
+      // Update input source buttons
+      const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
+      allInputButtons.forEach((btn) => btn.removeAttribute("active"));
+
+      const currentButton = document.querySelector(`[gbs-pro-i="${inputType}"]`);
+      if (currentButton) {
+        currentButton.setAttribute("active", "");
+      }
+
+      // Show/hide Composite/S-Video Options section based on input type
+      // Show section only for S-Video (5) and Composite (6)
+      const isCVInput = inputType === "5" || inputType === "6";
+      const cvSection = document.getElementById("gbs-pro-cv-section");
+      if (cvSection) {
+        cvSection.style.display = isCVInput ? "block" : "none";
+      }
+
+      // Update format button
+      // Format: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'
+      let formatValue: number;
+      if (formatChar >= '0' && formatChar <= '9') {
+        formatValue = parseInt(formatChar, 10);
+      } else if (formatChar === 'A') {
+        formatValue = 10;
+      } else if (formatChar === 'B') {
+        formatValue = 11;
+      } else {
+        formatValue = 0; // Default to Auto
+      }
+
+      const formatButton = document.getElementById("gbs-pro-format");
+      if (formatButton) {
+        const formatNames = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
+        formatButton.setAttribute("gbs-pro-format-value", formatValue.toString());
+        const textDiv = formatButton.querySelector("div:not(.gbs-icon)");
+        if (textDiv) {
+          textDiv.textContent = formatNames[formatValue];
+        }
+      }
+
+      // Update 2X button
+      const btn2x = document.getElementById("gbs-pro-2x");
+      const is2XEnabled = line2xChar === "1";
+
+      if (btn2x) {
+        if (is2XEnabled) {
+          btn2x.setAttribute("active", "");
+        } else {
+          btn2x.removeAttribute("active");
+        }
+      }
+
+      // Update Smooth button (smooth only works when 2X is enabled)
+      const btnSmooth = document.getElementById("gbs-pro-smooth") as HTMLButtonElement | null;
+      if (btnSmooth) {
+        // Disable smooth button if 2X is not enabled
+        btnSmooth.disabled = !is2XEnabled;
+        btnSmooth.style.opacity = is2XEnabled ? "1" : "0.5";
+
+        if (smoothChar === "1" && is2XEnabled) {
+          btnSmooth.setAttribute("active", "");
+        } else {
+          btnSmooth.removeAttribute("active");
+        }
+      }
+    } else if (messageDataAt0 != "#") {
       GBSControl.queuedText += message.data;
       GBSControl.dataQueued += message.data.length;
 
@@ -1129,6 +1201,151 @@ const initGBSButtons = () => {
   });
 };
 
+const initProButtons = () => {
+  const proButtons = document.querySelectorAll("[gbs-pro-i]");
+
+  proButtons.forEach((button) => {
+    const i = button.getAttribute("gbs-pro-i");
+
+    button.addEventListener("click", () => {
+      const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
+      allInputButtons.forEach((btn) => btn.removeAttribute("active"));
+
+      button.setAttribute("active", "");
+
+      const formData = new URLSearchParams();
+      formData.append("i", i || "");
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data !== "true") {
+            console.error("Pro API error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API error:", error);
+        });
+    });
+  });
+
+  // Handle format button cycling
+  const formatButton = document.getElementById("gbs-pro-format");
+  if (formatButton) {
+    const formatNames = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
+
+    formatButton.addEventListener("click", () => {
+      let currentValue = parseInt(formatButton.getAttribute("gbs-pro-format-value") || "0", 10);
+      // Cycle to next format (0-11)
+      currentValue = (currentValue + 1) % 12;
+
+      // Update button display
+      formatButton.setAttribute("gbs-pro-format-value", currentValue.toString());
+      const textDiv = formatButton.querySelector("div:not(.gbs-icon)");
+      if (textDiv) {
+        textDiv.textContent = formatNames[currentValue];
+      }
+
+      // Send to API
+      const formData = new URLSearchParams();
+      formData.append("f", currentValue.toString());
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data !== "true") {
+            console.error("Pro API format error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API format error:", error);
+        });
+    });
+  }
+
+  // Handle 2X toggle
+  const btn2x = document.getElementById("gbs-pro-2x");
+  const btnSmooth = document.getElementById("gbs-pro-smooth") as HTMLButtonElement | null;
+
+  if (btn2x) {
+    btn2x.addEventListener("click", () => {
+      const isActive = btn2x.hasAttribute("active");
+      const newState = isActive ? "0" : "1";
+
+      const formData = new URLSearchParams();
+      formData.append("x", newState);
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "true") {
+            if (newState === "1") {
+              btn2x.setAttribute("active", "");
+              // Enable Smooth button when 2X is on
+              if (btnSmooth) {
+                btnSmooth.disabled = false;
+                btnSmooth.style.opacity = "1";
+              }
+            } else {
+              btn2x.removeAttribute("active");
+              // Disable Smooth button and deactivate when 2X is off
+              if (btnSmooth) {
+                btnSmooth.disabled = true;
+                btnSmooth.style.opacity = "0.5";
+                btnSmooth.removeAttribute("active");
+              }
+            }
+          } else {
+            console.error("Pro API 2X error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API 2X error:", error);
+        });
+    });
+  }
+
+  // Handle Smooth toggle
+  if (btnSmooth) {
+    btnSmooth.addEventListener("click", () => {
+      const isActive = btnSmooth.hasAttribute("active");
+      const newState = isActive ? "0" : "1";
+
+      const formData = new URLSearchParams();
+      formData.append("s", newState);
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "true") {
+            if (newState === "1") {
+              btnSmooth.setAttribute("active", "");
+            } else {
+              btnSmooth.removeAttribute("active");
+            }
+          } else {
+            console.error("Pro API Smooth error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API Smooth error:", error);
+        });
+    });
+  }
+};
+
 const initClearButton = () => {
   GBSControl.ui.outputClear.addEventListener("click", () => {
     GBSControl.ui.terminal.value = "";
@@ -1364,6 +1581,7 @@ const initUI = () => {
   initLegendHelpers();
   initMenuButtons();
   initGBSButtons();
+  initProButtons();
   initClearButton();
   initControlMobileKeys();
   initUnloadListener();

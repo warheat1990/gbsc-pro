@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>GBS-Control</title>
+    <title>GBS-Control Pro</title>
     <link rel="manifest" href="${manifest}" />
     <style>
       ${styles}
@@ -22,51 +22,75 @@
         <svg
           version="1.0"
           xmlns="http://www.w3.org/2000/svg"
-          viewBox="0,0,284,99"
+          viewBox="0,0,284,115"
           class="gbs-menu__logo"
         >
           <path
             fill-rule="evenodd"
             clip-rule="evenodd"
             fill="#010101"
-            d="M283.465 97.986H0V0h283.465v97.986z"
+            d="M283.465 114.986H0V0h283.465v114.986z"
           />
           <path
             fill-rule="evenodd"
             clip-rule="evenodd"
             fill="#00c0fb"
-            d="M270.062 75.08V60.242h-17.04v10.079c0 2.604-2.67 5.02-5.075 5.02h-20.529c-4.983 0-5.43-4.23-5.43-8.298v-37.93c0-2.668 1.938-4.863 4.88-4.863h20.995c2.684 0 5.158 1.492 5.158 4.482V38.86h17.04V27.63c0-7.867-4.26-15.923-13.039-15.923H221.19c-7.309 0-15.604 4.235-15.604 12.652v50.387c0 6.508 4.883 13.068 12.42 13.068h38.47c6.606 0 13.587-5.803 13.587-12.734zM190.488 5.562H6.617L6.585 91.91h183.91l-.007-86.348z"
+            d="M270.062 66.08V51.242h-17.04v10.079c0 2.604-2.67 5.02-5.075 5.02h-20.529c-4.983 0-5.43-4.23-5.43-8.298v-37.93c0-2.668 1.938-4.863 4.88-4.863h20.995c2.684 0 5.158 1.492 5.158 4.482V29.86h17.04V18.63c0-7.867-4.26-15.923-13.039-15.923H221.19c-7.309 0-15.604 4.235-15.604 12.652v50.387c0 6.508 4.883 13.068 12.42 13.068h38.47c6.606 0 13.587-5.803 13.587-12.734zM190.488 2.562H6.617L6.585 78.91h183.91l-.007-76.348z"
           />
           <text
-            transform="translate(12.157 81.95)"
+            transform="translate(98.5 68.95)"
             fill="#010101"
             font-family="'AmsiPro-BoldItalic'"
-            font-size="92.721"
-            letter-spacing="-9"
+            font-size="80"
+            letter-spacing="-7"
+            text-anchor="middle"
           >
             GBS
+          </text>
+          <text
+            transform="translate(142 110)"
+            fill="#00c0fb"
+            font-family="'AmsiPro-BoldItalic'"
+            font-size="42"
+            letter-spacing="-2"
+            font-weight="bold"
+            text-anchor="middle"
+          >
+            PRO
           </text>
           <g>
             <path
               fill-rule="evenodd"
               clip-rule="evenodd"
               fill="#010101"
-              d="M586.93 97.986H303.464V0h283.464v97.986z"
+              d="M586.93 114.986H303.464V0h283.464v114.986z"
             />
             <path
               fill-rule="evenodd"
               clip-rule="evenodd"
               fill="#FFF"
-              d="M573.526 75.08V60.242h-17.04v10.079c0 2.604-2.669 5.02-5.075 5.02h-20.528c-4.984 0-5.43-4.23-5.43-8.298v-37.93c0-2.668 1.937-4.863 4.88-4.863h20.995c2.683 0 5.157 1.492 5.157 4.482V38.86h17.04V27.63c0-7.867-4.26-15.923-13.038-15.923h-35.833c-7.31 0-15.605 4.235-15.605 12.652v50.387c0 6.508 4.884 13.068 12.42 13.068h38.471c6.606 0 13.586-5.803 13.586-12.734zM493.953 5.562H310.08l-.032 86.348h183.91l-.006-86.348z"
+              d="M573.526 66.08V51.242h-17.04v10.079c0 2.604-2.669 5.02-5.075 5.02h-20.528c-4.984 0-5.43-4.23-5.43-8.298v-37.93c0-2.668 1.937-4.863 4.88-4.863h20.995c2.683 0 5.157 1.492 5.157 4.482V29.86h17.04V18.63c0-7.867-4.26-15.923-13.038-15.923h-35.833c-7.31 0-15.605 4.235-15.605 12.652v50.387c0 6.508 4.884 13.068 12.42 13.068h38.471c6.606 0 13.586-5.803 13.586-12.734zM493.953 2.562H310.08l-.032 76.348h183.91l-.006-76.348z"
             />
             <text
-              transform="translate(315.621 81.95)"
+              transform="translate(402 68.95)"
               fill="#010101"
               font-family="'AmsiPro-BoldItalic'"
-              font-size="92.721"
-              letter-spacing="-9"
+              font-size="80"
+              letter-spacing="-7"
+              text-anchor="middle"
             >
               GBS
+            </text>
+            <text
+              transform="translate(445.5 110)"
+              fill="#FFF"
+              font-family="'AmsiPro-BoldItalic'"
+              font-size="42"
+              letter-spacing="-2"
+              font-weight="bold"
+              text-anchor="middle"
+            >
+              PRO
             </text>
           </g>
         </svg>
@@ -111,6 +135,107 @@
       </div>
       <div class="gbs-scroll">
         <section name="presets">
+          <fieldset class="gbs-fieldset" style="padding: 8px 2px">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div class="gbs-icon">cable</div>
+              <div>Input Source</div>
+            </legend>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li>Select the type of video input signal connected to your GBS-Control Pro.</li>
+              <li><strong>RGBs</strong>: RGB with separate sync (SCART, etc.)</li>
+              <li><strong>RGsB</strong>: RGB with sync on green</li>
+              <li><strong>VGA</strong>: VGA/RGBHV computer signal</li>
+              <li><strong>YPbPr</strong>: Component video (Y/Pb/Pr)</li>
+              <li><strong>S-Video</strong>: S-Video input</li>
+              <li><strong>Composite</strong>: Composite video</li>
+            </ul>
+            <div class="gbs-resolution">
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="1"
+                gbs-role="input-source"
+              >
+                RGBs
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="2"
+                gbs-role="input-source"
+              >
+                RGsB
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="3"
+                gbs-role="input-source"
+              >
+                VGA
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="4"
+                gbs-role="input-source"
+              >
+                YPbPr
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="5"
+                gbs-role="input-source"
+              >
+                S-Video
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-pro-i="6"
+                gbs-role="input-source"
+              >
+                Composite
+              </button>
+            </div>
+          </fieldset>
+          <fieldset id="gbs-pro-cv-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div class="gbs-icon">tv</div>
+              <div>Composite/S-Video Options</div>
+            </legend>
+            <div class="gbs-flex gbs-margin__bottom--16">
+              <button
+                id="gbs-pro-format"
+                gbs-pro-format-value="0"
+                class="gbs-button gbs-button__control"
+                style="flex: 1;"
+              >
+                <div class="gbs-icon">tv</div>
+                <div>Auto</div>
+              </button>
+              <button
+                id="gbs-pro-2x"
+                gbs-pro-toggle="2x"
+                class="gbs-button gbs-button__control gbs-button__secondary"
+                style="flex: 1;"
+              >
+                <div class="gbs-icon">filter_2</div>
+                <div>2X</div>
+              </button>
+              <button
+                id="gbs-pro-smooth"
+                gbs-pro-toggle="smooth"
+                class="gbs-button gbs-button__control gbs-button__secondary"
+                style="flex: 1;"
+              >
+                <div class="gbs-icon">blur_on</div>
+                <div>Smooth</div>
+              </button>
+            </div>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li><strong>Format</strong>: Video format/standard for the input signal (Auto recommended)</li>
+              <li><strong>2X</strong>: Enable 2X line multiplication for sharper image</li>
+              <li><strong>Smooth</strong>: Enable smooth scaling for softer image</li>
+            </ul>
+          </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
               <div class="gbs-icon">aspect_ratio</div>
