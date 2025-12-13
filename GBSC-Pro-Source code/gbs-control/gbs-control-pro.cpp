@@ -336,6 +336,12 @@ const char* proStatusPacket()
     return buffer;
 }
 
+// Helper to check if Peaking is locked by Sharpness
+bool isPeakingLocked(void) {
+    // Sharpness 'Medium' or 'High' sets gain != 0x16
+    return (GBS::VDS_PK_LB_GAIN::read() != 0x16);
+}
+
 void Osd_Display(uint8_t start, const char str[])
 {
     static uint8_t start_last = 0;
@@ -403,7 +409,7 @@ void OSD_writeString(int startPos, int row, const char *str)
     }
 }
 
-void OSD_selectOption()
+void OSD_selectOption(void)
 {
     if (oled_menuItem == OSD_None) {
         NEW_OLED_MENU = true;
@@ -1881,10 +1887,15 @@ void OSD_selectOption()
         display.setFont(ArialMT_Plain_16);
         display.drawString(1, 0, "Menu->Color");
         display.drawString(1, 22, "Peaking");
-        if (uopt->wantPeaking) {
-            display.drawString(1, 44, "ON");
+
+        if (isPeakingLocked()) {
+             display.drawString(1, 44, "LOCKED");
         } else {
-            display.drawString(1, 44, "OFF");
+            if (uopt->wantPeaking) {
+                display.drawString(1, 44, "ON");
+            } else {
+                display.drawString(1, 44, "OFF");
+            }
         }
         display.display();
 
@@ -1915,11 +1926,10 @@ void OSD_selectOption()
                     oled_menuItem = OSD_ColorSettings_Advanced;
                     break;
                 case IRKeyOk:
-                    serialCommand = 'f';
+                    if (!isPeakingLocked()) {
+                        serialCommand = 'f';
+                    }
                     break;
-                // case IRKeyLeft:
-                //   serialCommand = 'f';
-                //   break;
                 case IRKeyExit:
                     OSD_menu_F(OSD_CROSS_TOP);
                     OSD_menu_F('1');
@@ -7502,9 +7512,11 @@ void handle_f(void)
     OSD_c2(0x3E, P17, main0);
     OSD_c2(0x3E, P18, main0);
     OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
+    if (!isPeakingLocked()) {
+        OSD_c2(0x3E, P20, main0);
+        OSD_c2(0x3E, P21, main0);
+        OSD_c2(0x3E, P22, main0);
+    }
     OSD_c3(0x3E, P14, main0);
     OSD_c3(0x3E, P15, main0);
     OSD_c3(0x3E, P16, main0);
@@ -7525,14 +7537,24 @@ void handle_f(void)
         OSD_c1(F, P25, blue_fill);
     }
 
-    if (uopt->wantPeaking == 0) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+    if (isPeakingLocked()) {
+        // Locked state - overwrite dashes and ON/OFF with LOCKED
+        OSD_c2(L, P20, main0);
+        OSD_c2(O, P21, main0);
+        OSD_c2(C, P22, main0);
+        OSD_c2(K, P23, main0);
+        OSD_c2(E, P24, main0);
+        OSD_c2(D, P25, main0);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        if (uopt->wantPeaking == 0) {
+            OSD_c2(O, P23, main0);
+            OSD_c2(F, P24, main0);
+            OSD_c2(F, P25, main0);
+        } else {
+            OSD_c2(O, P23, main0);
+            OSD_c2(N, P24, main0);
+            OSD_c2(F, P25, blue_fill);
+        }
     }
 
     if (uopt->wantStepResponse) {

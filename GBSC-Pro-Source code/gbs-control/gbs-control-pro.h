@@ -270,6 +270,7 @@ void OSD_DISPLAY(const int T, const char C);
 void ChangeSVModeOption(uint8_t num);
 void ChangeAVModeOption(uint8_t num);
 const char* proStatusPacket();
+bool isPeakingLocked(void);
 void Osd_Display(uint8_t start, const char str[]);
 void OSD_writeString(int startPos, int row, const char *str);
 
