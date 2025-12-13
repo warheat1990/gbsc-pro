@@ -292,7 +292,7 @@ void ChangeAVModeOption(uint8_t num)
     saveUserPrefs();
 }
 
-const size_t PRO_STATUS_MESSAGE_LEN = 5;
+const size_t PRO_STATUS_MESSAGE_LEN = 6;
 
 const char* proStatusPacket()
 {
@@ -332,6 +332,9 @@ const char* proStatusPacket()
 
     // Smooth: '0' or '1' (ensure valid range)
     buffer[4] = '0' + (smoothOption ? 1 : 0);
+
+    // Sharpness: '0' or '1' (checks for override register state)
+    buffer[5] = isPeakingLocked() ? '1' : '0';
 
     return buffer;
 }

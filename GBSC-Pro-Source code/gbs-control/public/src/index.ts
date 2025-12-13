@@ -247,11 +247,12 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth] where inputType is 1-6, format is 0-9/A/B, 2x/smooth are 0/1
+      // Pro status: $[inputType][format][2x][smooth][sharpness] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness are 0/1
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
       const smoothChar: string = messageDataAt4;
+      const sharpnessChar: string = messageDataAt5;
 
       // Update input source buttons
       const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
@@ -318,6 +319,32 @@ const createWebSocket = () => {
           btnSmooth.removeAttribute("active");
         }
       }
+
+      // Update Sharpness & Peaking Lock
+      const isSharpnessActive = sharpnessChar === '1';
+
+      const btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
+      if (btnSharpness) {
+        if (isSharpnessActive) {
+          btnSharpness.setAttribute("active", "");
+        } else {
+          btnSharpness.removeAttribute("active");
+        }
+      }
+
+      // Peaking is locked (disabled) when Sharpness is active
+      const btnPeaking = document.querySelector('[gbs-toggle="peaking"]') as HTMLButtonElement | null;
+      if (btnPeaking) {
+        if (isSharpnessActive) {
+          btnPeaking.disabled = true;
+          btnPeaking.style.opacity = "0.5";
+          btnPeaking.removeAttribute("active"); // Also remove active state if Sharpness locks it
+        } else {
+          btnPeaking.disabled = false;
+          btnPeaking.style.opacity = "1";
+        }
+      }
+
     } else if (messageDataAt0 != "#") {
       GBSControl.queuedText += message.data;
       GBSControl.dataQueued += message.data.length;

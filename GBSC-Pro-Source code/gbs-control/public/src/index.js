@@ -203,11 +203,12 @@ const createWebSocket = () => {
         GBSControl.isWsActive = true;
         const [messageDataAt0, messageDataAt1, messageDataAt2, messageDataAt3, messageDataAt4, messageDataAt5,] = message.data;
         if (messageDataAt0 === "$") {
-            // Pro status: $[inputType][format][2x][smooth] where inputType is 1-6, format is 0-9/A/B, 2x/smooth are 0/1
+            // Pro status: $[inputType][format][2x][smooth][sharpness] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness are 0/1
             const inputType = messageDataAt1;
             const formatChar = messageDataAt2;
             const line2xChar = messageDataAt3;
             const smoothChar = messageDataAt4;
+            const sharpnessChar = messageDataAt5;
             // Update input source buttons
             const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
             allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -268,6 +269,30 @@ const createWebSocket = () => {
                 }
                 else {
                     btnSmooth.removeAttribute("active");
+                }
+            }
+            // Update Sharpness & Peaking Lock
+            const isSharpnessActive = sharpnessChar === '1';
+            const btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
+            if (btnSharpness) {
+                if (isSharpnessActive) {
+                    btnSharpness.setAttribute("active", "");
+                }
+                else {
+                    btnSharpness.removeAttribute("active");
+                }
+            }
+            // Peaking is locked (disabled) when Sharpness is active
+            const btnPeaking = document.querySelector('[gbs-toggle="peaking"]');
+            if (btnPeaking) {
+                if (isSharpnessActive) {
+                    btnPeaking.disabled = true;
+                    btnPeaking.style.opacity = "0.5";
+                    btnPeaking.removeAttribute("active"); // Also remove active state if Sharpness locks it
+                }
+                else {
+                    btnPeaking.disabled = false;
+                    btnPeaking.style.opacity = "1";
                 }
             }
         }

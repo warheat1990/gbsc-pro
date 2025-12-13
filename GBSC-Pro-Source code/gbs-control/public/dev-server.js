@@ -140,8 +140,40 @@ const handleRequest = (req, res) => {
   }
 
   if (url.pathname.startsWith('/sc')) {
-    const command = url.searchParams.toString().split('&')[0];
+    const commandFull = url.searchParams.toString().split('&')[0];
+    const command = commandFull.split('=')[0]; // Extract just the command letter
     console.log(`  ├─ 🎮 Serial Command: ${command}`);
+
+    if (command === 'W') {
+      // Toggle Sharpness
+      currentSharpness = currentSharpness ? 0 : 1;
+      console.log(`  ├─ 🎮 Sharpness toggled to ${currentSharpness ? 'Medium' : 'Normal'}`);
+
+      // When Sharpness is active, Peaking is locked (disabled)
+      if (currentSharpness) {
+        console.log(`  ├─ 🎮 Peaking is now locked (disabled by Sharpness)`);
+      }
+      broadcastStatus();
+    } else if (command === 'f') {
+      // Peaking toggle - only works if Sharpness is not active
+      if (!currentSharpness) {
+        optionByte0 ^= 0x08; // Toggle bit 3 for Peaking
+        console.log(`  ├─ 🎮 Peaking toggled to ${(optionByte0 & 0x08) ? 'ON' : 'OFF'}`);
+        broadcastStatus();
+      } else {
+        console.log(`  ├─ 🎮 Peaking cannot be toggled (locked by Sharpness)`);
+      }
+    } else if (command === 'm') {
+      optionByte0 ^= 0x04; // Toggle bit 2 for VDS Line Filter
+      console.log(`  ├─ 🎮 Line Filter toggled to ${(optionByte0 & 0x04) ? 'ON' : 'OFF'}`);
+      broadcastStatus();
+    } else if (command === '7') {
+      // Toggle scanlines: requires logic for scanlinesStrength but simple toggle here
+      optionByte0 ^= 0x02;
+      console.log(`  ├─ 🎮 Scanlines toggled to ${(optionByte0 & 0x02) ? 'ON' : 'OFF'}`);
+      broadcastStatus();
+    }
+
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('OK');
     return;
@@ -379,6 +411,28 @@ let currentInputType = 1; // 1=RGBs, 2=RGsB, 3=VGA, 4=YPbPr, 5=S-Video, 6=Compos
 let currentFormat = 0; // 0-11: Auto, PAL, NTSC-M, PAL-60, NTSC443, NTSC-J, PAL-N w/ p, PAL-M w/o p, PAL-M, PAL Cmb -N, PAL Cmb -N w/ p, SECAM
 let current2X = 0; // 0=off, 1=on
 let currentSmooth = 0; // 0=off, 1=on
+let currentSharpness = 0; // 0=off, 1=on
+
+// Broadcast status to all connected WebSocket clients
+const broadcastStatus = () => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) { // OPEN
+      const statusMessage = `#${currentPreset}${currentSlot}${String.fromCharCode(optionByte0)}${String.fromCharCode(optionByte1)}${String.fromCharCode(optionByte2)}`;
+      client.send(statusMessage);
+
+      let formatChar;
+      if (currentFormat <= 9) {
+        formatChar = String.fromCharCode(48 + currentFormat);
+      } else if (currentFormat === 10) {
+        formatChar = 'A';
+      } else {
+        formatChar = 'B';
+      }
+
+      client.send(`$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}`);
+    }
+  });
+};
 
 wss.on('connection', (ws) => {
   const timestamp = new Date().toLocaleTimeString();
@@ -406,8 +460,8 @@ wss.on('connection', (ws) => {
         formatChar = 'B';
       }
 
-      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}`);
-      ws.send(`$${currentInputType}${formatChar}${current2X}${currentSmooth}`);
+      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}, Sharpness=${currentSharpness ? 'ON' : 'OFF'}`);
+      ws.send(`$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}`);
     }
   };
 

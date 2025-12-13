@@ -834,6 +834,16 @@
                   <div>peaking</div>
                 </button>
                 <button
+                  gbs-message="W"
+                  gbs-message-type="action"
+                  gbs-click="normal"
+                  gbs-toggle="sharpness"
+                  class="gbs-button gbs-button__control gbs-button__secondary"
+                >
+                  <div class="gbs-icon">blur_linearbolt</div>
+                  <div>sharpness</div>
+                </button>
+                <button
                   gbs-message="V"
                   gbs-message-type="action"
                   gbs-click="normal"

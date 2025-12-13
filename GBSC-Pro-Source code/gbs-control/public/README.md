@@ -73,7 +73,7 @@ For example: `#1A\x01\x02\x00` means:
 - Option Byte 1: 0x02 (frameTimeLock active)
 - Option Byte 2: 0x00
 
-Pro status messages: `$[inputType][format][2x][smooth]` where:
+Pro status messages: `$[inputType][format][2x][smooth][sharpness]` where:
 - inputType is 1-6:
   - 1: RGBs
   - 2: RGsB
@@ -96,6 +96,7 @@ Pro status messages: `$[inputType][format][2x][smooth]` where:
   - B: SECAM
 - 2x is 0 or 1 (0=off, 1=on)
 - smooth is 0 or 1 (0=off, 1=on, only works when 2x=1)
+- sharpness is 0 or 1 (0=Normal, 1=Medium, when active Peaking is locked/disabled)
 
 #### 3. Static Files
 Serves all files from the `src/` folder:
