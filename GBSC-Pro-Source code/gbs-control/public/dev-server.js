@@ -144,17 +144,7 @@ const handleRequest = (req, res) => {
     const command = commandFull.split('=')[0]; // Extract just the command letter
     console.log(`  ├─ 🎮 Serial Command: ${command}`);
 
-    if (command === 'W') {
-      // Toggle Sharpness
-      currentSharpness = currentSharpness ? 0 : 1;
-      console.log(`  ├─ 🎮 Sharpness toggled to ${currentSharpness ? 'Medium' : 'Normal'}`);
-
-      // When Sharpness is active, Peaking is locked (disabled)
-      if (currentSharpness) {
-        console.log(`  ├─ 🎮 Peaking is now locked (disabled by Sharpness)`);
-      }
-      broadcastStatus();
-    } else if (command === 'f') {
+    if (command === 'f') {
       // Peaking toggle - only works if Sharpness is not active
       if (!currentSharpness) {
         optionByte0 ^= 0x08; // Toggle bit 3 for Peaking
@@ -180,8 +170,22 @@ const handleRequest = (req, res) => {
   }
 
   if (url.pathname.startsWith('/uc')) {
-    const command = url.searchParams.toString().split('&')[0];
+    const commandFull = url.searchParams.toString().split('&')[0];
+    const command = commandFull.split('=')[0]; // Extract just the command letter
     console.log(`  ├─ ⚙️  User Command: ${command}`);
+
+    if (command === 'W') {
+      // Toggle Sharpness
+      currentSharpness = currentSharpness ? 0 : 1;
+      console.log(`  ├─ ⚙️  Sharpness toggled to ${currentSharpness ? 'Medium' : 'Normal'}`);
+
+      // When Sharpness is active, Peaking is locked (disabled)
+      if (currentSharpness) {
+        console.log(`  ├─ ⚙️  Peaking is now locked (disabled by Sharpness)`);
+      }
+      broadcastStatus();
+    }
+
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('OK');
     return;

@@ -835,7 +835,7 @@
                 </button>
                 <button
                   gbs-message="W"
-                  gbs-message-type="action"
+                  gbs-message-type="user"
                   gbs-click="normal"
                   gbs-toggle="sharpness"
                   class="gbs-button gbs-button__control gbs-button__secondary"
