@@ -42,135 +42,134 @@ struct decode_results;
 // OSD Menu States
 typedef enum {
     // Main menu and close
-    OSD_None = 0,                                    // No menu/OSD closed
-
-    // Resolution menu
-    OSD_Resolution = 62,                             // Resolution menu
-    OSD_Resolution_1080 = 68,                        // 1920x1080
-    OSD_Resolution_1024 = 69,                        // 1280x1024
-    OSD_Resolution_960 = 70,                         // 1280x960
-    OSD_Resolution_720 = 71,                         // 1280x720
-    OSD_Resolution_480 = 72,                         // 480p/576p
-    // OSD_Resolution_Downscale = 73,                // Downscale (UNUSED/COMMENTED)
-    OSD_Resolution_pass = 74,                        // Pass-through
-    OSD_Resolution_RetainedSettings = 169,           // Retained settings (moved here for logical grouping)
+    OLED_None,                                        // No menu/OSD closed
 
     // Main menu (top level)
-    OSD_ScreenSettings = 63,                         // Screen Settings
-    OSD_ColorSettings = 64,                          // Color Settings
-    OSD_SystemSettings = 65,                         // System Settings
-    // OSD_Developer = 66,                           // Developer menu (UNUSED/COMMENTED)
-    OSD_ResetDefault = 67,                           // Reset default
-
-    // Screen Settings submenu
-    OSD_ScreenSettings_Main = 75,                    // Settings main
-    OSD_ScreenSettings_Scale = 76,                   // Screen Scale
-    OSD_ScreenSettings_Position = 77,                // Screen Position
-    OSD_ScreenSettings_ScaleAdjust = 79,             // Adjust scale (OK on Scale)
-    OSD_ScreenSettings_PositionAdjust = 80,          // Adjust position (OK on Position)
-    OSD_ScreenSettings_Advanced = 81,                // Advanced settings
-
-    // Color Settings submenu
-    OSD_ColorSettings_Bright = 82,                   // Brightness
-    OSD_ColorSettings_Contrast = 83,                 // Contrast
-    OSD_ColorSettings_Saturation = 84,               // Saturation
-    OSD_ColorSettings_Sharpness = 85,                // Sharpness
-    OSD_ColorSettings_ColorTemp = 86,                // Color Temperature
-    OSD_ColorSettings_Advanced = 87,                 // Advanced color
-    OSD_ColorSettings_RGB_R = 88,                    // RGB Red channel
-    OSD_ColorSettings_RGB_G = 89,                    // RGB Green channel
-    OSD_ColorSettings_RGB_B = 90,                    // RGB Blue channel
-    OSD_ColorSettings_RGB_Preset = 91,               // RGB Preset
-    OSD_ColorSettings_RGB_Save = 92,                 // Save RGB preset
-    OSD_ColorSettings_RGB_Load = 93,                 // Load RGB preset
-
-    // System Settings submenu
-    OSD_Volume_Adjust = 1,                           // Volume adjustment screen
-    OSD_SystemSettings_SV = 94,                      // S-Video settings
-    OSD_SystemSettings_AV = 95,                      // AV settings
-    OSD_SystemSettings_Upscaling = 96,               // Use upscaling option
-    // OSD_SystemSettings_ComponentVGA = 97,         // Component/VGA settings (UNUSED/COMMENTED)
-    OSD_SystemSettings_SVAVInput_Line = 98,          // Line option
-    OSD_SystemSettings_SVAVInput_Smooth_Main = 99,   // Smooth option (main menu)
-    OSD_SystemSettings_SVAVInput_Bright_Main = 100,  // Brightness SV/AV (main menu)
-    OSD_SystemSettings_SVAVInput_Contrast_Main = 101,// Contrast SV/AV (main menu)
-    OSD_SystemSettings_SVAVInput_Saturation_Main = 102, // Saturation SV/AV (main menu)
-    OSD_SystemSettings_SVAVInput_Mode = 103,         // Mode SV/AV
-    OSD_SystemSettings_Volume = 109,                 // Volume control
-    OSD_SystemSettings_Restart = 110,                // Restart menu
-    OSD_SystemSettings_Info = 111,                   // System info
-
-    // Advanced/Debug Settings (UNUSED/COMMENTED)
-    // OSD_Advanced_MemoryAdjust = 104,              // Memory adjustment (MEM left/right)
-    // OSD_Advanced_HSyncAdjust = 105,               // HSync adjustment (HS left/right)
-    // OSD_Advanced_HTotalAdjust = 106,              // Horizontal total adjustment (HTotal -/+)
-    // OSD_Advanced_DebugView = 107,                 // Debug view
-    // OSD_Advanced_ADCFilter = 108,                 // ADC filter settings
-
-    // Profile/Slot Management
-    OSD_Profile_Main = 112,                          // Profile main menu
-    OSD_Profile_SaveConfirm = 113,                   // Save confirmation
-    OSD_Profile_Save = 114,                          // Save profile
-    OSD_Profile_Load = 115,                          // Load profile
-    OSD_Profile_Operation1 = 116,                    // Profile operation 1
-    OSD_Profile_Operation2 = 117,                    // Profile operation 2
-    OSD_Profile_Operation3 = 118,                    // Profile operation 3
-    OSD_Profile_SelectSlot = 119,                    // Slot selection menu
-    OSD_Profile_Slot1 = 120,                         // Profile slot 1
-    OSD_Profile_Slot2 = 121,                         // Profile slot 2
-    OSD_Profile_Slot3 = 122,                         // Profile slot 3
-    OSD_Profile_Slot4 = 123,                         // Profile slot 4
-    OSD_Profile_Slot5 = 124,                         // Profile slot 5
-    OSD_Profile_Slot6 = 125,                         // Profile slot 6
-    OSD_Profile_Slot7 = 126,                         // Profile slot 7
-    OSD_Profile_Slot8 = 127,                         // Profile slot 8
-    OSD_Profile_Slot9 = 128,                         // Profile slot 9
-    OSD_Profile_Slot10 = 129,                        // Profile slot 10
-    OSD_Profile_Slot11 = 130,                        // Profile slot 11
-    OSD_Profile_Slot12 = 131,                        // Profile slot 12
-    OSD_Profile_Slot13 = 132,                        // Profile slot 13
-    OSD_Profile_Slot14 = 133,                        // Profile slot 14
-    OSD_Profile_Slot15 = 134,                        // Profile slot 15
-    OSD_Profile_Slot16 = 135,                        // Profile slot 16
-    OSD_Profile_Slot17 = 136,                        // Profile slot 17
-    OSD_Profile_Slot18 = 137,                        // Profile slot 18
-    OSD_Profile_Slot19 = 138,                        // Profile slot 19
-    OSD_Profile_SelectPreset = 139,                  // Preset selection menu
-    OSD_Profile_Preset1 = 140,                       // Profile preset 1
-    OSD_Profile_Preset2 = 141,                       // Profile preset 2
-    OSD_Profile_Preset3 = 142,                       // Profile preset 3
-    OSD_Profile_Preset4 = 143,                       // Profile preset 4
-    OSD_Profile_Preset5 = 144,                       // Profile preset 5
-    OSD_Profile_Preset6 = 145,                       // Profile preset 6
-    OSD_Profile_Preset7 = 146,                       // Profile preset 7
-    OSD_Profile_Preset8 = 147,                       // Profile preset 8
-    OSD_Profile_Preset9 = 148,                       // Profile preset 9
-    OSD_Profile_Preset10 = 149,                      // Profile preset 10
-    OSD_Profile_Preset11 = 150,                      // Profile preset 11
-    OSD_Profile_Preset12 = 151,                      // Profile preset 12
-
-    // Info display
-    OSD_Info_Display = 152,                          // Info display screen
-    // OSD_Advanced_FreezeCapture = 153,             // Freeze capture (UNUSED/COMMENTED)
+    OLED_Input,                                       // Input menu
+    OLED_OutputResolution,                            // Output Resolution menu
+    OLED_ScreenSettings,                              // Screen Settings
+    OLED_ColorSettings,                               // Color Settings
+    OLED_SystemSettings,                              // System Settings
+    OLED_ResetSettings,                               // Reset default
 
     // Input menu
-    OSD_Input = 154,                                 // Input menu
-    OSD_Input_RGBs,                                  // 155 Input RGBs
-    OSD_Input_RGsB,                                  // 156 Input RGsB (FIX TYPO: was RBsB)
-    OSD_Input_VGA,                                   // 157 Input VGA
-    OSD_Input_YPBPR,                                 // 158 Input YPbPr
-    OSD_Input_SV,                                    // 159 Input S-Video
-    OSD_Input_AV,                                    // 160 Input AV
+    OLED_Input_RGBs,                                  // Input RGBs
+    OLED_Input_RGsB,                                  // Input RGsB
+    OLED_Input_VGA,                                   // Input VGA
+    OLED_Input_YPBPR,                                 // Input YPbPr
+    OLED_Input_SV,                                    // Input S-Video
+    OLED_Input_AV,                                    // Input AV
 
-    // SV/AV Input settings (continue from 161)
-    OSD_SystemSettings_SVAVInput,                    // 161 SV/AV Input settings
-    OSD_SystemSettings_SVAVInput_DoubleLine,         // 162 Double line
-    OSD_SystemSettings_SVAVInput_Smooth,             // 163 Smooth (submenu)
-    OSD_SystemSettings_SVAVInput_Bright,             // 164 Brightness (submenu)
-    OSD_SystemSettings_SVAVInput_contrast,           // 165 Contrast (submenu)
-    OSD_SystemSettings_SVAVInput_saturation,         // 166 Saturation (submenu)
-    OSD_SystemSettings_SVAVInput_default,            // 167 Default
-    OSD_SystemSettings_SVAVInput_Compatibility,      // 168 Compatibility
+    // Resolution menu
+    OLED_OutputResolution_1080,                       // 1920x1080
+    OLED_OutputResolution_1024,                       // 1280x1024
+    OLED_OutputResolution_960,                        // 1280x960
+    OLED_OutputResolution_720,                        // 1280x720
+    OLED_OutputResolution_480,                        // 480p/576p
+    // OLED_OutputResolution_Downscale,               // Downscale
+    OLED_OutputResolution_PassThrough,                // Pass-through
+
+    // Screen Settings submenu
+    OLED_ScreenSettings_Move,                         // Move
+    OLED_ScreenSettings_Scale,                        // Scale
+    OLED_ScreenSettings_Borders,                      // Borders
+    OLED_ScreenSettings_MoveAdjust,                   // Move adjust
+    OLED_ScreenSettings_ScaleAdjust,                  // Scale adjust
+    OLED_ScreenSettings_BordersAdjust,                // Borders adjust
+
+    // Color Settings submenu
+    OLED_ColorSettings_ADCGain,                       // ADC Gain
+    OLED_ColorSettings_Scanlines,                     // Scanlines
+    OLED_ColorSettings_LineFilter,                    // Line Filter
+    OLED_ColorSettings_Sharpness,                     // Sharpness
+    OLED_ColorSettings_Peaking,                       // Peaking
+    OLED_ColorSettings_StepResponse,                  // Step Response
+    OLED_ColorSettings_RGB_R,                         // RGB Red channel
+    OLED_ColorSettings_RGB_G,                         // RGB Green channel
+    OLED_ColorSettings_RGB_B,                         // RGB Blue channel
+    OLED_ColorSettings_Y_Gain,                        // Y Gain
+    OLED_ColorSettings_Color,                         // Color
+    OLED_ColorSettings_DefaultColor,                  // Default Color
+
+    // System Settings submenu
+    OLED_SystemSettings_MatchedPresets,               // Matched Presets
+    OLED_ScreenSettings_FullHeight,                   // Full Height
+    OLED_SystemSettings_UseUpscaling,                 // Use upscaling
+    // OLED_SystemSettings_ComponentVGA,              // Component/VGA settings
+    OLED_SystemSettings_Force5060Hz,                  // Force 50/60Hz
+    OLED_SystemSettings_ClockGenerator,               // Clock Generator
+    OLED_SystemSettings_ADCCalibration,               // ADC Calibration
+    OLED_SystemSettings_FrameTimeLock,                // Frame Time Lock
+    OLED_SystemSettings_LockMethod,                   // Lock Method
+    OLED_SystemSettings_Deinterlace,                  // Deinterlace
+    OLED_SystemSettings_Compatibility,                // Compatibility
+
+    // SV/AV Input settings
+    OLED_SystemSettings_SVAVInputSettings,            // SV/AV Input settings
+    OLED_SystemSettings_SVAVInput_DoubleLine,         // Double line
+    OLED_SystemSettings_SVAVInput_Smooth,             // Smooth
+    OLED_SystemSettings_SVAVInput_Bright,             // Brightness
+    OLED_SystemSettings_SVAVInput_Contrast,           // Contrast
+    OLED_SystemSettings_SVAVInput_Saturation,         // Saturation
+    OLED_SystemSettings_SVAVInput_Default,            // Default
+
+    OLED_Volume_Adjust,                               // Volume adjustment screen
+    OLED_RetainedSettings,                            // Retained settings
+    OLED_Info_Display,                                // Info display screen
+    // OLED_FreezeCapture,                            // Freeze capture
+    OLED_EnableOTA,                                   // Enable OTA update
+    OLED_Restart,                                     // Restart menu
+    OLED_ResetDefaults,                               // Reset to factory defaults
+
+    // Disabled
+    // OLED_Developer,                                // Developer menu
+    // OLED_MemoryAdjust,                             // Memory adjustment (MEM left/right)
+    // OLED_HSyncAdjust,                              // HSync adjustment (HS left/right)
+    // OLED_HTotalAdjust,                             // Horizontal total adjustment (HTotal -/+)
+    // OLED_DebugView,                                // Debug view
+    // OLED_ADCFilter,                                // ADC filter settings
+
+    // Profile/Slot Management
+    OLED_Profile,                                     // Profile main menu
+    OLED_Profile_SaveConfirm,                         // Save confirmation
+    OLED_Profile_Save,                                // Save profile
+    OLED_Profile_Load,                                // Load profile
+    OLED_Profile_Operation1,                          // Profile operation 1
+    OLED_Profile_Operation2,                          // Profile operation 2
+    OLED_Profile_Operation3,                          // Profile operation 3
+    OLED_Profile_SelectSlot,                          // Slot selection menu
+    OLED_Profile_Slot1,                               // Profile slot 1
+    OLED_Profile_Slot2,                               // Profile slot 2
+    OLED_Profile_Slot3,                               // Profile slot 3
+    OLED_Profile_Slot4,                               // Profile slot 4
+    OLED_Profile_Slot5,                               // Profile slot 5
+    OLED_Profile_Slot6,                               // Profile slot 6
+    OLED_Profile_Slot7,                               // Profile slot 7
+    OLED_Profile_Slot8,                               // Profile slot 8
+    OLED_Profile_Slot9,                               // Profile slot 9
+    OLED_Profile_Slot10,                              // Profile slot 10
+    OLED_Profile_Slot11,                              // Profile slot 11
+    OLED_Profile_Slot12,                              // Profile slot 12
+    OLED_Profile_Slot13,                              // Profile slot 13
+    OLED_Profile_Slot14,                              // Profile slot 14
+    OLED_Profile_Slot15,                              // Profile slot 15
+    OLED_Profile_Slot16,                              // Profile slot 16
+    OLED_Profile_Slot17,                              // Profile slot 17
+    OLED_Profile_Slot18,                              // Profile slot 18
+    OLED_Profile_Slot19,                              // Profile slot 19
+    OLED_Profile_SelectPreset,                        // Preset selection menu
+    OLED_Profile_Preset1,                             // Profile preset 1
+    OLED_Profile_Preset2,                             // Profile preset 2
+    OLED_Profile_Preset3,                             // Profile preset 3
+    OLED_Profile_Preset4,                             // Profile preset 4
+    OLED_Profile_Preset5,                             // Profile preset 5
+    OLED_Profile_Preset6,                             // Profile preset 6
+    OLED_Profile_Preset7,                             // Profile preset 7
+    OLED_Profile_Preset8,                             // Profile preset 8
+    OLED_Profile_Preset9,                             // Profile preset 9
+    OLED_Profile_Preset10,                            // Profile preset 10
+    OLED_Profile_Preset11,                            // Profile preset 11
+    OLED_Profile_Preset12,                            // Profile preset 12
 } OSD_Menu;
 
 // Menu Handler Function Pointer Type
