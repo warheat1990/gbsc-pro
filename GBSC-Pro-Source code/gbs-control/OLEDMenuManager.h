@@ -96,6 +96,7 @@ private:
     }
 
 public:
+    void resetScreenSaverTimer() { lastKeyPressedTime = millis(); } // GBSC-PRO extensions
     OLEDMenuManager(SSD1306Wire *display);
     OLEDMenuItem *allocItem();
     OLEDMenuItem *registerItem(OLEDMenuItem *parent, uint16_t tag, uint16_t imageWidth, uint16_t imageHeight, const uint8_t *xbmImage, MenuItemHandler handler = nullptr, OLEDDISPLAY_TEXT_ALIGNMENT alignment = TEXT_ALIGN_CENTER);

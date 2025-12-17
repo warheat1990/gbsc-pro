@@ -12,44 +12,10 @@ enum PresetPreference : uint8_t {
     OutputBypass = 10,
 };
 
-enum INPUT_PresetPreference : uint8_t {
-    MT_RGBs,
-    MT_RGsB,
-    MT_VGA,
-    MT_YPBPR,
-    MT_SV,
-    MT_AV,
-};
-
-enum SETTING_PresetPreference : uint8_t {
-    // MT_7391_OFF,
-    // MT_7391_ON,
-    MT_7391_1X,
-    MT_7391_2X,
-    MT_SMOOTH_OFF,
-    MT_SMOOTH_ON,
-    MT_COMPATIBILITY_OFF,
-    MT_COMPATIBILITY_ON,
-    MT_ACE_OFF,
-    MT_ACE_ON,
-    // MT_7391_AV,
-    // MT_7391_SV,
-};
-
-enum TVMODE_PresetPreference : uint8_t {
-    MT_MODE_AUTO=0,
-    MT_MODE_PAL,
-    MT_MODE_NTSCM,
-    MT_MODE_PAL60,
-    MT_MODE_NTSC443,
-    MT_MODE_NTSCJ,
-    MT_MODE_PALNwp,
-    MT_MODE_PALMwop,
-    MT_MODE_PALM,
-    MT_MODE_PALCmbN,
-    MT_MODE_PALCmbNwp,
-    MT_MODE_SECAM,
-};
+// GBSC-PRO: Forward declarations (definitions in options-pro.h)
+enum INPUT_PresetPreference : uint8_t;
+enum SETTING_PresetPreference : uint8_t;
+enum TVMODE_PresetPreference : uint8_t;
 
 // userOptions holds user preferences / customizations
 struct userOptions
@@ -57,9 +23,6 @@ struct userOptions
     // 0 - normal, 1 - x480/x576, 2 - customized, 3 - 1280x720, 4 - 1280x1024, 5 - 1920x1080,
     // 6 - downscale, 10 - bypass
     PresetPreference presetPreference;
-    INPUT_PresetPreference INPUT_presetPreference;
-    SETTING_PresetPreference SETTING_presetPreference;
-    TVMODE_PresetPreference TVMODE_presetPreference;
     Ascii8 presetSlot;
     uint8_t enableFrameTimeLock;
     uint8_t frameTimeLockMethod;
@@ -78,6 +41,10 @@ struct userOptions
     uint8_t wantFullHeight;
     uint8_t enableCalibrationADC;
     uint8_t scanlineStrength;
+    // GBSC-PRO additions:
+    INPUT_PresetPreference INPUT_presetPreference;
+    SETTING_PresetPreference SETTING_presetPreference;
+    TVMODE_PresetPreference TVMODE_presetPreference;
 };
 
 
@@ -127,6 +94,7 @@ struct runTimeOptions
     bool isValidForScalingRGBHV;
     bool useHdmiSyncFix;
     bool extClockGenDetected;
+    // GBSC-PRO additions:
     bool HdmiHoldDetection;
 };
 // remember adc options across presets

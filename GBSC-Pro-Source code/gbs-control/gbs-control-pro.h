@@ -12,6 +12,7 @@
 // necessary includes. We only forward-declare what we need here.
 
 #include <Arduino.h>
+#include "options-pro.h"  // Pro-specific enum definitions for options.h extensions
 
 // Forward declarations to avoid circular dependencies
 class SSD1306Wire;
@@ -194,7 +195,6 @@ extern uint8_t Info;
 extern uint8_t selectedInputSource;
 
 // Timing Variables
-extern unsigned long OledUpdataTime;
 extern uint8_t infoState;
 extern bool irDecodedFlag;
 extern unsigned long lastSignalTime;
@@ -324,3 +324,8 @@ void handle_dollar(void);
 void handle_percent(void);
 void handle_ampersand(void);
 void handle_asterisk(void);
+
+// Pro-specific OLED menu helper
+// Helper function to reset OLED screen saver timer from Pro code
+// This replaces the old OledUpdataTime global variable approach
+void resetOLEDScreenSaverTimer();

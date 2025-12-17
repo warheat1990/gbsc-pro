@@ -4,7 +4,8 @@
 */
 #include "OLEDMenuManager.h"
 #include "OLEDMenuFonts.h"
-unsigned long OledUpdataTime;
+
+
 OLEDMenuManager::OLEDMenuManager(SSD1306Wire *display)
     : display(display)
     , rootItem(registerItem(nullptr, 0, nullptr))
@@ -368,10 +369,6 @@ void OLEDMenuManager::tick(OLEDMenuNav nav)
 
     unsigned long curMili = millis();
     if (nav == OLEDMenuNav::IDLE) {
-        if(OledUpdataTime == 1) {
-            lastKeyPressedTime = curMili;
-            OledUpdataTime = 0;
-        }
         if (curMili - lastKeyPressedTime > OLED_MENU_SCREEN_SAVER_KICK_IN_SECONDS * 1000) {
             if (curMili - screenSaverLastUpdateTime > OLED_MENU_SCREEN_SAVER_REFRESH_INTERVAL_IN_MS) {
                 drawScreenSaver();

@@ -10,7 +10,7 @@
 #define OLED_MENU_HEIGHT 64
 #define OLED_MENU_MAX_SUBITEMS_NUM 16 // should be less than 256
 #define OLED_MENU_MAX_ITEMS_NUM 64    // should be less than 1024
-#define OLED_MENU_MAX_DEPTH 5 // maximum levels of submenus
+#define OLED_MENU_MAX_DEPTH 8 // maximum levels of submenus
 #define OLED_MENU_REFRESH_INTERVAL_IN_MS 50 // not precise
 #define OLED_MENU_SCREEN_SAVER_REFRESH_INTERVAL_IN_MS 5000 // not precise
 #define OLED_MENU_SCROLL_LEAD_IN_TIME_IN_MS 600 // milliseconds before items start to scroll after being selected
@@ -20,7 +20,7 @@
 #define OLED_MENU_WRAPPING_SPACE (OLED_MENU_WIDTH / 3)
 #define REVERSE_ROTARY_ENCODER_FOR_OLED_MENU 1 // if set 1, rotary encoder will be reversed for menu navigation
 #define REVERSE_ROTARY_ENCODER_FOR_OSD 0 // if set 1, rotary encoder will be reversed for OSD navigation
-#define OSD_TIMEOUT 6000 // OSD will disappear after OSD_TIMEOUT milliseconds without inputs
+#define OSD_TIMEOUT 8000 // OSD will disappear after OSD_TIMEOUT milliseconds without inputs
 
 // do not edit these
 #define OLED_MENU_STATUS_BAR_HEIGHT (OLED_MENU_HEIGHT / 4) // status bar uses 1/4 of the screen

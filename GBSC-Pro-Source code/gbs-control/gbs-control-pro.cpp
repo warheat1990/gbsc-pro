@@ -8,6 +8,12 @@
 #include "options.h"
 #include "OLEDMenuImplementation.h"
 
+// Implementation of resetOLEDScreenSaverTimer()
+extern OLEDMenuManager oledMenu;
+void resetOLEDScreenSaverTimer() {
+    oledMenu.resetScreenSaverTimer();
+}
+
 // OSD Global Variables
 char colour1;
 char number_stroca;
@@ -6700,7 +6706,7 @@ void OSD_selectOption(void)
         // printf("Delay success \n");
         lastMenuItemTime = millis();
         irDecodedFlag = 0;
-        OledUpdataTime = 1;
+        resetOLEDScreenSaverTimer();
     }
 
     if ((millis() - lastResolutionTime) >= OSD_RESOLUTION_UP_TIME && oled_menuItem == OLED_RetainedSettings) {
