@@ -82,35 +82,11 @@ public:
     typedef UReg<0x00, 0x05, 3, 1> STATUS_IF_VT_BAD;
     typedef UReg<0x00, 0x05, 4, 1> STATUS_IF_INP_SW;
 
-    /* new_S*/  
-    typedef UReg<0x00, 0x00, 0, 8> REG_S0_00;
-    typedef UReg<0x00, 0x01, 0, 8> REG_S0_01;
-    typedef UReg<0x00, 0x02, 0, 8> REG_S0_02;
-    typedef UReg<0x00, 0x03, 0, 8> REG_S0_03;
-    typedef UReg<0x00, 0x04, 0, 8> REG_S0_04;
-    typedef UReg<0x00, 0x05, 0, 8> REG_S0_05;
-    typedef UReg<0x00, 0x06, 0, 8> REG_S0_06;
-    typedef UReg<0x00, 0x07, 0, 8> REG_S0_07;
-    typedef UReg<0x00, 0x08, 0, 8> REG_S0_08;
-
-    typedef UReg<0x00, 0x04, 6, 2> INTERLACE_PROGRESSIVE_RECOGNIZE;
-    typedef UReg<0x00, 0x05, 0, 1> USER_DEFINE;
-    typedef UReg<0x00, 0x06, 0, 8> H_TOTAL_LOW;
-    typedef UReg<0x00, 0x07, 0, 1> H_TOTAL_HIGH;
-    typedef UReg<0x00, 0x07, 1, 7> V_TOTAL_LOW;
-    typedef UReg<0x00, 0x08, 0, 4> V_TOTAL_HIGH;
-
-    typedef UReg<0x04, 0x2B, 4, 1> PB_DB_FIELD_EN;
-
-    /* new_E*/
-
     typedef UReg<0x00, 0x06, 0, 9> HPERIOD_IF;
     typedef UReg<0x00, 0x07, 1, 11> VPERIOD_IF;
 
     typedef UReg<0x00, 0x09, 6, 1> STATUS_MISC_PLL648_LOCK;
     typedef UReg<0x00, 0x09, 7, 1> STATUS_MISC_PLLAD_LOCK;
-
-    typedef UReg<0x00, 0x0A, 0, 8> STATUS_MISC;
     typedef UReg<0x00, 0x0A, 0, 1> STATUS_MISC_PIP_EN_V;
     typedef UReg<0x00, 0x0A, 1, 1> STATUS_MISC_PIP_EN_H;
     typedef UReg<0x00, 0x0A, 4, 1> STATUS_MISC_VBLK;
@@ -214,7 +190,6 @@ public:
     typedef UReg<0x00, 0x49, 0, 1> PAD_CKIN_ENZ;
     typedef UReg<0x00, 0x49, 1, 1> PAD_CKOUT_ENZ;
     typedef UReg<0x00, 0x49, 2, 1> PAD_SYNC_OUT_ENZ;
-    typedef UReg<0x00, 0x49, 3, 1> PAD_BLK_OUT_ENZ;
     typedef UReg<0x00, 0x49, 4, 1> PAD_TRI_ENZ;
     typedef UReg<0x00, 0x4A, 0, 3> PAD_OSC_CNTRL;
     typedef UReg<0x00, 0x4B, 1, 1> DAC_RGBS_BYPS2DAC;
@@ -223,11 +198,6 @@ public:
     typedef UReg<0x00, 0x4D, 5, 1> TEST_BUS_EN;
     typedef UReg<0x00, 0x4F, 5, 1> OUT_SYNC_CNTRL;
     typedef UReg<0x00, 0x4F, 6, 2> OUT_SYNC_SEL;
-    //NEW   
-    // typedef UReg<0x00, 0x50, 0, 1> OUT_BLANK_SEL_0;
-    // typedef UReg<0x00, 0x50, 1, 1> OUT_BLANK_SEL_1;
-    // typedef UReg<0x00, 0x54, 0, 8> GPIO_VAL;
-    //END
 
     typedef UReg<0x00, 0x52, 0, 8> GPIO_CONTROL_00;
     typedef UReg<0x00, 0x53, 0, 8> GPIO_CONTROL_01;

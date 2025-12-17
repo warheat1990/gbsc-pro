@@ -434,9 +434,9 @@ public:
 #endif
 #ifdef FS_DEBUG_LED
         if (correction == 0) {
-            digitalWrite(15, LOW); // LED ON
+            digitalWrite(LED_BUILTIN, LOW); // LED ON
         } else {
-            digitalWrite(15, HIGH); // LED OFF
+            digitalWrite(LED_BUILTIN, HIGH); // LED OFF
         }
 #endif
 

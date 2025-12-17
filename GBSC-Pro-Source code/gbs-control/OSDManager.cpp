@@ -8,7 +8,6 @@ extern void shiftVerticalDownIF();
 extern void shiftVerticalUpIF();
 extern void scaleVertical(uint16_t, bool);
 extern void scaleHorizontal(uint16_t, bool);
-extern void disableScanlines();
 extern OSDManager osdManager;
 
 bool osdBrightness(OSDMenuConfig &config)
@@ -53,7 +52,6 @@ bool osdScanlines(OSDMenuConfig &config)
         }
         if (uopt->scanlineStrength == 0x50) {
             uopt->wantScanlines = 0;
-            disableScanlines();
         } else {
             uopt->wantScanlines = 1;
         }
