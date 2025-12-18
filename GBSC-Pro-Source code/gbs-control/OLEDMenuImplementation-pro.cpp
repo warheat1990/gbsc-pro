@@ -1,16 +1,17 @@
 // ====================================================================================
 // OLEDMenuImplementation-pro.cpp
-// GBSC-Pro Extensions for OLEDMenuImplementation
+// GBSC-Pro OLED Menu Handlers
 //
-// This file contains Pro-specific implementations for:
-// - HC32 controller communication (PacketSender class)
-// - ADV7280/ADV7391 processor control
-// - Input source switching
-// - Pro-specific OLED menu handlers
+// This file contains Pro-specific OLED menu implementations:
+// - Menu initialization (Input, Settings, TV Mode)
+// - Menu handlers (OLED_handleInputSelection, OLED_handleSettingSelection, OLED_handleTvModeSelection)
+//
+// Note: ADV communication and input switching functions are in gbs-control-pro.cpp
 // ====================================================================================
 
 #include "OLEDMenuImplementation-pro.h"
 #include "OLEDMenuImplementation.h"
+#include "gbs-control-pro.h"
 #include "options-pro.h"
 #include "options.h"
 #include "tv5725.h"
@@ -24,16 +25,6 @@ typedef TV5725<GBS_ADDR> GBS;
 extern struct runTimeOptions *rto;
 extern struct userOptions *uopt;
 extern void saveUserPrefs();
-extern void resetSyncProcessor();
-
-// ====================================================================================
-// External References - gbs-control-pro.cpp
-// ====================================================================================
-
-extern uint8_t rgbComponentMode;
-extern uint8_t selectedInputSource;
-extern uint8_t brightnessOrContrastOption;
-extern uint8_t Info;
 
 // ====================================================================================
 // External References - OLEDMenuImplementation.cpp
@@ -42,359 +33,12 @@ extern uint8_t Info;
 extern OLEDMenuManager oledMenu;
 extern unsigned long oledMenuFreezeStartTime;
 extern unsigned long oledMenuFreezeTimeoutInMS;
-extern void ChangeAVModeOption(uint8_t num);
-extern void ChangeSVModeOption(uint8_t num);
-
-// ====================================================================================
-// HC32 Communication - Packet Constants (internal)
-// ====================================================================================
-
-static const unsigned char RGBs[7]       = {0x41, 0x44, 'S', 0x40};
-static const unsigned char RGsB[7]       = {0x41, 0x44, 'S', 0x50};
-static const unsigned char VGA[7]        = {0x41, 0x44, 'S', 0x60};
-static const unsigned char Ypbpr[7]      = {0x41, 0x44, 'S', 0x70};
-static const unsigned char Adv_7391_SV[7] = {0x41, 0x44, 'S', 0x10};
-static const unsigned char Adv_7391_AV[7] = {0x41, 0x44, 'S', 0x20};
-
-static unsigned char TvMode[7]              = {0x41, 0x44, 'T'};
-static unsigned char Adv_2X[7]              = {0x41, 0x44, 'S', 0x30};
-static unsigned char Adv_1X[7]              = {0x41, 0x44, 'S', 0x31};
-static unsigned char Adv_SM_ON[7]           = {0x41, 0x44, 'S', 0x90};
-static unsigned char Adv_SM_OFF[7]          = {0x41, 0x44, 'S', 0x91};
-static unsigned char Adv_COMPATIBILITY_ON[7]  = {0x41, 0x44, 'S', 0xA0};
-static unsigned char Adv_COMPATIBILITY_OFF[7] = {0x41, 0x44, 'S', 0xA1};
-static unsigned char Adv_BCSH[7]            = {0x41, 0x44, 'N'};
-
-// ====================================================================================
-// HC32 Communication - TV Mode Mapping Table
-// ====================================================================================
-
-const uint8_t modes[12] = {
-    0x04,  // 0: Auto
-    0x84,  // 1: Pal
-    0x54,  // 2: Ntsc_M
-    0x64,  // 3: Pal_60
-    0x74,  // 4: Ntsc443
-    0x44,  // 5: Ntsc_J
-    0x94,  // 6: Pal_N_wp
-    0xA4,  // 7: Pal_M_wop
-    0xB4,  // 8: Pal_M
-    0xC4,  // 9: Pal_Cmb_N
-    0xD4,  // 10: Pal_Cmb_N_wp
-    0xE4   // 11: Secam
-};
-
-// ====================================================================================
-// HC32 Communication - PacketSender Class
-// ====================================================================================
-
-class PacketSender {
-public:
-    explicit PacketSender(HardwareSerial& serial = Serial) : m_serial(serial) {
-        randomSeed(analogRead(A0));
-    }
-
-    void send(const unsigned char* buff, uint8_t mode = 0) {
-        unsigned char buff_lin[7];
-        buff_lin[0] = buff[0];
-        buff_lin[1] = buff[1];
-        buff_lin[2] = buff[2];
-        buff_lin[3] = buff[3] | (mode & 0x0f);
-        buff_lin[4] = random(254);
-        buff_lin[5] = 0xfe;
-        buff_lin[6] = buff_lin[0] + buff_lin[1] + buff_lin[2] + buff_lin[3] + buff_lin[4] + buff_lin[5];
-        m_serial.write(buff_lin, sizeof(buff_lin));
-    }
-
-    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
-        unsigned char buff_lin[7];
-        for (int i = 0; i < 4; ++i) buff_lin[i] = buff[i];
-        buff_lin[3] = reg;
-        buff_lin[4] = val;
-        buff_lin[5] = 0xFE;
-        unsigned char sum = 0;
-        for (int i = 0; i < 6; ++i) sum += buff_lin[i];
-        buff_lin[6] = sum;
-        m_serial.write(buff_lin, sizeof(buff_lin));
-    }
-
-private:
-    HardwareSerial& m_serial;
-};
-
-static PacketSender packetSender;
-
-// ====================================================================================
-// HC32 Communication Functions
-// ====================================================================================
-
-void SetReg(unsigned char reg, unsigned char val) {
-    packetSender.writeReg(Adv_BCSH, reg, val);
-}
-
-// ====================================================================================
-// ADV Processor Control Functions
-// ====================================================================================
-
-void Send_TvMode(uint8_t Mode) {
-    TvMode[3] = Mode;
-    packetSender.send(TvMode);
-    saveUserPrefs();
-}
-
-void Send_Line(bool line) {
-    if (line)
-        packetSender.send(Adv_2X);
-    else
-        packetSender.send(Adv_1X);
-    saveUserPrefs();
-}
-
-void Send_Smooth(bool Smooth) {
-    if (Smooth)
-        packetSender.send(Adv_SM_ON);
-    else
-        packetSender.send(Adv_SM_OFF);
-    saveUserPrefs();
-}
-
-void Send_Compatibility(bool Com) {
-    if (!Com)
-        packetSender.send(Adv_COMPATIBILITY_ON);
-    else
-        packetSender.send(Adv_COMPATIBILITY_OFF);
-    saveUserPrefs();
-}
-
-// ====================================================================================
-// Input Source Switching - Basic Functions
-// ====================================================================================
-
-void InputRGBs(void) {
-    packetSender.send(RGBs);
-    selectedInputSource = S_RGBs;
-    Info = InfoRGBs;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputRGsB(void) {
-    packetSender.send(RGsB);
-    selectedInputSource = S_RGBs;
-    Info = InfoRGsB;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputVGA(void) {
-    packetSender.send(VGA, 1);
-    selectedInputSource = S_VGA;
-    Info = InfoVGA;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputYUV(void) {
-    packetSender.send(Ypbpr);
-    selectedInputSource = S_YUV;
-    Info = InfoYUV;
-    resetSyncProcessor();
-    brightnessOrContrastOption = 1;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputSV(void) {
-    packetSender.send(Adv_7391_SV);
-    selectedInputSource = S_YUV;
-    Info = InfoSV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
-
-void InputAV(void) {
-    packetSender.send(Adv_7391_AV);
-    selectedInputSource = S_YUV;
-    Info = InfoAV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
-
-// ====================================================================================
-// Input Source Switching - Functions with Mode Parameter
-// ====================================================================================
-
-void InputRGBs_mode(uint8_t mode) {
-    packetSender.send(RGBs, !mode);
-    selectedInputSource = S_RGBs;
-    Info = InfoRGBs;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputRGsB_mode(uint8_t mode) {
-    packetSender.send(RGsB, !mode);
-    selectedInputSource = S_RGBs;
-    Info = InfoRGsB;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputVGA_mode(uint8_t mode) {
-    packetSender.send(VGA, !mode);
-    selectedInputSource = S_VGA;
-    Info = InfoVGA;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputSV_mode(uint8_t mode) {
-    packetSender.send(Adv_7391_SV, mode);
-    selectedInputSource = S_YUV;
-    Info = InfoSV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
-
-void InputAV_mode(uint8_t mode) {
-    packetSender.send(Adv_7391_AV, mode);
-    selectedInputSource = S_YUV;
-    Info = InfoAV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
-
-// ====================================================================================
-// Input Source Switching - Boot/Restore Function
-// ====================================================================================
-
-void applySavedInputSource(void) {
-    // Apply hardware configuration based on selectedInputSource
-    // Note: Don't call saveUserPrefs() here as we're loading from file
-    switch (selectedInputSource) {
-        case S_RGBs:
-            Info = InfoRGBs;
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
-            break;
-
-        case S_VGA:
-            Info = InfoVGA;
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
-            break;
-
-        case S_YUV:
-            // Check which YUV mode is active based on Info
-            if (Info == InfoYUV) {
-                resetSyncProcessor();
-                brightnessOrContrastOption = 1;
-                rto->sourceDisconnected = true;
-            } else if (Info == InfoSV) {
-                resetSyncProcessor();
-                GBS::ADC_SOGEN::write(YUV0);
-                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-                GBS::ADC_INPUT_SEL::write(YUV0);
-                brightnessOrContrastOption = 2;
-                rto->sourceDisconnected = true;
-            } else if (Info == InfoAV) {
-                resetSyncProcessor();
-                GBS::ADC_SOGEN::write(YUV0);
-                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-                GBS::ADC_INPUT_SEL::write(YUV0);
-                brightnessOrContrastOption = 2;
-                rto->sourceDisconnected = true;
-            } else if (Info == InfoRGsB) {
-                resetSyncProcessor();
-                GBS::ADC_SOGEN::write(RGB1);
-                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-                GBS::ADC_INPUT_SEL::write(RGB1);
-                brightnessOrContrastOption = 0;
-                rto->sourceDisconnected = true;
-            }
-            break;
-
-        default:
-            // Unknown input source, set to a safe default (RGBs)
-            selectedInputSource = S_RGBs;
-            Info = InfoRGBs;
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
-            break;
-    }
-}
 
 // ====================================================================================
 // Menu Initialization - Input Menu
 // ====================================================================================
 
-void initOLEDMenuProInput(OLEDMenuItem *root) {
+void OLED_initInputMenu(OLEDMenuItem *root) {
     OLEDMenuItem *advMenu = oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_ADVINPUT));
 
     const char *inputLabels[6] = {
@@ -406,7 +50,7 @@ void initOLEDMenuProInput(OLEDMenuItem *root) {
     };
 
     for (size_t i = 0; i < 6; ++i) {
-        oledMenu.registerItem(advMenu, inputTags[i], inputLabels[i], InputSwHandler);
+        oledMenu.registerItem(advMenu, inputTags[i], inputLabels[i], OLED_handleInputSelection);
     }
 }
 
@@ -414,10 +58,9 @@ void initOLEDMenuProInput(OLEDMenuItem *root) {
 // Menu Initialization - Settings Menu
 // ====================================================================================
 
-void initOLEDMenuProSettings(OLEDMenuItem *root) {
+void OLED_initSettingsMenu(OLEDMenuItem *root) {
     OLEDMenuItem *settingMenu = oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_SETTING));
 
-    // Settings options
 #ifdef ACE
     const char *settingLabels[6] = {
         "Smooth_Off", "Smooth_On ",
@@ -443,7 +86,7 @@ void initOLEDMenuProSettings(OLEDMenuItem *root) {
 #endif
 
     for (size_t i = 0; i < settingCount; ++i) {
-        oledMenu.registerItem(settingMenu, settingTags[i], settingLabels[i], SettingHandler);
+        oledMenu.registerItem(settingMenu, settingTags[i], settingLabels[i], OLED_handleSettingSelection);
     }
 
     // TV Mode submenu
@@ -461,7 +104,7 @@ void initOLEDMenuProSettings(OLEDMenuItem *root) {
     };
 
     for (size_t i = 0; i < 12; ++i) {
-        oledMenu.registerItem(tvModeMenu, tvModeTags[i], tvModeLabels[i], Adv7391TvModeSwHandler);
+        oledMenu.registerItem(tvModeMenu, tvModeTags[i], tvModeLabels[i], OLED_handleTvModeSelection);
     }
 }
 
@@ -469,7 +112,7 @@ void initOLEDMenuProSettings(OLEDMenuItem *root) {
 // Menu Handlers - Input Selection Handler
 // ====================================================================================
 
-bool InputSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
+bool OLED_handleInputSelection(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
     if (!isFirstTime) {
         if (millis() - oledMenuFreezeStartTime >= oledMenuFreezeTimeoutInMS) {
             manager->unfreeze();
@@ -522,11 +165,7 @@ bool InputSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
 // Menu Handlers - Settings Handler
 // ====================================================================================
 
-bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
-    // ACE packet constants (local to this handler)
-    unsigned char Adv_ACE_ON[7] = {0x41, 0x44, 'S', 0x80};
-    unsigned char Adv_ACE_OFF[7] = {0x41, 0x44, 'S', 0x81};
-
+bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
     if (!isFirstTime) {
         if (millis() - oledMenuFreezeStartTime >= oledMenuFreezeTimeoutInMS) {
             manager->unfreeze();
@@ -567,31 +206,39 @@ bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
 
     switch (preset) {
         case SETTING_PresetPreference::MT_7391_1X:
-            packetSender.send(Adv_1X);
+            ADV_sendLine1X();
             break;
         case SETTING_PresetPreference::MT_7391_2X:
-            packetSender.send(Adv_2X);
+            ADV_sendLine2X();
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
-            packetSender.send(Adv_SM_OFF);
+            ADV_sendSmoothOff();
             break;
         case SETTING_PresetPreference::MT_SMOOTH_ON:
-            packetSender.send(Adv_SM_ON);
+            ADV_sendSmoothOn();
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_OFF:
             rgbComponentMode = COMPATIBILITY_OFF;
-            Send_Compatibility(rgbComponentMode);
+            ADV_sendCompatibility(rgbComponentMode);
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_ON:
             rgbComponentMode = COMPATIBILITY_ON;
-            Send_Compatibility(rgbComponentMode);
+            ADV_sendCompatibility(rgbComponentMode);
             break;
 #ifdef ACE
         case SETTING_PresetPreference::MT_ACE_OFF:
-            packetSender.send(Adv_ACE_OFF);
+            {
+                unsigned char Adv_ACE_OFF[7] = {0x41, 0x44, 'S', 0x81};
+                // Send via wrapper - but ACE packets are local
+                // For now, define locally and use direct serial
+                Serial.write(Adv_ACE_OFF, 7);
+            }
             break;
         case SETTING_PresetPreference::MT_ACE_ON:
-            packetSender.send(Adv_ACE_ON);
+            {
+                unsigned char Adv_ACE_ON[7] = {0x41, 0x44, 'S', 0x80};
+                Serial.write(Adv_ACE_ON, 7);
+            }
             break;
 #endif
         default:
@@ -606,7 +253,7 @@ bool SettingHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, b
 // Menu Handlers - TV Mode Handler
 // ====================================================================================
 
-bool Adv7391TvModeSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
+bool OLED_handleTvModeSelection(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool isFirstTime) {
     if (!isFirstTime) {
         if (millis() - oledMenuFreezeStartTime >= oledMenuFreezeTimeoutInMS) {
             manager->unfreeze();
@@ -648,16 +295,17 @@ bool Adv7391TvModeSwHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMe
     uopt->TVMODE_presetPreference = preset;
 
     // Update AV/SV mode options if applicable
-    if (Info == InfoAV) {
-        ChangeAVModeOption(0);
-    } else if (Info == InfoSV) {
-        ChangeSVModeOption(0);
+    if (inputType == InputTypeAV) {
+        AVModeOption = 0;
+        saveUserPrefs();
+    } else if (inputType == InputTypeSV) {
+        SVModeOption = 0;
+        saveUserPrefs();
     }
 
     // Send TV mode command if in SV or AV mode
-    if (Info == InfoSV || Info == InfoAV) {
-        TvMode[3] = modes[preset];
-        packetSender.send(TvMode);
+    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+        ADV_sendVideoFormat(ADV_VideoFormats[preset]);
     }
 
     manager->freeze();

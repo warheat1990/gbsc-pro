@@ -390,7 +390,7 @@ bool osdMenuHanlder(OLEDMenuManager *manager, OLEDMenuItem *, OLEDMenuNav nav, b
 void initOLEDMenu()
 {
     OLEDMenuItem *root = oledMenu.rootItem;
-    initOLEDMenuProInput(root);
+    OLED_initInputMenu(root);
 
     // OSD Menu
     // oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_OSD), osdMenuHanlder);
@@ -405,7 +405,7 @@ void initOLEDMenu()
     // downscale and passthrough
     // oledMenu.registerItem(resMenu, MT_DOWNSCALE, IMAGE_ITEM(OM_DOWNSCALE), resolutionMenuHandler);
     // oledMenu.registerItem(resMenu, MT_BYPASS, IMAGE_ITEM(OM_PASSTHROUGH), resolutionMenuHandler);
-    initOLEDMenuProSettings(root);
+    OLED_initSettingsMenu(root);
 
     // Presets
     oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_PRESET), presetsCreationMenuHandler);
