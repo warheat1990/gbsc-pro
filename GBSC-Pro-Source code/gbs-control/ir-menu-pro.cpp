@@ -48,17 +48,11 @@ extern void doPostPresetLoadSteps();
 extern void freezeVideo();
 
 // ====================================================================================
-// IR_handleMenuSelection - Menu State Machine
+// IR Menu Handlers - Output Resolution
 // ====================================================================================
 
-void IR_handleMenuSelection(void)
+static bool IR_handleOutputResolution(void)
 {
-    if (oled_menuItem == OLED_None) {
-        NEW_OLED_MENU = true;
-    } else {
-        NEW_OLED_MENU = false;
-    }
-
     if (oled_menuItem == OLED_OutputResolution) {
         if (oledClearFlag) {
             display.clear();
@@ -106,252 +100,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.drawString(1, 0, "Menu->>>");
-        display.drawString(1, 28, "Screen Settings");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, yellow);
-        }
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_OutputResolution;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyOk:
-                    oled_menuItem = OLED_ScreenSettings_Move;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('6');
-                    break;
-                case IRKeyExit:
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_ColorSettings) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.drawString(1, 0, "Menu->>>");
-        display.drawString(1, 28, "Picture Settings");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            selectedMenuLine = 2;
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_handleCommand('2');
-        }
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    // OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    oled_menuItem = OLED_ResetSettings;
-                    // OSD_handleCommand('2');
-
-                    // oled_menuItem = OLED_ResetSettings;
-                    // selectedMenuLine = 3;
-                    // OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    // OSD_handleCommand('2');
-
-                    break;
-                case IRKeyOk:
-                    // oled_menuItem = OLED_ColorSettings_ADCGain;
-                    oled_menuItem = OLED_ColorSettings_RGB_R;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('d');
-                    break;
-                case IRKeyExit:
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.drawString(1, 0, "Menu->>>");
-        display.drawString(1, 28, "System Settings");
-        display.display();
-
-        if (results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_handleCommand('2');
-        }
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyUp:
-                    oled_menuItem = OLED_ScreenSettings;
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('1');
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 2;
-                    // OSD_handleCommand('2');
-                    oled_menuItem = OLED_ColorSettings;
-                    break;
-                case IRKeyOk:
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i');
-                    break;
-                case IRKeyExit:
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    // if (oled_menuItem == OLED_Developer)
-    // {
-
-    //     if(oledClearFlag)
-    // display.clear();
-    // oledClearFlag = ~0;display.setColor(OLEDDISPLAY_COLOR::WHITE);
-    //     display.drawString(1, 0, "Menu->>>");
-    //     display.drawString(1, 28, "Developer");
-    //     display.display();
-
-    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
-    //     {
-    //         OSD_c1(icon4, P0, blue_fill);
-    //         OSD_c3(icon4, P0, blue_fill);
-    //         OSD_c2(icon4, P0, yellow);
-    //     }
-    //     else if (results.value == IRKeyUp)
-    //     {
-    //         OSD_c1(icon4, P0, blue_fill);
-    //         OSD_c3(icon4, P0, blue_fill);
-    //         OSD_c2(icon4, P0, yellow);
-    //     }
-
-    //     if (irrecv.decode(&results))
-    //     {
-    //         switch (results.value)
-    //         {
-    //         case IRKeyUp:
-    //             selectedMenuLine = 1;
-    //             OSD_handleCommand('2');
-    //             oled_menuItem = OLED_SystemSettings;
-    //             break;
-    //         case IRKeyDown:
-    //             selectedMenuLine = 3;
-    //             OSD_handleCommand('2');
-    //             oled_menuItem = OLED_ResetSettings;
-    //             break;
-    //         case IRKeyOk:
-    //             oled_menuItem = 104;
-    //             OSD_handleCommand(OSD_CROSS_TOP);
-    //             OSD_handleCommand('q');
-    //             break;
-    //         case IRKeyExit:
-    //             oled_menuItem = OLED_None;
-    //             OSD_clear();
-    //             OSD();
-    //             break;
-    //         }
-    //         irrecv.resume();
-    //     }
-    // }
-
-    else if (oled_menuItem == OLED_ResetSettings) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.drawString(1, 0, "Menu->>>");
-        display.drawString(1, 28, "Reset Settings");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyOk) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, yellow);
-            OSD_handleCommand('2');
-        }
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_ColorSettings;
-
-                    // oled_menuItem = OLED_ColorSettings;
-                    // selectedMenuLine = 2;
-                    // OSD_handleCommand(OSD_CROSS_MID);
-                    // OSD_handleCommand('2');
-
-                    break;
-                case IRKeyOk:
-                    userCommand = '1';
-                    break;
-                case IRKeyExit:
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_OutputResolution_1080) {
+    if (oled_menuItem == OLED_OutputResolution_1080) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -383,7 +135,6 @@ void IR_handleMenuSelection(void)
                     oled_menuItem = OLED_OutputResolution_1024;
                     break;
                 case IRKeyOk:
-                    // uopt->preferScalingRgbhv = true;
                     userCommand = 's';
                     break;
                 case IRKeyExit:
@@ -394,9 +145,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_OutputResolution_1024) {
+    if (oled_menuItem == OLED_OutputResolution_1024) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -433,7 +185,6 @@ void IR_handleMenuSelection(void)
                     oled_menuItem = OLED_OutputResolution_960;
                     break;
                 case IRKeyOk:
-                    // uopt->preferScalingRgbhv = true;
                     userCommand = 'p';
                     break;
                 case IRKeyExit:
@@ -444,9 +195,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_OutputResolution_960) {
+    if (oled_menuItem == OLED_OutputResolution_960) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -484,7 +236,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('4');
                     break;
                 case IRKeyOk:
-                    // uopt->preferScalingRgbhv = true;
                     userCommand = 'f';
                     break;
                 case IRKeyExit:
@@ -495,9 +246,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_OutputResolution_720) {
+    if (oled_menuItem == OLED_OutputResolution_720) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -535,7 +287,6 @@ void IR_handleMenuSelection(void)
                     oled_menuItem = OLED_OutputResolution_480;
                     break;
                 case IRKeyOk:
-                    // uopt->preferScalingRgbhv = true;
                     userCommand = 'g';
                     break;
                 case IRKeyExit:
@@ -546,9 +297,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_OutputResolution_480) {
+    if (oled_menuItem == OLED_OutputResolution_480) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -590,58 +342,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    // if (oled_menuItem == OLED_OutputResolution_Downscale)
-    // {
-    //     if(oledClearFlag)
-    // display.clear();
-    // oledClearFlag = ~0;display.setColor(OLEDDISPLAY_COLOR::WHITE);
-    //     display.drawString(1, 0, "Menu->Output");
-    //     display.drawString(1, 28, "Downscale");
-    //     display.display();
-
-    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
-    //     {
-    //         OSD_c3(icon4, P0, yellow);
-    //         OSD_c1(icon4, P0, blue_fill);
-    //         OSD_c2(icon4, P0, blue_fill);
-    //         OSD_handleCommand('4');
-    //     }
-
-    //     if (irrecv.decode(&results))
-    //     {
-    //         switch (results.value)
-    //         {
-    //         case IRKeyMenu:
-    //             OSD_handleCommand(OSD_CROSS_MID);
-    //             OSD_handleCommand('1');
-    //             oled_menuItem = OLED_OutputResolution;
-    //             break;
-    //         case IRKeyUp:
-    //             selectedMenuLine = 2;
-    //             OSD_handleCommand('4');
-    //             oled_menuItem = OLED_OutputResolution_480;
-    //             break;
-    //         case IRKeyDown:
-    //             oled_menuItem = OLED_OutputResolution_PassThrough;
-    //             OSD_handleCommand(OSD_CROSS_TOP);
-    //             OSD_handleCommand('5');
-    //             break;
-    //         case IRKeyOk:
-    //             userCommand = 'L';
-    //             break;
-    //         case IRKeyExit:
-    //             oled_menuItem = OLED_Input;
-    //             OSD_clear();
-    //             OSD();
-    //             break;
-    //         }
-    //         irrecv.resume();
-    //     }
-    // }
-
-    else if (oled_menuItem == OLED_OutputResolution_PassThrough) {
+    if (oled_menuItem == OLED_OutputResolution_PassThrough) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -671,30 +375,7 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('4');
                     oled_menuItem = OLED_OutputResolution_720;
                     break;
-                // case IRKeyDown:
-                //     oled_menuItem = OLED_OutputResolution_1080;
-                //     OSD_handleCommand(OSD_CROSS_TOP);
-                //     OSD_handleCommand('3');
-                //     break;
                 case IRKeyOk:
-                    // tentativeResolution = uopt->presetPreference;
-                    // if(inputType == InputTypeVGA)
-                    // {
-                    //     uopt->preferScalingRgbhv = false;
-                    // }
-                    // else
-                    // {
-                    //   // uopt->preferScalingRgbhv = true;
-                    //   serialCommand = 'K';
-                    // }
-
-                    // saveUserPrefs();
-
-                    // OSD_handleCommand(OSD_CROSS_TOP);
-                    // OSD_handleCommand('!');
-                    // oled_menuItem = OLED_RetainedSettings;
-                    // keepSettings = 0;
-                    // resolutionStartTime = millis();
                     break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
@@ -704,9 +385,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
-    
-    else if (oled_menuItem == OLED_RetainedSettings) {
+
+    if (oled_menuItem == OLED_RetainedSettings) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -715,12 +397,8 @@ void IR_handleMenuSelection(void)
         display.setTextAlignment(TEXT_ALIGN_LEFT);
         display.setFont(ArialMT_Plain_16);
         display.drawString(1, 0, "Retained settings?");
-        // display.drawString(1, 20, "settings?");
         display.display();
-        // if (results.value == IRKeyOk)
-        // {
-        //   OSD_handleCommand('·');
-        // }
+
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
@@ -740,17 +418,16 @@ void IR_handleMenuSelection(void)
                 case IRKeyOk:
                     if (keepSettings) {
                         saveUserPrefs();
-                        // printf("Save \n");
                     } else {
-                        if (tentativeResolution == Output960P) // 1280x960
+                        if (tentativeResolution == Output960P)
                             userCommand = 'f';
-                        else if (tentativeResolution == Output720P) // 1280x720
+                        else if (tentativeResolution == Output720P)
                             userCommand = 'g';
-                        else if (tentativeResolution == Output480P) // 480p/576p
+                        else if (tentativeResolution == Output480P)
                             userCommand = 'h';
-                        else if (tentativeResolution == Output1024P) // 1280x1024
+                        else if (tentativeResolution == Output1024P)
                             userCommand = 'p';
-                        else if (tentativeResolution == Output1080P) // 1920x1080
+                        else if (tentativeResolution == Output1080P)
                             userCommand = 's';
                         else
                             userCommand = 'g';
@@ -768,9 +445,69 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_Move) {
+    // TODO: Re-enable when Downscale feature is implemented
+    // if (oled_menuItem == OLED_OutputResolution_Downscale) {
+    //     if (oledClearFlag) {
+    //         display.clear();
+    //     }
+    //     oledClearFlag = ~0;
+    //     display.setColor(OLEDDISPLAY_COLOR::WHITE);
+    //     display.drawString(1, 0, "Menu->Output");
+    //     display.drawString(1, 28, "Downscale");
+    //     display.display();
+    //
+    //     if (results.value == IRKeyDown || results.value == IRKeyUp) {
+    //         OSD_c3(icon4, P0, yellow);
+    //         OSD_c1(icon4, P0, blue_fill);
+    //         OSD_c2(icon4, P0, blue_fill);
+    //         OSD_handleCommand('4');
+    //     }
+    //
+    //     if (irrecv.decode(&results)) {
+    //         irDecodedFlag = 1;
+    //         switch (results.value) {
+    //             case IRKeyMenu:
+    //                 OSD_handleCommand(OSD_CROSS_MID);
+    //                 OSD_handleCommand('1');
+    //                 oled_menuItem = OLED_OutputResolution;
+    //                 break;
+    //             case IRKeyUp:
+    //                 selectedMenuLine = 2;
+    //                 OSD_handleCommand('4');
+    //                 oled_menuItem = OLED_OutputResolution_480;
+    //                 break;
+    //             case IRKeyDown:
+    //                 oled_menuItem = OLED_OutputResolution_PassThrough;
+    //                 OSD_handleCommand(OSD_CROSS_TOP);
+    //                 OSD_handleCommand('5');
+    //                 break;
+    //             case IRKeyOk:
+    //                 userCommand = 'L';
+    //                 break;
+    //             case IRKeyExit:
+    //                 oled_menuItem = OLED_None;
+    //                 OSD_clear();
+    //                 OSD();
+    //                 break;
+    //         }
+    //         irrecv.resume();
+    //     }
+    //     return true;
+    // }
+
+    return false;
+}
+
+// ====================================================================================
+// IR Menu Handlers - Screen Settings
+// ====================================================================================
+
+static bool IR_handleScreenSettings(void)
+{
+    if (oled_menuItem == OLED_ScreenSettings_Move) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -826,9 +563,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_Scale) {
+    if (oled_menuItem == OLED_ScreenSettings_Scale) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -888,9 +626,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_Borders) {
+    if (oled_menuItem == OLED_ScreenSettings_Borders) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -948,9 +687,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
+    if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand('6');
             OSD_c1(0x3E, P5, main0);
@@ -1047,9 +787,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
+    if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand('6');
             OSD_c2(0x3E, P6, main0);
@@ -1151,9 +892,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
+    if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand('6');
             OSD_c3(0x3E, P8, main0);
@@ -1182,7 +924,6 @@ void IR_handleMenuSelection(void)
                     oled_menuItem = OLED_ScreenSettings_Borders;
                     break;
                 case IRKeyRight:
-
                     userCommand = 'A';
                     if ((GBS::VDS_DIS_HB_ST::read() > 4) && (GBS::VDS_DIS_HB_SP::read() < (GBS::VDS_HSYNC_RST::read() - 4))) {
                     } else {
@@ -1199,7 +940,6 @@ void IR_handleMenuSelection(void)
                     __(0x0d, _25);
                     break;
                 case IRKeyLeft:
-
                     userCommand = 'B';
                     if ((GBS::VDS_DIS_HB_ST::read() < (GBS::VDS_HSYNC_RST::read() - 4)) && (GBS::VDS_DIS_HB_SP::read() > 4)) {
                     } else {
@@ -1216,7 +956,6 @@ void IR_handleMenuSelection(void)
                     __(0x0d, _25);
                     break;
                 case IRKeyUp:
-
                     userCommand = 'C';
                     if ((GBS::VDS_DIS_VB_ST::read() > 6) && (GBS::VDS_DIS_VB_SP::read() < (GBS::VDS_VSYNC_RST::read() - 4))) {
                     } else {
@@ -1233,7 +972,6 @@ void IR_handleMenuSelection(void)
                     __(0x0d, _25);
                     break;
                 case IRKeyDown:
-
                     userCommand = 'D';
                     if ((GBS::VDS_DIS_VB_ST::read() < (GBS::VDS_VSYNC_RST::read() - 4)) && (GBS::VDS_DIS_VB_SP::read() > 6)) {
                     } else {
@@ -1257,9 +995,80 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ColorSettings_ADCGain) {
+    if (oled_menuItem == OLED_ScreenSettings_FullHeight) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->Screen");
+        display.drawString(1, 22, "Full height");
+        if (uopt->wantFullHeight) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_handleCommand('o');
+        }
+        OSD_handleCommand('p');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_ScreenSettings;
+                    break;
+                case IRKeyUp:
+                    oled_menuItem = OLED_ScreenSettings_Borders;
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('6');
+                    break;
+                case IRKeyOk: {
+                    uopt->wantFullHeight = !uopt->wantFullHeight;
+                    saveUserPrefs();
+                    uint8_t vidMode = getVideoMode();
+                    if (uopt->presetPreference == 5) {
+                        if (GBS::GBS_PRESET_ID::read() == 0x05 || GBS::GBS_PRESET_ID::read() == 0x15) {
+                            applyPresets(vidMode);
+                        }
+                    }
+                    applyVideoModePreset();
+                } break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// ====================================================================================
+// IR_handleColorSettings - Color Settings Menu Handlers
+// ====================================================================================
+
+static bool IR_handleColorSettings()
+{
+    // OLED_ColorSettings_ADCGain
+    if (oled_menuItem == OLED_ColorSettings_ADCGain) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -1269,7 +1078,6 @@ void IR_handleMenuSelection(void)
         display.setFont(ArialMT_Plain_16);
         display.drawString(1, 0, "Menu->Color");
         display.drawString(1, 22, "ADC gain");
-        // display.drawStringf(40,44,num,"ADC :%d");
         if (uopt->enableAutoGain) {
             display.drawString(1, 44, "ON");
         } else {
@@ -1293,13 +1101,11 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand(OSD_CROSS_MID);
                     OSD_handleCommand('2');
                     oled_menuItem = OLED_ColorSettings;
-
                     break;
                 case IRKeyUp:
                     OSD_handleCommand(OSD_CROSS_BOTTOM);
                     OSD_handleCommand('d');
                     oled_menuItem = OLED_ColorSettings_RGB_B;
-
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -1323,8 +1129,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_Scanlines
     else if (oled_menuItem == OLED_ColorSettings_Scanlines) {
         if (oledClearFlag) {
             display.clear();
@@ -1336,10 +1144,8 @@ void IR_handleMenuSelection(void)
         display.drawString(1, 0, "Menu->Color");
         display.drawString(1, 22, "Scanlines");
 
-        // Check if scanlines are allowed for current signal
         boolean scanlinesAllowed = areScanLinesAllowed();
 
-        // Always show ON/OFF, the OSD TV menu will show it grayed out if disabled
         if (uopt->wantScanlines) {
             display.drawString(1, 44, "ON");
         } else {
@@ -1365,28 +1171,25 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
-                    OSD_handleCommand('a'); //
+                    OSD_handleCommand('a');
                     oled_menuItem = OLED_ColorSettings_ADCGain;
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 3;
-                    OSD_handleCommand('a'); //
+                    OSD_handleCommand('a');
                     oled_menuItem = OLED_ColorSettings_LineFilter;
                     break;
                 case IRKeyRight:
-                    // Only allow changing scanlines if they're supported
                     if (scanlinesAllowed) {
                         userCommand = 'K';
                     }
                     break;
                 case IRKeyLeft:
-                    // Only allow changing scanlines if they're supported
                     if (scanlinesAllowed) {
                         userCommand = 'K';
                     }
                     break;
                 case IRKeyOk:
-                    // Only allow toggling scanlines if they're supported
                     if (scanlinesAllowed) {
                         userCommand = '7';
                     }
@@ -1399,8 +1202,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_LineFilter
     else if (oled_menuItem == OLED_ColorSettings_LineFilter) {
         if (oledClearFlag) {
             display.clear();
@@ -1437,7 +1242,7 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('a'); //
+                    OSD_handleCommand('a');
                     oled_menuItem = OLED_ColorSettings_Scanlines;
                     break;
                 case IRKeyDown:
@@ -1448,9 +1253,6 @@ void IR_handleMenuSelection(void)
                 case IRKeyOk:
                     userCommand = 'm';
                     break;
-                // case IRKeyLeft:
-                //   userCommand = 'm';
-                //   break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -1459,8 +1261,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_Sharpness
     else if (oled_menuItem == OLED_ColorSettings_Sharpness) {
         if (oledClearFlag) {
             display.clear();
@@ -1502,15 +1306,12 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('b'); //
+                    OSD_handleCommand('b');
                     oled_menuItem = OLED_ColorSettings_Peaking;
                     break;
                 case IRKeyOk:
                     userCommand = 'W';
                     break;
-                // case IRKeyLeft:
-                //   userCommand = 'W';
-                //   break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -1519,8 +1320,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_Peaking
     else if (oled_menuItem == OLED_ColorSettings_Peaking) {
         if (oledClearFlag) {
             display.clear();
@@ -1561,12 +1364,12 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
-                    OSD_handleCommand('b'); //
+                    OSD_handleCommand('b');
                     oled_menuItem = OLED_ColorSettings_Sharpness;
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 3;
-                    OSD_handleCommand('b'); //
+                    OSD_handleCommand('b');
                     oled_menuItem = OLED_ColorSettings_StepResponse;
                     break;
                 case IRKeyOk:
@@ -1582,8 +1385,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_StepResponse
     else if (oled_menuItem == OLED_ColorSettings_StepResponse) {
         if (oledClearFlag) {
             display.clear();
@@ -1620,7 +1425,7 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('b'); //
+                    OSD_handleCommand('b');
                     oled_menuItem = OLED_ColorSettings_Peaking;
                     break;
                 case IRKeyDown:
@@ -1631,9 +1436,6 @@ void IR_handleMenuSelection(void)
                 case IRKeyOk:
                     serialCommand = 'V';
                     break;
-                // case IRKeyLeft:
-                //   serialCommand = 'V';
-                //   break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -1642,8 +1444,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_RGB_R
     else if (oled_menuItem == OLED_ColorSettings_RGB_R) {
         if (oledClearFlag) {
             display.clear();
@@ -1672,33 +1476,21 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('2');
                     oled_menuItem = OLED_ColorSettings;
                     break;
-                // case IRKeyUp:
-                //     oled_menuItem = OLED_ColorSettings_StepResponse;
-                //     OSD_handleCommand(OSD_CROSS_BOTTOM);
-                //     OSD_handleCommand('b');
-                //     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('d'); //
+                    OSD_handleCommand('d');
                     oled_menuItem = OLED_ColorSettings_RGB_G;
                     break;
                 case IRKeyRight:
-                    // Y_offset +
                     R_VAL = MIN(R_VAL + STEP, 255);
-                    // GBS::VDS_Y_OFST::write(cur);
-
                     applyRGBtoYUVConversion();
                     break;
                 case IRKeyLeft:
-                    // userCommand = 'T';
-                    // Y_offset -
                     R_VAL = MAX(0, R_VAL - STEP);
-                    // GBS::VDS_Y_OFST::write(cur);
                     applyRGBtoYUVConversion();
                     break;
                 case IRKeyOk:
                     saveUserPrefs();
-                    // serialCommand = 'K';
                     break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
@@ -1708,8 +1500,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_RGB_G
     else if (oled_menuItem == OLED_ColorSettings_RGB_G) {
         if (uopt->enableAutoGain == 1) {
             uopt->enableAutoGain = 0;
@@ -1744,30 +1538,25 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
-                    OSD_handleCommand('d'); //
+                    OSD_handleCommand('d');
                     oled_menuItem = OLED_ColorSettings_RGB_R;
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 3;
-                    OSD_handleCommand('d'); //
+                    OSD_handleCommand('d');
                     oled_menuItem = OLED_ColorSettings_RGB_B;
                     break;
                 case IRKeyRight:
-                    // userCommand = 'N';
                     G_VAL = MIN(G_VAL + STEP, 255);
-
                     applyRGBtoYUVConversion();
                     break;
                 case IRKeyLeft:
-                    // userCommand = 'M';
                     G_VAL = MAX(0, G_VAL - STEP);
                     applyRGBtoYUVConversion();
                     break;
-
                 case IRKeyOk:
                     saveUserPrefs();
                     break;
-
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -1776,8 +1565,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_RGB_B
     else if (oled_menuItem == OLED_ColorSettings_RGB_B) {
         if (oledClearFlag) {
             display.clear();
@@ -1796,9 +1587,6 @@ void IR_handleMenuSelection(void)
             OSD_c2(icon4, P0, blue_fill);
             OSD_handleCommand('d');
         }
-        // (signed char)GBS::VDS_Y_OFST::read() = GBS::VDS_Y_OFST::read();
-        // (signed char)GBS::VDS_U_OFST::read() = GBS::VDS_U_OFST::read();
-        // (signed char)GBS::VDS_V_OFST::read() = GBS::VDS_V_OFST::read();
         OSD_handleCommand('g');
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
@@ -1810,7 +1598,7 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('d'); //
+                    OSD_handleCommand('d');
                     oled_menuItem = OLED_ColorSettings_RGB_G;
                     break;
                 case IRKeyDown:
@@ -1819,18 +1607,10 @@ void IR_handleMenuSelection(void)
                     oled_menuItem = OLED_ColorSettings_ADCGain;
                     break;
                 case IRKeyRight:
-                    // userCommand = 'Q';
-                    // cur = MIN(cur + STEP, 255);
-                    // GBS::VDS_V_OFST::write(cur);
-
                     B_VAL = MIN(B_VAL + STEP, 255);
-
                     applyRGBtoYUVConversion();
                     break;
                 case IRKeyLeft:
-                    // userCommand = 'H';
-                    // cur = MAX(0, cur - STEP);
-                    // GBS::VDS_V_OFST::write(cur);
                     B_VAL = MAX(0, B_VAL - STEP);
                     applyRGBtoYUVConversion();
                     break;
@@ -1845,8 +1625,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_Y_Gain
     else if (oled_menuItem == OLED_ColorSettings_Y_Gain) {
         uint8_t cur = GBS::VDS_Y_GAIN::read();
         if (oledClearFlag) {
@@ -1884,16 +1666,14 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
-                    OSD_handleCommand('c'); //
+                    OSD_handleCommand('c');
                     oled_menuItem = OLED_ColorSettings_Color;
                     break;
                 case IRKeyRight:
-                    // userCommand = 'P';
                     cur = MIN(cur + STEP, 255);
                     GBS::VDS_Y_GAIN::write(cur);
                     break;
                 case IRKeyLeft:
-                    // userCommand = 'S';
                     cur = MAX(0, cur - STEP);
                     GBS::VDS_Y_GAIN::write(cur);
                     break;
@@ -1905,8 +1685,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_Color
     else if (oled_menuItem == OLED_ColorSettings_Color) {
         if (oledClearFlag) {
             display.clear();
@@ -1936,33 +1718,19 @@ void IR_handleMenuSelection(void)
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
-                    OSD_handleCommand('c'); //
+                    OSD_handleCommand('c');
                     oled_menuItem = OLED_ColorSettings_Y_Gain;
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 3;
-                    OSD_handleCommand('c'); //
+                    OSD_handleCommand('c');
                     oled_menuItem = OLED_ColorSettings_DefaultColor;
                     break;
                 case IRKeyRight:
-                    userCommand = 'V'; //++
-                    // curU = MIN(curU + STEP/8, 0X41);
-
-                    // if (GBS::VDS_UCOS_GAIN::read() < 0x39)
-                    // {
-                    //     curV = MIN(curV + STEP/8, 0x46);
-                    //     curU = curV - 13;
-                    //     GBS::VDS_VCOS_GAIN::write(curV);
-                    //     GBS::VDS_UCOS_GAIN::write(curU);
-                    // }
+                    userCommand = 'V';
                     break;
                 case IRKeyLeft:
                     userCommand = 'R';
-                    // curU = MAX(0X00, curU - STEP/8);
-                    // curV = MAX(0x1c, curV - STEP/8);
-                    // curU = curV - 13;
-                    // GBS::VDS_VCOS_GAIN::write(curV);
-                    // GBS::VDS_UCOS_GAIN::write(curU);
                     break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
@@ -1972,8 +1740,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_ColorSettings_DefaultColor
     else if (oled_menuItem == OLED_ColorSettings_DefaultColor) {
         if (oledClearFlag) {
             display.clear();
@@ -1993,8 +1763,6 @@ void IR_handleMenuSelection(void)
             OSD_handleCommand('c');
         }
 
-        // OSD_handleCommand('h');
-
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
@@ -2008,11 +1776,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand(OSD_CROSS_BOTTOM);
                     OSD_handleCommand('b');
                     break;
-                // case IRKeyDown:
-                //   oled_menuItem = OLED_ColorSettings_ADCGain;
-                //   OSD_handleCommand(OSD_CROSS_TOP);
-                //   OSD_handleCommand('a');
-                // break;
                 case IRKeyOk:
                     userCommand = 'U';
                     break;
@@ -2024,9 +1787,20 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_SystemSettings_MatchedPresets) {
+    return false;
+}
+
+// ====================================================================================
+// IR_handleSystemSettings - System Settings Menu Handlers
+// ====================================================================================
+
+static bool IR_handleSystemSettings()
+{
+    // OLED_SystemSettings_MatchedPresets
+    if (oled_menuItem == OLED_SystemSettings_MatchedPresets) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -2047,7 +1821,6 @@ void IR_handleMenuSelection(void)
             OSD_c1(icon4, P0, blue_fill);
             OSD_c2(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, yellow);
-
             OSD_handleCommand('i');
         }
 
@@ -2074,9 +1847,6 @@ void IR_handleMenuSelection(void)
                 case IRKeyOk:
                     serialCommand = 'Z';
                     break;
-                // case IRKeyLeft:
-                //   serialCommand = 'Z';
-                //   break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -2085,78 +1855,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_ScreenSettings_FullHeight) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->Screen");
-        display.drawString(1, 22, "Full height");
-        if (uopt->wantFullHeight) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_handleCommand('o');
-        }
-        OSD_handleCommand('p');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_ScreenSettings;
-                    break;
-                case IRKeyUp:
-                    oled_menuItem = OLED_ScreenSettings_Borders;
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('6');
-                    break;
-                // case IRKeyDown:
-                //     selectedMenuLine = 3;
-                //     OSD_handleCommand('i'); //
-                //     oled_menuItem = OLED_SystemSettings_UseUpscaling;
-                //     break;
-                case IRKeyOk: {
-                    uopt->wantFullHeight = !uopt->wantFullHeight;
-                    saveUserPrefs();
-                    uint8_t vidMode = getVideoMode();
-                    if (uopt->presetPreference == 5) {
-                        if (GBS::GBS_PRESET_ID::read() == 0x05 || GBS::GBS_PRESET_ID::read() == 0x15) {
-                            applyPresets(vidMode);
-                        }
-                    }
-                    applyVideoModePreset();
-                } break;
-                // case IRKeyRight:
-                //   userCommand = 'v';
-                //   break;
-                // case IRKeyLeft:
-                //   userCommand = 'v';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
+    // OLED_SystemSettings_UseUpscaling
     else if (oled_menuItem == OLED_SystemSettings_UseUpscaling) {
         if (oledClearFlag) {
             display.clear();
@@ -2201,14 +1903,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('k');
                     break;
-                case IRKeyOk:
-                    // userCommand = 'x';
-                    // uopt->preferScalingRgbhv = !uopt->preferScalingRgbhv;
-                    // applyVideoModePreset();
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = 'x';
-                //   break;
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -2217,6 +1911,836 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
+    }
+
+    // OLED_SystemSettings_Force5060Hz
+    else if (oled_menuItem == OLED_SystemSettings_Force5060Hz) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Force 50 / 60Hz");
+        if (uopt->PalForce60) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+        }
+
+        OSD_handleCommand('l');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('k');
+                    oled_menuItem = OLED_SystemSettings_Deinterlace;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('k');
+                    oled_menuItem = OLED_SystemSettings_LockMethod;
+                    break;
+                case IRKeyOk:
+                    if (uopt->PalForce60 == 0) {
+                        uopt->PalForce60 = 1;
+                    } else {
+                        uopt->PalForce60 = 0;
+                    }
+                    saveUserPrefs();
+                    applyVideoModePreset();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_ClockGenerator
+    else if (oled_menuItem == OLED_SystemSettings_ClockGenerator) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Clock generator");
+        if (uopt->disableExternalClockGenerator) {
+            display.drawString(1, 44, "OFF");
+        } else {
+            display.drawString(1, 44, "ON");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, yellow);
+            OSD_handleCommand('m');
+        }
+        OSD_handleCommand('n');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('m');
+                    oled_menuItem = OLED_SystemSettings_FrameTimeLock;
+                    break;
+                case IRKeyOk:
+                    userCommand = 'X';
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_ADCCalibration
+    else if (oled_menuItem == OLED_SystemSettings_ADCCalibration) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "ADC calibration");
+        if (uopt->enableCalibrationADC) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('m');
+        }
+        OSD_handleCommand('n');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    oled_menuItem = OLED_SystemSettings_LockMethod;
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('k');
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('m');
+                    oled_menuItem = OLED_SystemSettings_FrameTimeLock;
+                    break;
+                case IRKeyOk:
+                    userCommand = 'w';
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_FrameTimeLock
+    else if (oled_menuItem == OLED_SystemSettings_FrameTimeLock) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Frame Time Lock");
+        if (uopt->enableFrameTimeLock) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+        }
+
+        OSD_handleCommand('n');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('m');
+                    oled_menuItem = OLED_SystemSettings_ADCCalibration;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('m');
+                    oled_menuItem = OLED_SystemSettings_ClockGenerator;
+                    break;
+                case IRKeyOk:
+                    userCommand = '5';
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_LockMethod
+    else if (oled_menuItem == OLED_SystemSettings_LockMethod) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Lock Method");
+        if (uopt->frameTimeLockMethod) {
+            display.drawString(1, 44, "1Vtotal only");
+        } else {
+            display.drawString(1, 44, "0Vtotal+VSST");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c3(icon4, P0, yellow);
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_handleCommand('k');
+        }
+
+        OSD_handleCommand('l');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('k');
+                    oled_menuItem = OLED_SystemSettings_Force5060Hz;
+                    break;
+                case IRKeyDown:
+                    oled_menuItem = OLED_SystemSettings_ADCCalibration;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('m');
+                    break;
+                case IRKeyOk:
+                    userCommand = 'i';
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_Deinterlace
+    else if (oled_menuItem == OLED_SystemSettings_Deinterlace) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Deinterlace");
+        if (uopt->deintMode) {
+            display.drawString(1, 44, "Bob");
+        } else {
+            display.drawString(1, 44, "Adaptive");
+        }
+        display.display();
+
+        if (results.value == IRKeyUp || results.value == IRKeyDown) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('k');
+        }
+
+        OSD_handleCommand('l');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    oled_menuItem = OLED_SystemSettings_MatchedPresets;
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('i');
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('k');
+                    oled_menuItem = OLED_SystemSettings_Force5060Hz;
+                    break;
+                case IRKeyOk:
+                    if (uopt->deintMode != 1) {
+                        uopt->deintMode = 1;
+                        disableMotionAdaptDeinterlace();
+                        if (GBS::GBS_OPTION_SCANLINES_ENABLED::read()) {
+                            disableScanlines();
+                        }
+                        saveUserPrefs();
+                    } else if (uopt->deintMode != 0) {
+                        uopt->deintMode = 0;
+                        saveUserPrefs();
+                    }
+                    applyVideoModePreset();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInputSettings
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInputSettings) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 28, "Sv-Av InputSet");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('i');
+        }
+
+        OSD_handleCommand('j');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyOk:
+                    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+                        selectedMenuLine = 1;
+                        OSD_handleCommand(OSD_CROSS_TOP);
+                        OSD_handleCommand('^');
+                        oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
+                    }
+                    break;
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_Compatibility;
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_DoubleLine
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_DoubleLine) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "DoubleLine");
+        if (lineOption) {
+            display.drawString(1, 44, "2X");
+        } else {
+            display.drawString(1, 44, "1X");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('^');
+        }
+        OSD_handleCommand('&');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('^');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
+                    break;
+                case IRKeyOk:
+                    lineOption = !lineOption;
+                    settingLineOptionChanged = 1;
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Smooth
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "Smooth");
+        if (smoothOption) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('^');
+        }
+        OSD_handleCommand('&');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('^');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('^');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
+                    break;
+                case IRKeyOk:
+                    if (lineOption) {
+                        smoothOption = !smoothOption;
+                        settingSmoothOptionChanged = 1;
+                    }
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Bright
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Bright) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "Bright");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, yellow);
+            OSD_handleCommand('^');
+        }
+        OSD_handleCommand('&');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    saveUserPrefs();
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('^');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
+                    break;
+                case IRKeyDown:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('z');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
+                    break;
+                case IRKeyRight:
+                    brightness = MIN(brightness + STEP, 254);
+                    ADV_sendBCSH(0x0a, brightness - 128);
+                    break;
+                case IRKeyLeft:
+                    brightness = MAX(brightness - STEP, 0);
+                    ADV_sendBCSH(0x0a, brightness - 128);
+                    break;
+                case IRKeyOk:
+                    saveUserPrefs();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Contrast
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Contrast) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "Contrast");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('z');
+        }
+        OSD_handleCommand('A');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyUp:
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('^');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('z');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
+                    break;
+                case IRKeyRight:
+                    contrast = MIN(contrast + STEP, 254);
+                    ADV_sendBCSH(0x08, contrast);
+                    break;
+                case IRKeyLeft:
+                    contrast = MAX(contrast - STEP, 0);
+                    ADV_sendBCSH(0x08, contrast);
+                    break;
+                case IRKeyOk:
+                    saveUserPrefs();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Saturation
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Saturation) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "Saturation");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('z');
+        }
+        OSD_handleCommand('A');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('z');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('z');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Default;
+                    break;
+                case IRKeyRight:
+                    saturation = MIN(saturation + STEP, 254);
+                    ADV_sendBCSH(0xe3, saturation);
+                    break;
+                case IRKeyLeft:
+                    saturation = MAX(saturation - STEP, 0);
+                    ADV_sendBCSH(0xe3, saturation);
+                    break;
+                case IRKeyOk:
+                    saveUserPrefs();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Default
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "M>Sys>SvAv Set");
+        display.drawString(1, 22, "Default");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, yellow);
+            OSD_handleCommand('z');
+        }
+        OSD_handleCommand('A');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('z');
+                    oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
+                    break;
+                case IRKeyOk:
+                    ADV_sendBCSH('D', 'E');
+                    brightness = 128;
+                    contrast = 128;
+                    saturation = 128;
+                    saveUserPrefs();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_Compatibility
+    else if (oled_menuItem == OLED_SystemSettings_Compatibility) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(1, 0, "Menu->System");
+        display.drawString(1, 22, "Compatibility");
+        if (rgbComponentMode == 1) {
+            display.drawString(1, 44, "ON");
+        } else {
+            display.drawString(1, 44, "OFF");
+        }
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('i');
+        }
+        OSD_handleCommand('j');
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('i');
+                    oled_menuItem = OLED_SystemSettings_MatchedPresets;
+                    break;
+                case IRKeyOk:
+                    rgbComponentMode = !rgbComponentMode;
+                    if (rgbComponentMode > 1)
+                        rgbComponentMode = 0;
+                    ADV_sendCompatibility(rgbComponentMode);
+                    if (GBS::ADC_INPUT_SEL::read())
+                        applyVideoModePreset();
+                    break;
+                case IRKeyExit:
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_Input;
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
     }
 
     // else if (oled_menuItem == OLED_SystemSettings_ComponentVGA)
@@ -2271,381 +2795,57 @@ void IR_handleMenuSelection(void)
     //     }
     // }
 
-    else if (oled_menuItem == OLED_SystemSettings_Force5060Hz) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Force 50 / 60Hz");
-        if (uopt->PalForce60) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
+    // if (oled_menuItem == OLED_Developer)
+    // {
 
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-        }
+    //     if(oledClearFlag)
+    // display.clear();
+    // oledClearFlag = ~0;display.setColor(OLEDDISPLAY_COLOR::WHITE);
+    //     display.drawString(1, 0, "Menu->>>");
+    //     display.drawString(1, 28, "Developer");
+    //     display.display();
 
-        OSD_handleCommand('l');
+    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
+    //     {
+    //         OSD_c1(icon4, P0, blue_fill);
+    //         OSD_c3(icon4, P0, blue_fill);
+    //         OSD_c2(icon4, P0, yellow);
+    //     }
+    //     else if (results.value == IRKeyUp)
+    //     {
+    //         OSD_c1(icon4, P0, blue_fill);
+    //         OSD_c3(icon4, P0, blue_fill);
+    //         OSD_c2(icon4, P0, yellow);
+    //     }
 
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('k'); //
-                    oled_menuItem = OLED_SystemSettings_Deinterlace;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('k'); //
-                    oled_menuItem = OLED_SystemSettings_LockMethod;
-                    break;
-                case IRKeyOk:
-                    if (uopt->PalForce60 == 0) {
-                        uopt->PalForce60 = 1;
-                    } else {
-                        uopt->PalForce60 = 0;
-                    }
-                    saveUserPrefs();
-                    applyVideoModePreset();
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = '0';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_ClockGenerator) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Clock generator");
-        if (uopt->disableExternalClockGenerator) {
-            display.drawString(1, 44, "OFF");
-        } else {
-            display.drawString(1, 44, "ON");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, yellow);
-            OSD_handleCommand('m');
-        }
-        OSD_handleCommand('n');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('m'); //
-                    oled_menuItem = OLED_SystemSettings_FrameTimeLock;
-                    break;
-                // case IRKeyDown:
-                //   oled_menuItem = OLED_SystemSettings_ADCCalibration;
-                //   OSD_handleCommand(OSD_CROSS_TOP);
-                //   OSD_handleCommand('m');
-                //   break;
-                case IRKeyOk:
-                    userCommand = 'X';
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = 'X';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_ADCCalibration) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "ADC calibration");
-        if (uopt->enableCalibrationADC) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
-
-        if (results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_handleCommand('m');
-        }
-        OSD_handleCommand('n');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    oled_menuItem = OLED_SystemSettings_LockMethod;
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('k');
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('m'); //
-                    oled_menuItem = OLED_SystemSettings_FrameTimeLock;
-                    break;
-                case IRKeyOk:
-                    userCommand = 'w';
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = 'w';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_FrameTimeLock) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Frame Time Lock");
-        if (uopt->enableFrameTimeLock) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-        }
-
-        OSD_handleCommand('n');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('m'); //
-                    oled_menuItem = OLED_SystemSettings_ADCCalibration;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('m'); //
-                    oled_menuItem = OLED_SystemSettings_ClockGenerator;
-                    break;
-                case IRKeyOk:
-                    userCommand = '5';
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = '5';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_LockMethod) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Lock Method");
-        if (uopt->frameTimeLockMethod) {
-            display.drawString(1, 44, "1Vtotal only");
-        } else {
-            display.drawString(1, 44, "0Vtotal+VSST");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c3(icon4, P0, yellow);
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_handleCommand('k');
-        }
-
-        OSD_handleCommand('l');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('k'); //
-                    oled_menuItem = OLED_SystemSettings_Force5060Hz;
-                    break;
-                case IRKeyDown:
-                    oled_menuItem = OLED_SystemSettings_ADCCalibration;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('m');
-                    break;
-                case IRKeyOk:
-                    userCommand = 'i';
-                    break;
-                // case IRKeyLeft:
-                //   userCommand = 'i';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_Deinterlace) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Deinterlace");
-        if (uopt->deintMode) {
-            display.drawString(1, 44, "Bob");
-        } else {
-            display.drawString(1, 44, "Adaptive");
-        }
-        display.display();
-
-        if (results.value == IRKeyUp || results.value == IRKeyDown) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_handleCommand('k');
-        }
-
-        OSD_handleCommand('l');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    oled_menuItem = OLED_SystemSettings_MatchedPresets;
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('i');
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('k'); //
-                    oled_menuItem = OLED_SystemSettings_Force5060Hz;
-                    break;
-                case IRKeyOk:
-                    if (uopt->deintMode != 1) {
-                        uopt->deintMode = 1;
-                        disableMotionAdaptDeinterlace();
-                        if (GBS::GBS_OPTION_SCANLINES_ENABLED::read()) {
-                            disableScanlines();
-                        }
-                        saveUserPrefs();
-                    } else if (uopt->deintMode != 0) {
-                        uopt->deintMode = 0;
-                        saveUserPrefs();
-                    }
-                    applyVideoModePreset();
-                    break;
-                // case IRKeyRight:
-                //   userCommand = 'q';
-                //   break;
-                // case IRKeyLeft:
-                //   userCommand = 'r';
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
+    //     if (irrecv.decode(&results))
+    //     {
+    //         switch (results.value)
+    //         {
+    //         case IRKeyUp:
+    //             selectedMenuLine = 1;
+    //             OSD_handleCommand('2');
+    //             oled_menuItem = OLED_SystemSettings;
+    //             break;
+    //         case IRKeyDown:
+    //             selectedMenuLine = 3;
+    //             OSD_handleCommand('2');
+    //             oled_menuItem = OLED_ResetSettings;
+    //             break;
+    //         case IRKeyOk:
+    //             oled_menuItem = 104;
+    //             OSD_handleCommand(OSD_CROSS_TOP);
+    //             OSD_handleCommand('q');
+    //             break;
+    //         case IRKeyExit:
+    //             oled_menuItem = OLED_None;
+    //             OSD_clear();
+    //             OSD();
+    //             break;
+    //         }
+    //         irrecv.resume();
+    //     }
+    // }
 
     // else if (oled_menuItem == OLED_MemoryAdjust)
     // {
@@ -2959,147 +3159,17 @@ void IR_handleMenuSelection(void)
     //   }
     // }
 
-    // else if (oled_menuItem == OLED_EnableOTA)
-    // {
-    //   display.clear();
-    //   display.drawString(1, 0, "Menu-");
-    //   display.drawString(1, 28, "Enable OTA");
-    //   display.display();
+    return false;
+}
 
-    //   if (results.value == IRKeyUp)
-    //   {
-    //     OSD_c1(icon4, P0, yellow);
-    //     OSD_c2(icon4, P0, blue_fill);
-    //     OSD_c3(icon4, P0, blue_fill);
-    //     OSD_handleCommand('u');
-    //   }
+// ====================================================================================
+// IR_handleInputSelection - Input Selection Menu Handlers
+// ====================================================================================
 
-    //   OSD_handleCommand('v');
-
-    //   if (irrecv.decode(&results))
-    //   {
-    //     irDecodedFlag = 1;
-    //     switch (results.value)
-    //     {
-    //     case IRKeyMenu:
-    //       OSD_handleCommand(OSD_CROSS_BOTTOM);
-    //       OSD_handleCommand('2');
-    //       oled_menuItem = OLED_ResetSettings;
-    //       break;
-    //     case IRKeyDown:
-    //       selectedMenuLine = 2;
-    //       OSD_handleCommand('u'); //
-    //       oled_menuItem = OLED_Restart;
-    //       break;
-    //     case IRKeyRight:
-    //       serialCommand = 'c';
-    //       break;
-    //     case IRKeyLeft:
-    //       serialCommand = 'c';
-    //       break;
-    //     case IRKeyExit:
-    //       oled_menuItem = OLED_Input;
-    //       OSD_clear();
-    //       OSD();
-    //       break;
-    //     }
-    //     irrecv.resume();
-    //   }
-    // }
-
-    else if (oled_menuItem == OLED_Restart) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.drawString(1, 0, "Menu-");
-        display.drawString(1, 28, "Restart");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-        }
-
-        OSD_handleCommand('v');
-
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_ResetSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('u'); //
-                    oled_menuItem = OLED_EnableOTA;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('u'); //
-                    oled_menuItem = OLED_ResetDefaults;
-                    break;
-                case IRKeyOk:
-                    userCommand = 'a';
-                    break;
-                case IRKeyExit:
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    // else if (oled_menuItem == OLED_ResetDefaults)
-    // {
-    //     display.clear();
-    //     display.drawString(1, 0, "Menu-");
-    //     display.drawString(1, 28, "Reset defaults");
-    //     display.display();
-
-    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
-    //     {
-    //         OSD_c3(icon4, P0, yellow);
-    //         OSD_c1(icon4, P0, blue_fill);
-    //         OSD_c2(icon4, P0, blue_fill);
-    //     }
-
-    //     OSD_handleCommand('v');
-
-    //     if (irrecv.decode(&results))
-    //     {
-    //         switch (results.value)
-    //         {
-    //         case IRKeyMenu:
-    //             OSD_handleCommand(OSD_CROSS_BOTTOM);
-    //             OSD_handleCommand('2');
-    //             oled_menuItem = OLED_ResetSettings;
-    //             break;
-    //         case IRKeyUp:
-    //             selectedMenuLine = 2;
-    //             OSD_handleCommand('u'); //
-    //             oled_menuItem = OLED_Restart;
-    //             break;
-    //         case IRKeyOk:
-    //             userCommand = '1';
-    //             break;
-    //         case IRKeyExit:
-    //             oled_menuItem = OLED_None;
-    //             OSD_clear();
-    //             OSD();
-    //             break;
-    //         }
-    //         irrecv.resume();
-    //     }
-    // }
-
-    else if (oled_menuItem == OLED_Input) {
+static bool IR_handleInputSelection()
+{
+    // OLED_Input
+    if (oled_menuItem == OLED_Input) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -3126,7 +3196,6 @@ void IR_handleMenuSelection(void)
                     selectedMenuLine = 2;
                     OSD_handleCommand('1');
                     oled_menuItem = OLED_OutputResolution;
-
                     break;
                 case IRKeyOk:
                     oled_menuItem = OLED_Input_RGBs;
@@ -3135,25 +3204,17 @@ void IR_handleMenuSelection(void)
                     selectedMenuLine = 1;
                     break;
                 case IRKeyExit:
-                    oled_menuItem = OLED_None; // 154
+                    oled_menuItem = OLED_None;
                     OSD_clear();
                     OSD();
                     break;
-
-                    // case IRKeyInfo:
-                    //     OSD_clear();
-                    //     OSD();
-                    //     lastMenuItemTime = millis();
-                    //     NEW_OLED_MENU = false;
-                    //     background_up(stroca1, _27, blue_fill);
-                    //     background_up(stroca2, _27, blue_fill);
-                    //     oled_menuItem = OLED_Info_Display;
-                    //     break;
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_Input_RGBs
     else if (oled_menuItem == OLED_Input_RGBs) {
         if (oledClearFlag) {
             display.clear();
@@ -3172,7 +3233,6 @@ void IR_handleMenuSelection(void)
             OSD_c3(icon4, P0, blue_fill);
             OSD_handleCommand('@');
         }
-        // OSD_handleCommand('*');
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
@@ -3182,34 +3242,17 @@ void IR_handleMenuSelection(void)
                     InputRGBs_mode(rgbComponentMode);
                     rto->isInLowPowerMode = false;
                     break;
-
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
-                // case IRKeyUp:
-                //     selectedMenuLine = 3;
-                //     OSD_handleCommand(OSD_CROSS_BOTTOM);
-                //     OSD_handleCommand('#');
-                //     oled_menuItem = OLED_Input_AV;
-                //     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
                     OSD_handleCommand('@');
                     oled_menuItem = OLED_Input_RGsB;
                     break;
-
-                    // case IRKeyLeft:
-                    //     RGBs_Com = !RGBs_Com;
-                    //     RGBs_CompatibilityChanged = 1;
-                    //     break;
-                    // case IRKeyRight:
-                    //     RGBs_Com = !RGBs_Com;
-                    //     RGBs_CompatibilityChanged = 1;
-                    //     break;
-
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -3218,8 +3261,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
+    // OLED_Input_RGsB
     else if (oled_menuItem == OLED_Input_RGsB) {
         if (oledClearFlag) {
             display.clear();
@@ -3238,7 +3283,6 @@ void IR_handleMenuSelection(void)
             OSD_c3(icon4, P0, blue_fill);
             OSD_handleCommand('@');
         }
-        // OSD_handleCommand('*');
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
@@ -3250,7 +3294,7 @@ void IR_handleMenuSelection(void)
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
                 case IRKeyUp:
@@ -3263,16 +3307,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('@');
                     oled_menuItem = OLED_Input_VGA;
                     break;
-
-                    // case IRKeyLeft:
-                    //     RGsB_Com = !RGsB_Com;
-                    //     RGsB_CompatibilityChanged = 1;
-                    //     break;
-                    // case IRKeyRight:
-                    //     RGsB_Com = !RGsB_Com;
-                    //     RGsB_CompatibilityChanged = 1;
-                    //     break;
-
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -3281,8 +3315,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
-    
+
+    // OLED_Input_VGA
     else if (oled_menuItem == OLED_Input_VGA) {
         if (oledClearFlag) {
             display.clear();
@@ -3299,10 +3335,8 @@ void IR_handleMenuSelection(void)
             OSD_c1(icon4, P0, blue_fill);
             OSD_c2(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, yellow);
-
             OSD_handleCommand('@');
         }
-        // OSD_handleCommand('*');
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
@@ -3310,12 +3344,11 @@ void IR_handleMenuSelection(void)
                     isInfoDisplayActive = 0;
                     rgbComponentMode = 0;
                     InputVGA_mode(rgbComponentMode);
-                    // printf("\n\n rgbComponentMode %d \n\n", rgbComponentMode);
                     break;
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
                 case IRKeyUp:
@@ -3328,16 +3361,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('#');
                     oled_menuItem = OLED_Input_YPBPR;
                     break;
-
-                    // case IRKeyLeft:
-                    //     VGA_Com = !VGA_Com;
-                    //     VGA_CompatibilityChanged = 1;
-                    //     break;
-                    // case IRKeyRight:
-                    //     VGA_Com = !VGA_Com;
-                    //     VGA_CompatibilityChanged = 1;
-                    //     break;
-
                 case IRKeyExit:
                     OSD_handleCommand(OSD_CROSS_TOP);
                     OSD_handleCommand('1');
@@ -3346,8 +3369,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
-    
+
+    // OLED_Input_YPBPR
     else if (oled_menuItem == OLED_Input_YPBPR) {
         if (oledClearFlag) {
             display.clear();
@@ -3361,7 +3386,6 @@ void IR_handleMenuSelection(void)
         display.display();
 
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-
             OSD_c1(icon4, P0, yellow);
             OSD_c2(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, blue_fill);
@@ -3371,7 +3395,6 @@ void IR_handleMenuSelection(void)
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
-
                 case IRKeyOk:
                     isInfoDisplayActive = 0;
                     InputYUV();
@@ -3379,7 +3402,7 @@ void IR_handleMenuSelection(void)
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
                 case IRKeyUp:
@@ -3401,8 +3424,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
-    
+
+    // OLED_Input_SV
     else if (oled_menuItem == OLED_Input_SV) {
         if (oledClearFlag) {
             display.clear();
@@ -3413,44 +3438,19 @@ void IR_handleMenuSelection(void)
         display.setFont(ArialMT_Plain_16);
         display.drawString(1, 0, "Menu->Input");
         display.drawString(1, 22, "SV");
-        // display.drawString(1, 45, "Format:");
         switch (SVModeOption) {
-            case 0: {
-                display.drawString(1, 44, "Auto");
-            } break;
-            case 1: {
-                display.drawString(1, 44, "PAL");
-            } break;
-            case 2: {
-                display.drawString(1, 44, "NTSC-M");
-            } break;
-            case 3: {
-                display.drawString(1, 44, "PAL-60");
-            } break;
-            case 4: {
-                display.drawString(1, 44, "NTSC443");
-            } break;
-            case 5: {
-                display.drawString(1, 44, "NTSC-J");
-            } break;
-            case 6: {
-                display.drawString(1, 44, "PAL-N w/ p");
-            } break;
-            case 7: {
-                display.drawString(1, 44, "PAL-M w/o p");
-            } break;
-            case 8: {
-                display.drawString(1, 44, "PAL-M");
-            } break;
-            case 9: {
-                display.drawString(1, 44, "PAL Cmb -N");
-            } break;
-            case 10: {
-                display.drawString(1, 44, "PAL Cmb -N w/ p");
-            } break;
-            case 11: {
-                display.drawString(1, 44, "SECAM");
-            } break;
+            case 0: display.drawString(1, 44, "Auto"); break;
+            case 1: display.drawString(1, 44, "PAL"); break;
+            case 2: display.drawString(1, 44, "NTSC-M"); break;
+            case 3: display.drawString(1, 44, "PAL-60"); break;
+            case 4: display.drawString(1, 44, "NTSC443"); break;
+            case 5: display.drawString(1, 44, "NTSC-J"); break;
+            case 6: display.drawString(1, 44, "PAL-N w/ p"); break;
+            case 7: display.drawString(1, 44, "PAL-M w/o p"); break;
+            case 8: display.drawString(1, 44, "PAL-M"); break;
+            case 9: display.drawString(1, 44, "PAL Cmb -N"); break;
+            case 10: display.drawString(1, 44, "PAL Cmb -N w/ p"); break;
+            case 11: display.drawString(1, 44, "SECAM"); break;
         }
         display.display();
 
@@ -3464,7 +3464,6 @@ void IR_handleMenuSelection(void)
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
-
                 case IRKeyOk:
                     isInfoDisplayActive = 0;
                     InputSV_mode(SVModeOption + 1);
@@ -3472,7 +3471,7 @@ void IR_handleMenuSelection(void)
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
                 case IRKeyUp:
@@ -3505,8 +3504,10 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
-    
+
+    // OLED_Input_AV
     else if (oled_menuItem == OLED_Input_AV) {
         if (oledClearFlag) {
             display.clear();
@@ -3517,53 +3518,26 @@ void IR_handleMenuSelection(void)
         display.setFont(ArialMT_Plain_16);
         display.drawString(1, 0, "Menu->Input");
         display.drawString(1, 22, "AV");
-        // display.drawString(1, 45, "Format:");
         switch (AVModeOption) {
-            case 0: {
-                display.drawString(1, 44, "Auto");
-            } break;
-            case 1: {
-                display.drawString(1, 44, "PAL");
-            } break;
-            case 2: {
-                display.drawString(1, 44, "NTSC-M");
-            } break;
-            case 3: {
-                display.drawString(1, 44, "PAL-60");
-            } break;
-            case 4: {
-                display.drawString(1, 44, "NTSC443");
-            } break;
-            case 5: {
-                display.drawString(1, 44, "NTSC-J");
-            } break;
-            case 6: {
-                display.drawString(1, 44, "PAL-N w/ p");
-            } break;
-            case 7: {
-                display.drawString(1, 44, "PAL-M w/o p");
-            } break;
-            case 8: {
-                display.drawString(1, 44, "PAL-M");
-            } break;
-            case 9: {
-                display.drawString(1, 44, "PAL Cmb -N");
-            } break;
-            case 10: {
-                display.drawString(1, 44, "PAL Cmb -N w/ p");
-            } break;
-            case 11: {
-                display.drawString(1, 44, "SECAM");
-            } break;
+            case 0: display.drawString(1, 44, "Auto"); break;
+            case 1: display.drawString(1, 44, "PAL"); break;
+            case 2: display.drawString(1, 44, "NTSC-M"); break;
+            case 3: display.drawString(1, 44, "PAL-60"); break;
+            case 4: display.drawString(1, 44, "NTSC443"); break;
+            case 5: display.drawString(1, 44, "NTSC-J"); break;
+            case 6: display.drawString(1, 44, "PAL-N w/ p"); break;
+            case 7: display.drawString(1, 44, "PAL-M w/o p"); break;
+            case 8: display.drawString(1, 44, "PAL-M"); break;
+            case 9: display.drawString(1, 44, "PAL Cmb -N"); break;
+            case 10: display.drawString(1, 44, "PAL Cmb -N w/ p"); break;
+            case 11: display.drawString(1, 44, "SECAM"); break;
         }
         display.display();
 
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-
             OSD_c1(icon4, P0, blue_fill);
             OSD_c2(icon4, P0, blue_fill);
             OSD_c3(icon4, P0, yellow);
-
             OSD_handleCommand('#');
         }
         OSD_handleCommand('$');
@@ -3573,12 +3547,11 @@ void IR_handleMenuSelection(void)
                 case IRKeyOk:
                     isInfoDisplayActive = 0;
                     InputAV_mode(AVModeOption + 1);
-                    // rto->isInLowPowerMode = false;
                     break;
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1'); //
+                    OSD_handleCommand('1');
                     oled_menuItem = OLED_Input;
                     break;
                 case IRKeyUp:
@@ -3586,12 +3559,6 @@ void IR_handleMenuSelection(void)
                     OSD_handleCommand('#');
                     oled_menuItem = OLED_Input_SV;
                     break;
-                // case IRKeyDown:
-                //     oled_menuItem = OLED_Input_RGBs;
-                //     selectedMenuLine = 1;
-                //     OSD_handleCommand(OSD_CROSS_TOP);
-                //     OSD_handleCommand('@');
-                //     break;
                 case IRKeyLeft:
                     if (AVModeOption <= MODEOPTION_MIN)
                         AVModeOption = MODEOPTION_MAX;
@@ -3612,520 +3579,19 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInputSettings) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 28, "Sv-Av InputSet");
-        display.display();
+    return false;
+}
+// ====================================================================================
+// IR_handleProfileManagement - Profile Management Menu Handlers
+// ====================================================================================
 
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('i');
-        }
-
-        OSD_handleCommand('j');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyOk:
-                    if (inputType == InputTypeSV || inputType == InputTypeAV) {
-                        selectedMenuLine = 1;
-                        OSD_handleCommand(OSD_CROSS_TOP);
-                        OSD_handleCommand('^');
-                        oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
-                    }
-                    break;
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                // case IRKeyUp:
-                //     selectedMenuLine = 2;
-                //     OSD_handleCommand(OSD_CROSS_MID);
-                //     OSD_handleCommand('o');
-                //     oled_menuItem = OLED_SystemSettings_MatchedPresets;
-                //     break;
-                case IRKeyDown:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('i');
-                    oled_menuItem = OLED_SystemSettings_Compatibility;
-                    break;
-
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_DoubleLine) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "DoubleLine");
-        if (lineOption) {
-            display.drawString(1, 44, "2X");
-        } else {
-            display.drawString(1, 44, "1X");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('^');
-        }
-        OSD_handleCommand('&');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-
-                // case IRKeyUp:
-                //   selectedMenuLine = 2;
-                //   OSD_handleCommand('^');
-                //   oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
-                //   break;
-                case IRKeyDown:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('^');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
-                    break;
-
-                case IRKeyOk:
-                    lineOption = !lineOption;
-                    settingLineOptionChanged = 1;
-                    break;
-                // case IRKeyRight:
-                //   lineOption = !lineOption;
-                //   settingLineOptionChanged = 1;
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "Smooth");
-        if (smoothOption) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('^');
-        }
-        OSD_handleCommand('&');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('^');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('^');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
-                    break;
-                case IRKeyOk:
-                    if (lineOption) {
-                        smoothOption = !smoothOption;
-                        settingSmoothOptionChanged = 1;
-                    }
-                    break;
-                // case IRKeyRight:
-                //   smoothOption = !smoothOption;
-                //   settingSmoothOptionChanged = 1;
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Bright) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "Bright");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, yellow);
-
-            OSD_handleCommand('^');
-        }
-        OSD_handleCommand('&');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    saveUserPrefs();
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('^');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
-                    break;
-                case IRKeyDown:
-
-                    // selectedMenuLine = 3;
-                    // OSD_handleCommand('^');
-                    // oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
-
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('z');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
-                    break;
-                case IRKeyRight:
-                    brightness = MIN(brightness + STEP, 254);
-                    ADV_sendBCSH(0x0a, brightness - 128);
-                    // printf("brightness: 0x%02x \n",brightness);
-                    break;
-                case IRKeyLeft:
-                    brightness = MAX(brightness - STEP, 0);
-                    ADV_sendBCSH(0x0a, brightness - 128);
-                    // printf("brightness: 0x%02x \n",brightness);
-                    break;
-                case IRKeyOk:
-                    saveUserPrefs();
-                    break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Contrast) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "Contrast");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, yellow);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('z');
-        }
-        OSD_handleCommand('A');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-                case IRKeyUp:
-                    OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    OSD_handleCommand('^');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
-                    // selectedMenuLine = 2;
-                    // OSD_handleCommand('^');
-                    // oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
-                    break;
-
-                case IRKeyDown:
-                    // OSD_handleCommand(OSD_CROSS_TOP);
-                    // OSD_handleCommand('z');
-                    // oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
-
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('z');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
-
-                    break;
-                case IRKeyRight:
-                    contrast = MIN(contrast + STEP, 254);
-                    ADV_sendBCSH(0x08, contrast);
-                    // printf("contrast: 0x%02x \n",contrast);
-                    break;
-                case IRKeyLeft:
-                    contrast = MAX(contrast - STEP, 0);
-                    ADV_sendBCSH(0x08, contrast);
-                    // printf("contrast: 0x%02x \n",contrast);
-                    break;
-                case IRKeyOk:
-                    saveUserPrefs();
-                    break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Saturation) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "Saturation");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('z');
-        }
-        OSD_handleCommand('A');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('z');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
-
-                    // OSD_handleCommand(OSD_CROSS_BOTTOM);
-                    // OSD_handleCommand('^');
-                    // oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('z');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Default;
-                    break;
-                case IRKeyRight:
-                    saturation = MIN(saturation + STEP, 254);
-                    ADV_sendBCSH(0xe3, saturation);
-                    // printf("saturation: 0x%02x \n",saturation);
-                    break;
-                case IRKeyLeft:
-                    saturation = MAX(saturation - STEP, 0);
-                    ADV_sendBCSH(0xe3, saturation);
-                    // printf("saturation: 0x%02x \n",saturation);
-                    break;
-                case IRKeyOk:
-                    saveUserPrefs();
-                    break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "M>Sys>SvAv Set");
-        display.drawString(1, 22, "Default");
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, blue_fill);
-            OSD_c3(icon4, P0, yellow);
-
-            OSD_handleCommand('z');
-        }
-        OSD_handleCommand('A');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand('z');
-                    oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
-                    break;
-                case IRKeyOk:
-                    ADV_sendBCSH('D', 'E');
-                    brightness = 128;
-                    contrast = 128;
-                    saturation = 128;
-                    saveUserPrefs();
-                    break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_SystemSettings_Compatibility) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu->System");
-        display.drawString(1, 22, "Compatibility");
-        if (rgbComponentMode == 1) {
-            display.drawString(1, 44, "ON");
-        } else {
-            display.drawString(1, 44, "OFF");
-        }
-        display.display();
-
-        if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_c1(icon4, P0, blue_fill);
-            OSD_c2(icon4, P0, yellow);
-            OSD_c3(icon4, P0, blue_fill);
-
-            OSD_handleCommand('i');
-        }
-        OSD_handleCommand('j');
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('2');
-                    oled_menuItem = OLED_SystemSettings;
-                    break;
-                case IRKeyUp:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    break;
-                case IRKeyDown:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand('i'); //
-                    oled_menuItem = OLED_SystemSettings_MatchedPresets;
-                    break;
-                case IRKeyOk:
-                    rgbComponentMode = !rgbComponentMode;
-                    if (rgbComponentMode > 1)
-                        rgbComponentMode = 0;
-                    ADV_sendCompatibility(rgbComponentMode);
-                    if (GBS::ADC_INPUT_SEL::read())
-                        applyVideoModePreset();
-                    break;
-                // case IRKeyRight:
-                //   rgbComponentMode = !rgbComponentMode;
-                //   if (rgbComponentMode > 1)
-                //     rgbComponentMode = 0;
-                //   ADV_sendCompatibility(rgbComponentMode);
-                //   break;
-                case IRKeyExit:
-                    OSD_handleCommand(OSD_CROSS_TOP);
-                    OSD_handleCommand('1');
-                    oled_menuItem = OLED_Input;
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    else if (oled_menuItem == OLED_Profile) {
+static bool IR_handleProfileManagement()
+{
+    // OLED_Profile
+    if (oled_menuItem == OLED_Profile) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -4176,6 +3642,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_SaveConfirm) {
@@ -4218,6 +3685,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Save) {
@@ -4260,6 +3728,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Load) {
@@ -4302,6 +3771,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Operation1) {
@@ -4344,6 +3814,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Operation2) {
@@ -4386,6 +3857,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Operation3) {
@@ -4428,6 +3900,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_SelectSlot) {
@@ -4478,6 +3951,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot1) {
@@ -4528,6 +4002,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot2) {
@@ -4578,6 +4053,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot3) {
@@ -4628,6 +4104,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot4) {
@@ -4678,6 +4155,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot5) {
@@ -4728,6 +4206,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot6) {
@@ -4778,6 +4257,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot7) {
@@ -4820,6 +4300,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot8) {
@@ -4862,6 +4343,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot9) {
@@ -4904,6 +4386,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot10) {
@@ -4946,6 +4429,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot11) {
@@ -4988,6 +4472,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot12) {
@@ -5030,6 +4515,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot13) {
@@ -5072,6 +4558,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot14) {
@@ -5114,6 +4601,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot15) {
@@ -5156,6 +4644,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot16) {
@@ -5198,6 +4687,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot17) {
@@ -5240,6 +4730,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot18) {
@@ -5282,6 +4773,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Slot19) {
@@ -5324,6 +4816,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_SelectPreset) {
@@ -5374,6 +4867,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset1) {
@@ -5424,6 +4918,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset2) {
@@ -5474,6 +4969,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset3) {
@@ -5524,6 +5020,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset4) {
@@ -5574,6 +5071,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset5) {
@@ -5624,6 +5122,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset6) {
@@ -5674,6 +5173,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset7) {
@@ -5724,6 +5224,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset8) {
@@ -5774,6 +5275,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset9) {
@@ -5824,6 +5326,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset10) {
@@ -5874,6 +5377,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset11) {
@@ -5924,6 +5428,7 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
     else if (oled_menuItem == OLED_Profile_Preset12) {
@@ -5974,9 +5479,353 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_Volume_Adjust) {
+    return false;
+}
+
+// ====================================================================================
+// IR_handleMainMenu - Main Menu Navigation Handlers
+// ====================================================================================
+
+static bool IR_handleMainMenu()
+{
+    // OLED_ScreenSettings - Main menu entry
+    if (oled_menuItem == OLED_ScreenSettings) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.drawString(1, 0, "Menu->>>");
+        display.drawString(1, 28, "Screen Settings");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, yellow);
+        }
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('1');
+                    oled_menuItem = OLED_OutputResolution;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyOk:
+                    oled_menuItem = OLED_ScreenSettings_Move;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('6');
+                    break;
+                case IRKeyExit:
+                    oled_menuItem = OLED_None;
+                    OSD_clear();
+                    OSD();
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_ColorSettings - Main menu entry
+    else if (oled_menuItem == OLED_ColorSettings) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.drawString(1, 0, "Menu->>>");
+        display.drawString(1, 28, "Picture Settings");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            selectedMenuLine = 2;
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('2');
+        }
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_SystemSettings;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    oled_menuItem = OLED_ResetSettings;
+                    break;
+                case IRKeyOk:
+                    oled_menuItem = OLED_ColorSettings_RGB_R;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('d');
+                    break;
+                case IRKeyExit:
+                    oled_menuItem = OLED_None;
+                    OSD_clear();
+                    OSD();
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings - Main menu entry
+    else if (oled_menuItem == OLED_SystemSettings) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.drawString(1, 0, "Menu->>>");
+        display.drawString(1, 28, "System Settings");
+        display.display();
+
+        if (results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, yellow);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_handleCommand('2');
+        }
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyUp:
+                    oled_menuItem = OLED_ScreenSettings;
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('1');
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 2;
+                    oled_menuItem = OLED_ColorSettings;
+                    break;
+                case IRKeyOk:
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    OSD_handleCommand(OSD_CROSS_TOP);
+                    OSD_handleCommand('i');
+                    break;
+                case IRKeyExit:
+                    oled_menuItem = OLED_None;
+                    OSD_clear();
+                    OSD();
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_ResetSettings - Main menu entry
+    else if (oled_menuItem == OLED_ResetSettings) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.drawString(1, 0, "Menu->>>");
+        display.drawString(1, 28, "Reset Settings");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyOk) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, yellow);
+            OSD_handleCommand('2');
+        }
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyUp:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_ColorSettings;
+                    break;
+                case IRKeyOk:
+                    userCommand = '1';
+                    break;
+                case IRKeyExit:
+                    oled_menuItem = OLED_None;
+                    OSD_clear();
+                    OSD();
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // OLED_Restart
+    else if (oled_menuItem == OLED_Restart) {
+        if (oledClearFlag) {
+            display.clear();
+        }
+        oledClearFlag = ~0;
+        display.setColor(OLEDDISPLAY_COLOR::WHITE);
+        display.drawString(1, 0, "Menu-");
+        display.drawString(1, 28, "Restart");
+        display.display();
+
+        if (results.value == IRKeyDown || results.value == IRKeyUp) {
+            OSD_c1(icon4, P0, blue_fill);
+            OSD_c3(icon4, P0, blue_fill);
+            OSD_c2(icon4, P0, yellow);
+        }
+
+        OSD_handleCommand('v');
+
+        if (irrecv.decode(&results)) {
+            irDecodedFlag = 1;
+            switch (results.value) {
+                case IRKeyMenu:
+                    OSD_handleCommand(OSD_CROSS_BOTTOM);
+                    OSD_handleCommand('2');
+                    oled_menuItem = OLED_ResetSettings;
+                    break;
+                case IRKeyUp:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand('u');
+                    oled_menuItem = OLED_EnableOTA;
+                    break;
+                case IRKeyDown:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand('u');
+                    oled_menuItem = OLED_ResetDefaults;
+                    break;
+                case IRKeyOk:
+                    userCommand = 'a';
+                    break;
+                case IRKeyExit:
+                    oled_menuItem = OLED_None;
+                    OSD_clear();
+                    OSD();
+                    break;
+            }
+            irrecv.resume();
+        }
+        return true;
+    }
+
+    // else if (oled_menuItem == OLED_EnableOTA)
+    // {
+    //   display.clear();
+    //   display.drawString(1, 0, "Menu-");
+    //   display.drawString(1, 28, "Enable OTA");
+    //   display.display();
+
+    //   if (results.value == IRKeyUp)
+    //   {
+    //     OSD_c1(icon4, P0, yellow);
+    //     OSD_c2(icon4, P0, blue_fill);
+    //     OSD_c3(icon4, P0, blue_fill);
+    //     OSD_handleCommand('u');
+    //   }
+
+    //   OSD_handleCommand('v');
+
+    //   if (irrecv.decode(&results))
+    //   {
+    //     irDecodedFlag = 1;
+    //     switch (results.value)
+    //     {
+    //     case IRKeyMenu:
+    //       OSD_handleCommand(OSD_CROSS_BOTTOM);
+    //       OSD_handleCommand('2');
+    //       oled_menuItem = OLED_ResetSettings;
+    //       break;
+    //     case IRKeyDown:
+    //       selectedMenuLine = 2;
+    //       OSD_handleCommand('u'); //
+    //       oled_menuItem = OLED_Restart;
+    //       break;
+    //     case IRKeyRight:
+    //       serialCommand = 'c';
+    //       break;
+    //     case IRKeyLeft:
+    //       serialCommand = 'c';
+    //       break;
+    //     case IRKeyExit:
+    //       oled_menuItem = OLED_Input;
+    //       OSD_clear();
+    //       OSD();
+    //       break;
+    //     }
+    //     irrecv.resume();
+    //   }
+    //   return true;
+    // }
+
+    // else if (oled_menuItem == OLED_ResetDefaults)
+    // {
+    //     display.clear();
+    //     display.drawString(1, 0, "Menu-");
+    //     display.drawString(1, 28, "Reset defaults");
+    //     display.display();
+
+    //     if (results.value == IRKeyDown  ||  results.value == IRKeyUp)
+    //     {
+    //         OSD_c3(icon4, P0, yellow);
+    //         OSD_c1(icon4, P0, blue_fill);
+    //         OSD_c2(icon4, P0, blue_fill);
+    //     }
+
+    //     OSD_handleCommand('v');
+
+    //     if (irrecv.decode(&results))
+    //     {
+    //         switch (results.value)
+    //         {
+    //         case IRKeyMenu:
+    //             OSD_handleCommand(OSD_CROSS_BOTTOM);
+    //             OSD_handleCommand('2');
+    //             oled_menuItem = OLED_ResetSettings;
+    //             break;
+    //         case IRKeyUp:
+    //             selectedMenuLine = 2;
+    //             OSD_handleCommand('u'); //
+    //             oled_menuItem = OLED_Restart;
+    //             break;
+    //         case IRKeyOk:
+    //             userCommand = '1';
+    //             break;
+    //         case IRKeyExit:
+    //             oled_menuItem = OLED_None;
+    //             OSD_clear();
+    //             OSD();
+    //             break;
+    //         }
+    //         irrecv.resume();
+    //     }
+    //     return true;
+    // }
+
+    return false;
+}
+
+// ====================================================================================
+// IR_handleMiscSettings - Volume, Info Display Handlers
+// ====================================================================================
+
+static bool IR_handleMiscSettings()
+{
+    // OLED_Volume_Adjust
+    if (oled_menuItem == OLED_Volume_Adjust) {
         if (oledClearFlag) {
             display.clear();
         }
@@ -5995,41 +5844,30 @@ void IR_handleMenuSelection(void)
         sequence_number1 = _21;
         sequence_number2 = _20;
         sequence_number3 = 0x3D;
-        // __(d, _23), __(B, _24);
         OSD_c1(o, _19, blue_fill);
-
         OSD_c1(o, _22, blue_fill);
         OSD_c1(o, _23, blue_fill);
         OSD_c1(o, _24, blue_fill);
         Typ(osdDisplayValue);
-        // if (Volume <= 0)
-        // {
-        //   OSD_c1(o, _19, blue_fill);
-        // }
-        // else if (Volume > 0)
-        // {
-        //   __(0x3E, _19);
-        // }
 
         if (irrecv.decode(&results)) {
             irDecodedFlag = 1;
             switch (results.value) {
-                case kRecv2: // ++
+                case kRecv2:
                     volume = MAX(volume - 1, 0);
                     osdDisplayValue = 50 - volume;
-                    PT_2257(volume); // 0-50 maps to 0-50 dB (actually 0-39 dB usable)
+                    PT_2257(volume);
                     break;
-                case kRecv3: // --
+                case kRecv3:
                     volume = MIN(volume + 1, 50);
                     osdDisplayValue = 50 - volume;
-                    PT_2257(volume); // 0-50 maps to 0-50 dB (actually 0-39 dB usable)
+                    PT_2257(volume);
                     break;
                 case IRKeyMenu:
                     selectedMenuLine = 1;
                     OSD_handleCommand('0');
                     oled_menuItem = OLED_OutputResolution;
                     break;
-
                 case IRKeyOk:
                     saveUserPrefs();
                     for (int z = 0; z <= 800; z++) {
@@ -6041,7 +5879,6 @@ void IR_handleMenuSelection(void)
                         OSD_c1(g, _24, 0x14);
                     }
                     break;
-
                 case IRKeyExit:
                     oled_menuItem = OLED_None;
                     OSD_clear();
@@ -6050,508 +5887,562 @@ void IR_handleMenuSelection(void)
             }
             irrecv.resume();
         }
+        return true;
     }
 
-    else if (oled_menuItem == OLED_Info_Display) {
-        if (oledClearFlag) {
-            display.clear();
-        }
-        oledClearFlag = ~0;
-        display.setColor(OLEDDISPLAY_COLOR::WHITE);
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(1, 0, "Menu-");
-        display.drawString(1, 28, "Info");
-        display.display();
+    return false;
+}
 
-        boolean vsyncActive = 0;
-        boolean hsyncActive = 0;
-        float ofr = getOutputFrameRate();
-        uint8_t currentInput = GBS::ADC_INPUT_SEL::read();
-        rto->presetID = GBS::GBS_PRESET_ID::read();
+// ====================================================================================
+// IR_handleInfoDisplay - Info Display Handler
+// ====================================================================================
 
-        colour1 = yellow;
-        number_stroca = stroca1;
-        OSD_writeString(0, "Info:");
-        colour1 = main0;
-        OSD_writeString(26, "Hz");
+static bool IR_handleInfoDisplay()
+{
+    if (oled_menuItem != OLED_Info_Display) {
+        return false;
+    }
 
-        if (rto->presetID == 0x01 || rto->presetID == 0x11) {
-            // OSD_writeString(6,1,"1280x960 ");
+    if (oledClearFlag) {
+        display.clear();
+    }
+    oledClearFlag = ~0;
+    display.setColor(OLEDDISPLAY_COLOR::WHITE);
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(1, 0, "Menu-");
+    display.drawString(1, 28, "Info");
+    display.display();
 
-            OSD_c1(n1, P6, main0);
-            OSD_c1(n2, P7, main0);
-            OSD_c1(n8, P8, main0);
-            OSD_c1(n0, P9, main0);
-            OSD_c1(x, P10, main0);
-            OSD_c1(n9, P11, main0);
-            OSD_c1(n6, P12, main0);
-            OSD_c1(n0, P13, main0);
-            OSD_c1(n4, P14, blue_fill);
-        } else if (rto->presetID == 0x02 || rto->presetID == 0x12) {
-            // OSD_writeString(6,1,"1280x1024");
-            OSD_c1(n1, P6, main0);
-            OSD_c1(n2, P7, main0);
-            OSD_c1(n8, P8, main0);
-            OSD_c1(n0, P9, main0);
-            OSD_c1(x, P10, main0);
-            OSD_c1(n1, P11, main0);
-            OSD_c1(n0, P12, main0);
-            OSD_c1(n2, P13, main0);
-            OSD_c1(n4, P14, main0);
-        } else if (rto->presetID == 0x03 || rto->presetID == 0x13) {
-            // OSD_writeString(6,1,"1280x720 ");
-            OSD_c1(n1, P6, main0);
-            OSD_c1(n2, P7, main0);
-            OSD_c1(n8, P8, main0);
-            OSD_c1(n0, P9, main0);
-            OSD_c1(x, P10, main0);
-            OSD_c1(n7, P11, main0);
-            OSD_c1(n2, P12, main0);
-            OSD_c1(n0, P13, main0);
-            OSD_c1(n4, P14, blue_fill);
-        } else if (rto->presetID == 0x05 || rto->presetID == 0x15) {
-            // OSD_writeString(6,1,"1920x1080");
-            OSD_c1(n1, P6, main0);
-            OSD_c1(n9, P7, main0);
-            OSD_c1(n2, P8, main0);
-            OSD_c1(n0, P9, main0);
-            OSD_c1(x, P10, main0);
-            OSD_c1(n1, P11, main0);
-            OSD_c1(n0, P12, main0);
-            OSD_c1(n8, P13, main0);
-            OSD_c1(n0, P14, main0);
-        } else if (rto->presetID == 0x06 || rto->presetID == 0x16) {
-            // OSD_writeString(6,1,"Downscale");
-            OSD_c1(D, P6, main0);
-            OSD_c1(o, P7, main0);
-            OSD_c1(w, P8, main0);
-            OSD_c1(n, P9, main0);
-            OSD_c1(s, P10, main0);
-            OSD_c1(c, P11, main0);
-            OSD_c1(a, P12, main0);
-            OSD_c1(l, P13, main0);
-            OSD_c1(e, P14, main0);
-        } else if (rto->presetID == 0x04) {
-            // OSD_writeString(6,1,"720x480  ");
-            OSD_c1(n7, P6, main0);
-            OSD_c1(n2, P7, main0);
-            OSD_c1(n0, P8, main0);
-            OSD_c1(x, P9, main0);
-            OSD_c1(n4, P10, main0);
-            OSD_c1(n8, P11, main0);
-            OSD_c1(n0, P12, main0);
-            OSD_c1(n8, P13, blue_fill);
-            OSD_c1(n0, P14, blue_fill);
-        } else if (rto->presetID == 0x14) {
-            // OSD_writeString(6,1,"768x576  ");
-            OSD_c1(n7, P6, main0);
-            OSD_c1(n6, P7, main0);
-            OSD_c1(n8, P8, main0);
-            OSD_c1(x, P9, main0);
-            OSD_c1(n5, P10, main0);
-            OSD_c1(n7, P11, main0);
-            OSD_c1(n6, P12, main0);
-            OSD_c1(n8, P13, blue_fill);
-            OSD_c1(n0, P14, blue_fill);
-        } else {
-            // OSD_writeString(6,1,"Bypass   ");
-            OSD_c1(B, P6, main0);
-            OSD_c1(y, P7, main0);
-            OSD_c1(p, P8, main0);
-            OSD_c1(a, P9, main0);
-            OSD_c1(s, P10, main0);
-            OSD_c1(s, P11, main0);
-            OSD_c1(n6, P12, blue_fill);
-            OSD_c1(n8, P13, blue_fill);
-            OSD_c1(n0, P14, blue_fill);
-        }
+    boolean vsyncActive = 0;
+    boolean hsyncActive = 0;
+    float ofr = getOutputFrameRate();
+    uint8_t currentInput = GBS::ADC_INPUT_SEL::read();
+    rto->presetID = GBS::GBS_PRESET_ID::read();
 
-        if (inputType == InputTypeRGBs) {
-            // OSD_writeString(17,1," RGBs");
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(R, P18, main0);
-            OSD_c1(G, P19, main0);
-            OSD_c1(B, P20, main0);
-            OSD_c1(s, P21, main0);
-        } else if (inputType == InputTypeRGsB) {
-            // OSD_writeString(17,1," RGsB ");
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(R, P18, main0);
-            OSD_c1(G, P19, main0);
-            OSD_c1(s, P20, main0);
-            OSD_c1(B, P21, main0);
-            OSD_c1(B, P22, blue_fill);
-        } else if (inputType == InputTypeVGA) {
-            // OSD_writeString(17,1," VGA  ");
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(V, P18, main0);
-            OSD_c1(G, P19, main0);
-            OSD_c1(A, P20, main0);
-            OSD_c1(B, P21, blue_fill);
-            OSD_c1(B, P22, blue_fill);
-        } else if (inputType == InputTypeYUV) {
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(Y, P18, main0);
-            OSD_c1(P, P19, main0);
-            OSD_c1(B, P20, main0);
-            OSD_c1(P, P21, main0);
-            OSD_c1(R, P22, main0);
-        } else if (inputType == InputTypeSV) {
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(Y, P18, blue_fill);
-            OSD_c1(S, P19, main0);
-            OSD_c1(V, P20, main0);
-            OSD_c1(B, P21, blue_fill);
-            OSD_c1(B, P22, blue_fill);
-        } else if (inputType == InputTypeAV) {
-            OSD_c1(r, P17, blue_fill);
-            OSD_c1(Y, P18, blue_fill);
-            OSD_c1(A, P19, main0);
-            OSD_c1(V, P20, main0);
-            OSD_c1(B, P21, blue_fill);
-            OSD_c1(B, P22, blue_fill);
-        } else {
-            OSD_c1(Y, P17, blue_fill);
-            OSD_c1(P, P18, blue_fill);
-            OSD_c1(b, P19, blue_fill);
-            OSD_c1(P, P20, blue_fill);
-            OSD_c1(r, P21, blue_fill);
-            OSD_c1(B, P22, blue_fill);
-        }
+    colour1 = yellow;
+    number_stroca = stroca1;
+    OSD_writeString(0, "Info:");
+    colour1 = main0;
+    OSD_writeString(26, "Hz");
 
-        osdDisplayValue = ofr;
-        colour1 = main0;
-        number_stroca = stroca1;
-        sequence_number1 = _25;
-        sequence_number2 = _24; //_24
-        sequence_number3 = 0x3D;
-        Typ(osdDisplayValue);
+    if (rto->presetID == 0x01 || rto->presetID == 0x11) {
+        OSD_c1(n1, P6, main0);
+        OSD_c1(n2, P7, main0);
+        OSD_c1(n8, P8, main0);
+        OSD_c1(n0, P9, main0);
+        OSD_c1(x, P10, main0);
+        OSD_c1(n9, P11, main0);
+        OSD_c1(n6, P12, main0);
+        OSD_c1(n0, P13, main0);
+        OSD_c1(n4, P14, blue_fill);
+    } else if (rto->presetID == 0x02 || rto->presetID == 0x12) {
+        OSD_c1(n1, P6, main0);
+        OSD_c1(n2, P7, main0);
+        OSD_c1(n8, P8, main0);
+        OSD_c1(n0, P9, main0);
+        OSD_c1(x, P10, main0);
+        OSD_c1(n1, P11, main0);
+        OSD_c1(n0, P12, main0);
+        OSD_c1(n2, P13, main0);
+        OSD_c1(n4, P14, main0);
+    } else if (rto->presetID == 0x03 || rto->presetID == 0x13) {
+        OSD_c1(n1, P6, main0);
+        OSD_c1(n2, P7, main0);
+        OSD_c1(n8, P8, main0);
+        OSD_c1(n0, P9, main0);
+        OSD_c1(x, P10, main0);
+        OSD_c1(n7, P11, main0);
+        OSD_c1(n2, P12, main0);
+        OSD_c1(n0, P13, main0);
+        OSD_c1(n4, P14, blue_fill);
+    } else if (rto->presetID == 0x05 || rto->presetID == 0x15) {
+        OSD_c1(n1, P6, main0);
+        OSD_c1(n9, P7, main0);
+        OSD_c1(n2, P8, main0);
+        OSD_c1(n0, P9, main0);
+        OSD_c1(x, P10, main0);
+        OSD_c1(n1, P11, main0);
+        OSD_c1(n0, P12, main0);
+        OSD_c1(n8, P13, main0);
+        OSD_c1(n0, P14, main0);
+    } else if (rto->presetID == 0x06 || rto->presetID == 0x16) {
+        OSD_c1(D, P6, main0);
+        OSD_c1(o, P7, main0);
+        OSD_c1(w, P8, main0);
+        OSD_c1(n, P9, main0);
+        OSD_c1(s, P10, main0);
+        OSD_c1(c, P11, main0);
+        OSD_c1(a, P12, main0);
+        OSD_c1(l, P13, main0);
+        OSD_c1(e, P14, main0);
+    } else if (rto->presetID == 0x04) {
+        OSD_c1(n7, P6, main0);
+        OSD_c1(n2, P7, main0);
+        OSD_c1(n0, P8, main0);
+        OSD_c1(x, P9, main0);
+        OSD_c1(n4, P10, main0);
+        OSD_c1(n8, P11, main0);
+        OSD_c1(n0, P12, main0);
+        OSD_c1(n8, P13, blue_fill);
+        OSD_c1(n0, P14, blue_fill);
+    } else if (rto->presetID == 0x14) {
+        OSD_c1(n7, P6, main0);
+        OSD_c1(n6, P7, main0);
+        OSD_c1(n8, P8, main0);
+        OSD_c1(x, P9, main0);
+        OSD_c1(n5, P10, main0);
+        OSD_c1(n7, P11, main0);
+        OSD_c1(n6, P12, main0);
+        OSD_c1(n8, P13, blue_fill);
+        OSD_c1(n0, P14, blue_fill);
+    } else {
+        OSD_c1(B, P6, main0);
+        OSD_c1(y, P7, main0);
+        OSD_c1(p, P8, main0);
+        OSD_c1(a, P9, main0);
+        OSD_c1(s, P10, main0);
+        OSD_c1(s, P11, main0);
+        OSD_c1(n6, P12, blue_fill);
+        OSD_c1(n8, P13, blue_fill);
+        OSD_c1(n0, P14, blue_fill);
+    }
 
-        clean_up(stroca2, 31, 0); // 17  31
+    if (inputType == InputTypeRGBs) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(R, P18, main0);
+        OSD_c1(G, P19, main0);
+        OSD_c1(B, P20, main0);
+        OSD_c1(s, P21, main0);
+    } else if (inputType == InputTypeRGsB) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(R, P18, main0);
+        OSD_c1(G, P19, main0);
+        OSD_c1(s, P20, main0);
+        OSD_c1(B, P21, main0);
+        OSD_c1(B, P22, blue_fill);
+    } else if (inputType == InputTypeVGA) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(V, P18, main0);
+        OSD_c1(G, P19, main0);
+        OSD_c1(A, P20, main0);
+        OSD_c1(B, P21, blue_fill);
+        OSD_c1(B, P22, blue_fill);
+    } else if (inputType == InputTypeYUV) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(Y, P18, main0);
+        OSD_c1(P, P19, main0);
+        OSD_c1(B, P20, main0);
+        OSD_c1(P, P21, main0);
+        OSD_c1(R, P22, main0);
+    } else if (inputType == InputTypeSV) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(Y, P18, blue_fill);
+        OSD_c1(S, P19, main0);
+        OSD_c1(V, P20, main0);
+        OSD_c1(B, P21, blue_fill);
+        OSD_c1(B, P22, blue_fill);
+    } else if (inputType == InputTypeAV) {
+        OSD_c1(r, P17, blue_fill);
+        OSD_c1(Y, P18, blue_fill);
+        OSD_c1(A, P19, main0);
+        OSD_c1(V, P20, main0);
+        OSD_c1(B, P21, blue_fill);
+        OSD_c1(B, P22, blue_fill);
+    } else {
+        OSD_c1(Y, P17, blue_fill);
+        OSD_c1(P, P18, blue_fill);
+        OSD_c1(b, P19, blue_fill);
+        OSD_c1(P, P20, blue_fill);
+        OSD_c1(r, P21, blue_fill);
+        OSD_c1(B, P22, blue_fill);
+    }
 
-        colour1 = yellow;
-        number_stroca = stroca2;
+    osdDisplayValue = ofr;
+    colour1 = main0;
+    number_stroca = stroca1;
+    sequence_number1 = _25;
+    sequence_number2 = _24;
+    sequence_number3 = 0x3D;
+    Typ(osdDisplayValue);
 
-        OSD_writeString(0, "Current:");
+    clean_up(stroca2, 31, 0);
 
-        colour1 = main0;
-        number_stroca = stroca2;
+    colour1 = yellow;
+    number_stroca = stroca2;
 
-        OSD_writeString(0xFF, " ");
-        if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
-            OSD_writeString(0xFF, "No Input");
-        } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
-            OSD_c2(B, P16, blue_fill);
-            OSD_writeString(0xFF, "RGB ");
-            vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
-            if (vsyncActive) {
-                // OSD_writeString(0xFF,"H");
-                hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
-                if (hsyncActive) {
-                    OSD_writeString(0xFF, "HV   ");
-                }
-            } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
-                OSD_c2(B, P11, blue_fill);
-                OSD_writeString(0x09, "No Input");
+    OSD_writeString(0, "Current:");
+
+    colour1 = main0;
+    number_stroca = stroca2;
+
+    OSD_writeString(0xFF, " ");
+    if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
+        OSD_writeString(0xFF, "No Input");
+    } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
+        OSD_c2(B, P16, blue_fill);
+        OSD_writeString(0xFF, "RGB ");
+        vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
+        if (vsyncActive) {
+            hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
+            if (hsyncActive) {
+                OSD_writeString(0xFF, "HV   ");
             }
-        } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
-            OSD_c2(B, P16, blue_fill);
-            if (inputType == InputTypeYUV)
-                OSD_writeString(0xFF, "  YPBPR  ");
-            else if (inputType == InputTypeSV)
-                OSD_writeString(0xFF, "   SV    ");
-            else if (inputType == InputTypeAV)
-                OSD_writeString(0xFF, "   AV    ");
-        } else {
-            OSD_writeString(0xFF, "No Input");
+        } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
+            OSD_c2(B, P11, blue_fill);
+            OSD_writeString(0x09, "No Input");
+        }
+    } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
+        OSD_c2(B, P16, blue_fill);
+        if (inputType == InputTypeYUV)
+            OSD_writeString(0xFF, "  YPBPR  ");
+        else if (inputType == InputTypeSV)
+            OSD_writeString(0xFF, "   SV    ");
+        else if (inputType == InputTypeAV)
+            OSD_writeString(0xFF, "   AV    ");
+    } else {
+        OSD_writeString(0xFF, "No Input");
+    }
+
+    // Show resolution only if input is connected
+    if (!rto->sourceDisconnected && rto->boardHasPower) {
+        static uint8_t S0_Read_Resolution;
+        static unsigned long Tim_info = 0;
+        if ((millis() - Tim_info) >= 1000) {
+            S0_Read_Resolution = GBS::STATUS_00::read();
+            Tim_info = millis();
         }
 
-        // Show resolution only if input is connected
-        if (!rto->sourceDisconnected && rto->boardHasPower) {
-            static uint8_t S0_Read_Resolution;
-            static unsigned long Tim_info = 0;
-            if ((millis() - Tim_info) >= 1000) {
-                S0_Read_Resolution = GBS::STATUS_00::read();
-                Tim_info = millis();
-            }
-
-            if (S0_Read_Resolution & 0x80) {
-                if (S0_Read_Resolution & 0x40) {
-                    OSD_writeString(0xFF, "   576p");
-                } else if (S0_Read_Resolution & 0x20) {
-                    if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 312) <= 10)
-                        OSD_writeString(0xFF, "   288p");
-                    else
-                        OSD_writeString(0xFF, "   576i");
-                } else if (S0_Read_Resolution & 0x10) {
-                    OSD_writeString(0xFF, "   480p");
-                } else if (S0_Read_Resolution & 0x08) {
-                    if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 262) <= 10)
-                        OSD_writeString(0xFF, "   240p");
-                    else
-                        OSD_writeString(0xFF, "   480i");
-                } else {
-                    OSD_writeString(0xFF, "   Err");
-                }
+        if (S0_Read_Resolution & 0x80) {
+            if (S0_Read_Resolution & 0x40) {
+                OSD_writeString(0xFF, "   576p");
+            } else if (S0_Read_Resolution & 0x20) {
+                if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 312) <= 10)
+                    OSD_writeString(0xFF, "   288p");
+                else
+                    OSD_writeString(0xFF, "   576i");
+            } else if (S0_Read_Resolution & 0x10) {
+                OSD_writeString(0xFF, "   480p");
+            } else if (S0_Read_Resolution & 0x08) {
+                if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 262) <= 10)
+                    OSD_writeString(0xFF, "   240p");
+                else
+                    OSD_writeString(0xFF, "   480i");
             } else {
                 OSD_writeString(0xFF, "   Err");
             }
-        }
-        if (irrecv.decode(&results)) {
-            irDecodedFlag = 1;
-            switch (results.value) {
-                case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand('0');
-                    oled_menuItem = OLED_Input;
-                    break;
-                case IRKeyExit:
-                    if (isInfoDisplayActive) {
-                        GBS::VDS_DIS_HB_ST::write(horizontalBlankStart);
-                        GBS::VDS_DIS_HB_SP::write(horizontalBlankStop);
-                        isInfoDisplayActive = 0;
-                    }
-                    oled_menuItem = OLED_None;
-                    OSD_clear();
-                    OSD();
-                    break;
-            }
-            irrecv.resume();
-        }
-    }
-
-    if (
-        (
-            (results.value == IRKeyMenu) ||
-            (results.value == IRKeySave) ||
-            (results.value == IRKeyInfo) ||
-            (results.value == IRKeyRight) ||
-            (results.value == IRKeyLeft) ||
-            (results.value == IRKeyUp) ||
-            (results.value == IRKeyDown) ||
-            (results.value == IRKeyOk) ||
-            (results.value == IRKeyExit) ||
-            (results.value == IRKeyMute) ||
-            (results.value == kRecv2) ||
-            (results.value == kRecv3)) &&
-        (irDecodedFlag == 1) &&
-        (oled_menuItem != 0)) {
-        // printf("Delay success \n");
-        lastMenuItemTime = millis();
-        irDecodedFlag = 0;
-        resetOLEDScreenSaverTimer();
-    }
-
-    if ((millis() - lastResolutionTime) >= OSD_RESOLUTION_UP_TIME && oled_menuItem == OLED_RetainedSettings) {
-        lastMenuItemTime = millis(); // updata osd close
-        lastResolutionTime = millis();
-        uint8_t T_tim = OSD_RESOLUTION_CLOSE_TIME / 1000 - ((lastResolutionTime - resolutionStartTime) / 1000);
-        // colour1 = A2_main0;
-        number_stroca = stroca2;
-        if (T_tim >= 10) {
-            OSD_c2((T_tim / 10) + '0', P11, main0);
-            OSD_c2((T_tim % 10) + '0', P12, main0);
-
-            OSD_writeString(14, " s ");
         } else {
-            OSD_c2('0', P12, blue_fill);
-            OSD_c2(T_tim + '0', P11, main0); //
-
-            OSD_writeString(13, " s ");
-        }
-        // printf(" TIM :%d \n",(uint8_t)((lastResolutionTime - resolutionStartTime)/10));
-
-        if ((lastResolutionTime - resolutionStartTime) >= OSD_RESOLUTION_CLOSE_TIME) {
-
-            // uopt->preferScalingRgbhv = true;
-            if (tentativeResolution == Output960P) // 1280x960
-                userCommand = 'f';
-            else if (tentativeResolution == Output720P) // 1280x720
-                userCommand = 'g';
-            else if (tentativeResolution == Output480P) // 480p/576p
-                userCommand = 'h';
-            else if (tentativeResolution == Output1024P) // 1280x1024
-                userCommand = 'p';
-            else if (tentativeResolution == Output1080P) // 1920x1080
-                userCommand = 's';
-            else
-                userCommand = 'g';
-            // printf("%c \n",userCommand);
-
-            OSD_handleCommand(OSD_CROSS_MID);
-            OSD_handleCommand('4');
-            oled_menuItem = OLED_OutputResolution_PassThrough;
+            OSD_writeString(0xFF, "   Err");
         }
     }
 
-    if (lastOledMenuItem != oled_menuItem && oled_menuItem != 0) {
+    if (irrecv.decode(&results)) {
+        irDecodedFlag = 1;
+        switch (results.value) {
+            case IRKeyMenu:
+                selectedMenuLine = 1;
+                OSD_handleCommand('0');
+                oled_menuItem = OLED_Input;
+                break;
+            case IRKeyExit:
+                if (isInfoDisplayActive) {
+                    GBS::VDS_DIS_HB_ST::write(horizontalBlankStart);
+                    GBS::VDS_DIS_HB_SP::write(horizontalBlankStop);
+                    isInfoDisplayActive = 0;
+                }
+                oled_menuItem = OLED_None;
+                OSD_clear();
+                OSD();
+                break;
+        }
+        irrecv.resume();
+    }
+
+    return true;
+}
+
+// ====================================================================================
+// IR_handleMenuSelection - Menu State Machine
+// ====================================================================================
+
+// Check if the IR key is a valid menu navigation key
+static bool IR_isValidMenuKey(uint32_t key)
+{
+    switch (key) {
+        case IRKeyMenu:
+        case IRKeySave:
+        case IRKeyInfo:
+        case IRKeyRight:
+        case IRKeyLeft:
+        case IRKeyUp:
+        case IRKeyDown:
+        case IRKeyOk:
+        case IRKeyExit:
+        case IRKeyMute:
+        case kRecv2:
+        case kRecv3:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// Get the user command for a given resolution
+static char IR_getResolutionCommand(uint8_t resolution)
+{
+    switch (resolution) {
+        case Output960P:  return 'f';  // 1280x960
+        case Output720P:  return 'g';  // 1280x720
+        case Output480P:  return 'h';  // 480p/576p
+        case Output1024P: return 'p';  // 1280x1024
+        case Output1080P: return 's';  // 1920x1080
+        default:          return 'g';  // Default to 720p
+    }
+}
+
+// Handle resolution confirmation countdown display
+static void IR_updateResolutionCountdown(void)
+{
+    if ((millis() - lastResolutionTime) < OSD_RESOLUTION_UP_TIME ||
+        oled_menuItem != OLED_RetainedSettings) {
+        return;
+    }
+
+    lastMenuItemTime = millis();
+    lastResolutionTime = millis();
+
+    uint8_t secondsRemaining = OSD_RESOLUTION_CLOSE_TIME / 1000 -
+                               ((lastResolutionTime - resolutionStartTime) / 1000);
+    number_stroca = stroca2;
+
+    // Display countdown timer
+    if (secondsRemaining >= 10) {
+        OSD_c2((secondsRemaining / 10) + '0', P11, main0);
+        OSD_c2((secondsRemaining % 10) + '0', P12, main0);
+        OSD_writeString(14, " s ");
+    } else {
+        OSD_c2('0', P12, blue_fill);
+        OSD_c2(secondsRemaining + '0', P11, main0);
+        OSD_writeString(13, " s ");
+    }
+
+    // Countdown expired - apply resolution
+    if ((lastResolutionTime - resolutionStartTime) >= OSD_RESOLUTION_CLOSE_TIME) {
+        userCommand = IR_getResolutionCommand(tentativeResolution);
+        OSD_handleCommand(OSD_CROSS_MID);
+        OSD_handleCommand('4');
+        oled_menuItem = OLED_OutputResolution_PassThrough;
+    }
+}
+
+// Handle menu timeout and cleanup
+static void IR_handleMenuTimeout(void)
+{
+    // Track menu item changes
+    if (lastOledMenuItem != oled_menuItem && oled_menuItem != OLED_None) {
         lastMenuItemTime = millis();
         oledClearFlag = 1;
-        // printf("freq:%d \n", system_get_cpu_freq());
-        // printf("oled_menuItem:%d \n", oled_menuItem);
     }
-    if ((millis() - lastMenuItemTime) >= OSD_CLOSE_TIME && oled_menuItem != 0) {
-        // 菜单关闭
+
+    // Check for menu timeout
+    if ((millis() - lastMenuItemTime) >= OSD_CLOSE_TIME && oled_menuItem != OLED_None) {
+        // Restore display settings if Info Display was active
         if (isInfoDisplayActive) {
             GBS::VDS_DIS_HB_ST::write(horizontalBlankStart);
             GBS::VDS_DIS_HB_SP::write(horizontalBlankStop);
             isInfoDisplayActive = 0;
         }
+
+        // Close menu
         oled_menuItem = OLED_None;
-        lastOledMenuItem = 0;
+        lastOledMenuItem = OLED_None;
         OSD_clear();
         OSD();
     }
+
     lastOledMenuItem = oled_menuItem;
+}
+
+void IR_handleMenuSelection(void)
+{
+    NEW_OLED_MENU = (oled_menuItem == OLED_None);
+
+    // Dispatch to appropriate handler
+    IR_handleOutputResolution() ||
+    IR_handleScreenSettings() ||
+    IR_handleColorSettings() ||
+    IR_handleSystemSettings() ||
+    IR_handleInputSelection() ||
+    IR_handleProfileManagement() ||
+    IR_handleMainMenu() ||
+    IR_handleMiscSettings() ||
+    IR_handleInfoDisplay();
+
+    // Reset activity timer on valid IR input
+    if (IR_isValidMenuKey(results.value) && irDecodedFlag && oled_menuItem != OLED_None) {
+        lastMenuItemTime = millis();
+        irDecodedFlag = 0;
+        resetOLEDScreenSaverTimer();
+    }
+
+    // Handle resolution confirmation countdown
+    IR_updateResolutionCountdown();
+
+    // Handle menu timeout
+    IR_handleMenuTimeout();
 }
 
 // ====================================================================================
 // IR_handleInput - IR Remote Input Handler
 // ====================================================================================
 
+// Display mute status on OSD and OLED
+static void IR_displayMuteStatus(bool muted)
+{
+    const char* statusText = muted ? "MUTE ON" : "MUTE OFF";
+
+    NEW_OLED_MENU = false;
+    background_up(stroca1, _9, blue_fill);
+
+    // Display on OSD
+    for (int i = 0; i <= 800; i++) {
+        colour1 = yellowT;
+        number_stroca = stroca1;
+        __(M, _1), __(U, _2), __(T, _3), __(E, _4);
+        colour1 = main0;
+        if (muted) {
+            __(O, _6), __(N, _7);
+        } else {
+            __(O, _6), __(F, _7), __(F, _8);
+        }
+
+        // Display on OLED
+        display.clear();
+        if (muted) {
+            display.flipScreenVertically();
+        }
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
+        display.setFont(ArialMT_Plain_16);
+        display.drawString(8, 15, statusText);
+        display.display();
+    }
+
+    oled_menuItem = OLED_None;
+    background_up(stroca1, _9, blue_fill);
+    OSD_Cut_0x01();
+    OSD();
+}
+
+// Handle mute toggle
+static void IR_handleMuteToggle(void)
+{
+    lastMenuItemTime = millis();
+
+    if (audioMuted) {
+        PT_MUTE(0x78);  // Unmute
+        IR_displayMuteStatus(false);
+        audioMuted = 0;
+    } else {
+        PT_MUTE(0x79);  // Mute
+        IR_displayMuteStatus(true);
+        audioMuted = 1;
+    }
+}
+
+// Handle Menu key press - opens main menu or info display
+static void IR_handleMenuKeyPress(void)
+{
+    lastMenuItemTime = millis();
+    NEW_OLED_MENU = false;
+
+    // Check if source is disconnected or board has no power
+    bool noSignal = rto->sourceDisconnected ||
+                    !rto->boardHasPower ||
+                    GBS::PAD_CKIN_ENZ::read();
+
+    if (noSignal) {
+        // Show info display when no signal
+        background_up(stroca1, _27, blue_fill);
+        background_up(stroca2, _27, blue_fill);
+        oled_menuItem = OLED_Info_Display;
+
+        // Save horizontal blank values before modifying
+        isInfoDisplayActive = 1;
+        horizontalBlankStart = GBS::VDS_DIS_HB_ST::read();
+        horizontalBlankStop = GBS::VDS_DIS_HB_SP::read();
+
+        // Initialize display for info
+        writeProgramArrayNew(ntsc_720x480, false);
+        doPostPresetLoadSteps();
+        GBS::VDS_DIS_HB_ST::write(0x00);
+        GBS::VDS_DIS_HB_SP::write(0xffff);
+        freezeVideo();
+        GBS::SP_CLAMP_MANUAL::write(1);
+    } else {
+        // Open main input menu
+        selectedMenuLine = 1;
+        OSD_handleCommand('0');
+        oled_menuItem = OLED_Input;
+        display.clear();
+    }
+}
+
+// Handle Save key press - opens profile menu
+static void IR_handleSaveKeyPress(void)
+{
+    lastMenuItemTime = millis();
+    NEW_OLED_MENU = false;
+    OSD_handleCommand(OSD_CROSS_TOP);
+    OSD_handleCommand('w');
+    oled_menuItem = OLED_Profile;
+}
+
+// Handle Info key press - opens info display
+static void IR_handleInfoKeyPress(void)
+{
+    lastMenuItemTime = millis();
+    NEW_OLED_MENU = false;
+    background_up(stroca1, _27, blue_fill);
+    background_up(stroca2, _27, blue_fill);
+    oled_menuItem = OLED_Info_Display;
+}
+
+// Handle Volume keys - opens volume adjust menu
+static void IR_handleVolumeKeyPress(void)
+{
+    lastMenuItemTime = millis();
+    NEW_OLED_MENU = false;
+    background_up(stroca1, _25, blue_fill);
+    oled_menuItem = OLED_Volume_Adjust;
+}
+
 void IR_handleInput()
 {
-    if (irrecv.decode(&results)) {
-        irDecodedFlag = 1;
-        if (results.value == IRKeyMenu) {
-            lastMenuItemTime = millis();
-            if (rto->sourceDisconnected || !rto->boardHasPower || GBS::PAD_CKIN_ENZ::read()) // || !GBS::STATUS_MISC_VSYNC::read()
-            {
-
-                NEW_OLED_MENU = false;
-                background_up(stroca1, _27, blue_fill);
-                background_up(stroca2, _27, blue_fill);
-
-                oled_menuItem = OLED_Info_Display;
-
-                // Save horizontal blank values before modifying
-                isInfoDisplayActive = 1;
-                horizontalBlankStart = GBS::VDS_DIS_HB_ST::read();
-                horizontalBlankStop = GBS::VDS_DIS_HB_SP::read();
-
-                // loadDefaultUserOptions();
-                writeProgramArrayNew(ntsc_720x480, false);
-                doPostPresetLoadSteps();
-                GBS::VDS_DIS_HB_ST::write(0x00);
-                GBS::VDS_DIS_HB_SP::write(0xffff);
-                freezeVideo();
-                GBS::SP_CLAMP_MANUAL::write(1);
-                // GBS::VDS_U_OFST::write(GBS::VDS_U_OFST::read() + 100);
-            } else {
-                NEW_OLED_MENU = false;
-                selectedMenuLine = 1;
-                OSD_handleCommand('0');
-                oled_menuItem = OLED_Input;
-                display.clear();
-                // display.init();
-                // display.flipScreenVertically();
-                // printf("Oled Init\n");
-            }
-        }
-
-        // if (results.value == kRecv14)
-        // {
-        //     NEW_OLED_MENU = false;
-        //     background_up(stroca1, _10, blue_fill);
-        //     for (int i = 0; i <= 800; i++)
-        //     {
-        //         colour1 = yellowT;
-        //         number_stroca = stroca1;
-        //         __(R, _2), __(e, _3), __(s, _4), __(t, _5), __(a, _6), __(r, _7), __(t, _8);
-        //         display.clear();
-        //         display.setTextAlignment(TEXT_ALIGN_LEFT);
-        //         display.setFont(ArialMT_Plain_16);
-        //         display.drawString(8, 15, "Resetting GBS");
-        //         display.drawString(8, 35, "Please Wait...");
-        //         display.display();
-        //     }
-        //     webSocket.disconnect();
-        //     delay(60);
-        //     ESP.reset();
-        //     oled_menuItem = OLED_None;
-        //     PT_MUTE(0x79);
-        // }
-
-        if (results.value == IRKeySave) {
-            lastMenuItemTime = millis();
-            NEW_OLED_MENU = false;
-            OSD_handleCommand(OSD_CROSS_TOP);
-            OSD_handleCommand('w');
-            oled_menuItem = OLED_Profile;
-        }
-
-        if (results.value == IRKeyInfo) {
-            lastMenuItemTime = millis();
-            NEW_OLED_MENU = false;
-            background_up(stroca1, _27, blue_fill);
-            background_up(stroca2, _27, blue_fill);
-            oled_menuItem = OLED_Info_Display;
-        }
-
-        switch (results.value) {
-            case IRKeyMute:
-                lastMenuItemTime = millis();
-                if (audioMuted == 0) {
-                    PT_MUTE(0x79);
-                    NEW_OLED_MENU = false;
-                    background_up(stroca1, _9, blue_fill);
-                    for (int i = 0; i <= 800; i++) {
-                        colour1 = yellowT;
-                        number_stroca = stroca1;
-                        __(M, _1), __(U, _2), __(T, _3), __(E, _4);
-                        colour1 = main0;
-                        __(O, _6), __(N, _7);
-                        display.clear();
-                        display.flipScreenVertically();
-                        display.setTextAlignment(TEXT_ALIGN_LEFT);
-                        display.setFont(ArialMT_Plain_16);
-                        display.drawString(8, 15, "MUTE ON");
-                        display.display();
-                    }
-                    oled_menuItem = OLED_None;
-                    background_up(stroca1, _9, blue_fill);
-                    OSD_Cut_0x01();
-                    OSD();
-                    audioMuted = 1;
-                } else if (audioMuted == 1) {
-                    PT_MUTE(0x78);
-                    NEW_OLED_MENU = false;
-                    background_up(stroca1, _9, blue_fill);
-                    for (int i = 0; i <= 800; i++) {
-                        colour1 = yellowT;
-                        number_stroca = stroca1;
-                        __(M, _1), __(U, _2), __(T, _3), __(E, _4);
-                        colour1 = main0;
-                        __(O, _6), __(F, _7), __(F, _8);
-                        display.clear();
-                        display.setTextAlignment(TEXT_ALIGN_LEFT);
-                        display.setFont(ArialMT_Plain_16);
-                        display.drawString(8, 15, "MUTE OFF");
-                        display.display();
-                    }
-                    oled_menuItem = OLED_None;
-                    background_up(stroca1, _9, blue_fill);
-                    OSD_Cut_0x01();
-                    OSD();
-                    audioMuted = 0;
-                }
-                break;
-            case kRecv2:
-                lastMenuItemTime = millis();
-                NEW_OLED_MENU = false;
-                background_up(stroca1, _25, blue_fill);
-                oled_menuItem = OLED_Volume_Adjust;
-                break;
-            case kRecv3:
-                lastMenuItemTime = millis();
-                NEW_OLED_MENU = false;
-                background_up(stroca1, _25, blue_fill);
-                oled_menuItem = OLED_Volume_Adjust;
-                break;
-        }
-
-        irrecv.resume();
-        delay(5);
+    if (!irrecv.decode(&results)) {
+        return;
     }
+
+    irDecodedFlag = 1;
+
+    switch (results.value) {
+        case IRKeyMenu:
+            IR_handleMenuKeyPress();
+            break;
+        case IRKeySave:
+            IR_handleSaveKeyPress();
+            break;
+        case IRKeyInfo:
+            IR_handleInfoKeyPress();
+            break;
+        case IRKeyMute:
+            IR_handleMuteToggle();
+            break;
+        case kRecv2:
+        case kRecv3:
+            IR_handleVolumeKeyPress();
+            break;
+    }
+
+    irrecv.resume();
+    delay(5);
 }
