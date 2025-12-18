@@ -83,25 +83,7 @@ After a successful build, output files are in:
 
 ## Flashing the Firmware
 
-### Using OpenOCD
-
-```bash
-openocd -f interface/jlink.cfg -f target/hc32f460.cfg \
-    -c "program build/release/adv-controller.elf verify reset exit"
-```
-
-### Using J-Link Commander
-
-```bash
-JLinkExe -device HC32F460JETA -if SWD -speed 4000 -autoconnect 1
-```
-
-Then in J-Link Commander:
-```
-loadbin build/release/adv-controller.bin,0x00000000
-r
-go
-```
+To flash the firmware, follow the official GBSC Pro flashing procedure available in the project documentation.
 
 ## Troubleshooting
 
