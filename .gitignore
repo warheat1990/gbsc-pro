@@ -1,81 +1,22 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
-venv/
-ENV/
-env/
-.venv
+# macOS
+.DS_Store
 
 # IDE
 .vscode/
-.idea/
 *.swp
 *.swo
 *~
-.DS_Store
-
-# PyQt
-*.ui.py
-
-# Logs
-*.log
-logs/
-
-# Test coverage
-.coverage
-htmlcov/
-.pytest_cache/
 
 # Backup files
 *.bak
-*.backup
-*~
 
-# User configs (keep template)
-# config.yaml
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
 
-# Compiled firmware
-*.bin
-*.hex
-*.elf
-*.o
-*.d
-
-# Keil/MDK files (keep source)
-*.uvguix.*
-*.uvoptx
-*.bak
-*.dep
-*.crf
-*.d
-*.axf
-*.htm
-*.lnp
-*.lst
-*.map
-*.sct
-*.iex
-RTE/
-DebugConfig/
-Listings/
-Objects/
+# Claude Code
+.claude/
+.claudeignore
+CLAUDE_CODE_SETUP.md
