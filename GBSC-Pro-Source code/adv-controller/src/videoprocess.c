@@ -12,18 +12,18 @@
 #include "main.h"
 
 /*******************************************************************************
- * Global Variables - MUST match original initialization values exactly!
+ * Global Variables
  ******************************************************************************/
 uint8_t btn_flag;
 
 static uint8_t status = 0;
 uint8_t Adv_7391_sw = 0;
-uint8_t adv_input;              /* Uninitialized - loaded from flash */
+uint8_t adv_input;
 uint8_t adv_double = true;
 uint8_t adv_smooth = false;
 uint8_t adv_ace = false;
-uint8_t adv_sw = false;         /* CRITICAL: Must be false, not true! */
-uint8_t adv_tv = 0xff;          /* CRITICAL: Must be 0xff, not 0x04! */
+uint8_t adv_sw = false;
+uint8_t adv_tv = 0xff;
 uint8_t err_flag = 0;
 uint8_t c_state = 0;
 
@@ -81,8 +81,8 @@ uint8_t I2C_COMMANDS_YC_INPUT[] = {
     /* =============== ADV7280 S-Video =============== */
     0x42, 0x0E, 0x00,   // ADV7280 - ADI Control 1: main register
     0x42, 0x00, 0x09,   // ADV7280 - Input control: Y input on A3, C input on A4
-    0x42, 0x38, 0x24,   // ADV7280 - NTSC comb control: Disable chroma comb, Uses low-pass/notch filter
-    0x42, 0x39, 0x24,   // ADV7280 - PAL comb control: Disable chroma comb, Uses low-pass/notch filter
+    0x42, 0x38, 0x80,   // ADV7280 - NTSC comb control: default
+    0x42, 0x39, 0xC0,   // ADV7280 - PAL comb control: default
     0x42, 0x17, 0x49,   // ADV7280 - Shaping Filter Control 1: SH1, SVHS 8
 };
 
