@@ -200,12 +200,29 @@ const uint8_t ADV_VideoFormats[12] = {
 // ADV Communication - ADV_PacketSender Class
 // ====================================================================================
 
+/**
+ * @class ADV_PacketSender
+ * @brief Handles UART communication with the ADV controller (HC32F460)
+ *
+ * Protocol format: [0x41 0x44] [cmd] [data] [0xFE] [checksum]
+ * - 0x41 0x44 ('AD'): Header bytes
+ * - cmd: Command byte (e.g., 'S', 'T', 'N', 'C')
+ * - data: Command-specific payload
+ * - 0xFE: End-of-frame marker
+ * - checksum: Sum of all preceding bytes (8-bit wrap)
+ */
 class ADV_PacketSender {
 public:
     explicit ADV_PacketSender(HardwareSerial& serial = Serial) : m_serial(serial) {
         randomSeed(analogRead(A0));
     }
 
+    /**
+     * @brief Send a standard 4-byte command packet
+     * @param buff 4-byte command buffer [header, header, cmd, data]
+     *
+     * Packet: [buff[0]] [buff[1]] [buff[2]] [buff[3]] [random] [0xFE] [checksum]
+     */
     void send(const unsigned char* buff) {
         unsigned char buff_lin[7];
         buff_lin[0] = buff[0];
@@ -218,6 +235,11 @@ public:
         m_serial.write(buff_lin, sizeof(buff_lin));
     }
 
+    /**
+     * @brief Send command with video mode appended to data byte
+     * @param buff Base 4-byte command
+     * @param mode Video mode (lower 4 bits merged into buff[3])
+     */
     void sendWithMode(const unsigned char* buff, uint8_t mode) {
         unsigned char packet[4];
         memcpy(packet, buff, 4);
@@ -225,6 +247,12 @@ public:
         send(packet);
     }
 
+    /**
+     * @brief Send register write command (for BCSH adjustments)
+     * @param buff Base command header
+     * @param reg I2C register address
+     * @param val Value to write
+     */
     void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
         unsigned char buff_lin[7];
         for (int i = 0; i < 4; ++i) buff_lin[i] = buff[i];
@@ -235,6 +263,37 @@ public:
         for (int i = 0; i < 6; ++i) sum += buff_lin[i];
         buff_lin[6] = sum;
         m_serial.write(buff_lin, sizeof(buff_lin));
+    }
+
+    /**
+     * @brief Send custom I2C batch command
+     * @param data Array of I2C triplets [addr, reg, val, ...]
+     * @param size Total bytes (must be multiple of 3)
+     *
+     * Packet: [0x41 0x44] ['C'] [count] [triplets...] [0xFE] [checksum]
+     * Each triplet: [I2C_addr, register, value]
+     */
+    void sendCustomI2C(const unsigned char* data, size_t size) {
+        if (size == 0 || size % 3 != 0) return;
+
+        uint8_t count = size / 3;
+
+        m_serial.write((uint8_t)0x41);
+        m_serial.write((uint8_t)0x44);
+        m_serial.write((uint8_t)'C');
+        m_serial.write(count);
+
+        unsigned char sum = 0x41 + 0x44 + 'C' + count;
+
+        for (size_t i = 0; i < size; ++i) {
+            m_serial.write(data[i]);
+            sum += data[i];
+        }
+
+        m_serial.write((uint8_t)0xFE);
+        sum += 0xFE;
+
+        m_serial.write(sum);
     }
 
 private:
@@ -265,6 +324,9 @@ void ADV_sendVideoFormat(uint8_t mode) {
 }
 void ADV_sendBCSH(unsigned char reg, unsigned char val) {
     advPacketSender.writeReg(ADV_BCSH, reg, val);
+}
+void ADV_sendCustomI2C(const unsigned char* data, size_t size) {
+    advPacketSender.sendCustomI2C(data, size);
 }
 
 void ADV_applyPendingOptions(void)

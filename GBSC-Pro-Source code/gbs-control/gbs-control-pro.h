@@ -356,6 +356,7 @@ void ADV_sendSmoothOn();
 void ADV_sendCompatibility(bool mode);
 void ADV_sendVideoFormat(uint8_t format);
 void ADV_sendBCSH(unsigned char reg, unsigned char val);
+void ADV_sendCustomI2C(const unsigned char* data, size_t size);
 void ADV_applyPendingOptions(void);
 
 // ====================================================================================

@@ -1379,6 +1379,47 @@ const initClearButton = () => {
   });
 };
 
+const initCustomI2C = () => {
+  const input = document.getElementById("customI2CInput") as HTMLInputElement;
+  const sendBtn = document.getElementById("customI2CSend") as HTMLButtonElement;
+
+  if (!input || !sendBtn) return;
+
+  const sendCustomI2C = () => {
+    const hexStr = input.value.trim();
+    if (!hexStr) return;
+
+    const formData = new URLSearchParams();
+    formData.append("c", hexStr);
+
+    fetch("/pro", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.text())
+      .then((data) => {
+        if (data === "true") {
+          GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C: ${hexStr}\n`;
+          GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+        } else {
+          GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C ERROR: ${hexStr}\n`;
+          GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+        }
+      })
+      .catch((error) => {
+        console.error("ADV Controller - Custom I2C error:", error);
+        GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C FAILED: ${error}\n`;
+      });
+  };
+
+  sendBtn.addEventListener("click", sendCustomI2C);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      sendCustomI2C();
+    }
+  });
+};
+
 const initControlMobileKeys = () => {
   const controls = document.querySelectorAll("[gbs-control-target]");
   const controlsKeys = document.querySelectorAll("[gbs-control-key]");
@@ -1610,6 +1651,7 @@ const initUI = () => {
   initGBSButtons();
   initProButtons();
   initClearButton();
+  initCustomI2C();
   initControlMobileKeys();
   initUnloadListener();
   initDeveloperMode();

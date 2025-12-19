@@ -92,7 +92,7 @@ uint8_t I2C_COMMANDS_CVBS_INPUT[] = {
     0x42, 0x0E, 0x00,   // ADV7280 - ADI Control 1: main register
     0x42, 0x00, 0x00,   // ADV7280 - Input control: CVBS input on A1
     0x42, 0x38, 0x80,   // ADV7280 - NTSC comb control: default
-    0x42, 0x39, 0x24,   // ADV7280 - PAL comb control: Disable chroma comb, Uses low-pass/notch filter
+    0x42, 0x39, 0xC0,   // ADV7280 - PAL comb control: default
     0x42, 0x17, 0x47,   // ADV7280 - Shaping Filter Control 1: SH1, SVHS 6
 };
 

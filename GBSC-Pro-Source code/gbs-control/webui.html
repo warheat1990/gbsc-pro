@@ -505,6 +505,40 @@ input {
   user-select: initial !important;
 }
 
+/* Custom I2C */
+.gbs-custom-i2c {
+  align-items: center;
+  gap: 8px;
+}
+
+.gbs-custom-i2c__label {
+  color: var(--color-scorpion);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gbs-custom-i2c__input {
+  flex: 1;
+  font-family: monospace;
+  font-size: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+.gbs-custom-i2c__btn {
+  align-items: center;
+  display: inline-flex;
+  flex-grow: 0;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.gbs-custom-i2c__btn .gbs-icon {
+  font-size: 14px;
+}
+
 .gbs-wifi-warning {
   animation: gbs-blinker 0.5s linear infinite;
   color: var(--color-warning);
@@ -2330,6 +2364,18 @@ section[name="alert"] {
             <div class="gbs-flex gbs-margin__bottom--16" gbs-output-clear>
               <button class="gbs-button gbs-icon">delete_outline</button>
             </div>
+            <div class="gbs-flex gbs-margin__bottom--16 gbs-custom-i2c">
+              <label class="gbs-custom-i2c__label">ADV Controller - Custom I2C</label>
+              <input
+                type="text"
+                id="customI2CInput"
+                class="gbs-button gbs-custom-i2c__input"
+                placeholder="42,0E,00,42,17,01"
+              />
+              <button class="gbs-button gbs-custom-i2c__btn" id="customI2CSend" title="Send I2C">
+                <span class="gbs-icon">send</span>Send
+              </button>
+            </div>
             <div class="gbs-flex">
               <textarea
                 id="outputTextArea"
@@ -3466,6 +3512,44 @@ const initClearButton = () => {
         GBSControl.ui.terminal.value = "";
     });
 };
+const initCustomI2C = () => {
+    const input = document.getElementById("customI2CInput");
+    const sendBtn = document.getElementById("customI2CSend");
+    if (!input || !sendBtn)
+        return;
+    const sendCustomI2C = () => {
+        const hexStr = input.value.trim();
+        if (!hexStr)
+            return;
+        const formData = new URLSearchParams();
+        formData.append("c", hexStr);
+        fetch("/pro", {
+            method: "POST",
+            body: formData,
+        })
+            .then((response) => response.text())
+            .then((data) => {
+            if (data === "true") {
+                GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C: ${hexStr}\n`;
+                GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+            }
+            else {
+                GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C ERROR: ${hexStr}\n`;
+                GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+            }
+        })
+            .catch((error) => {
+            console.error("ADV Controller - Custom I2C error:", error);
+            GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C FAILED: ${error}\n`;
+        });
+    };
+    sendBtn.addEventListener("click", sendCustomI2C);
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            sendCustomI2C();
+        }
+    });
+};
 const initControlMobileKeys = () => {
     const controls = document.querySelectorAll("[gbs-control-target]");
     const controlsKeys = document.querySelectorAll("[gbs-control-key]");
@@ -3659,6 +3743,7 @@ const initUI = () => {
     initGBSButtons();
     initProButtons();
     initClearButton();
+    initCustomI2C();
     initControlMobileKeys();
     initUnloadListener();
     initDeveloperMode();

@@ -1651,6 +1651,18 @@
             <div class="gbs-flex gbs-margin__bottom--16" gbs-output-clear>
               <button class="gbs-button gbs-icon">delete_outline</button>
             </div>
+            <div class="gbs-flex gbs-margin__bottom--16 gbs-custom-i2c">
+              <label class="gbs-custom-i2c__label">ADV Controller - Custom I2C</label>
+              <input
+                type="text"
+                id="customI2CInput"
+                class="gbs-button gbs-custom-i2c__input"
+                placeholder="42,0E,00,42,17,01"
+              />
+              <button class="gbs-button gbs-custom-i2c__btn" id="customI2CSend" title="Send I2C">
+                <span class="gbs-icon">send</span>Send
+              </button>
+            </div>
             <div class="gbs-flex">
               <textarea
                 id="outputTextArea"

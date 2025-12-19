@@ -10327,6 +10327,42 @@ void startWebserver()
             return;
         }
 
+        // Handle custom I2C batch command (c parameter)
+        // Format: hex string of triplets, e.g. "42,0E,00,56,17,02"
+        if (request->hasArg("c")) {
+            String hexStr = request->arg("c");
+
+            // Parse comma-separated hex values
+            unsigned char data[60];  // max 20 triplets
+            size_t dataLen = 0;
+
+            unsigned int start = 0;
+            int commaPos;
+            while ((commaPos = hexStr.indexOf(',', start)) != -1 && dataLen < 60) {
+                String byteStr = hexStr.substring(start, commaPos);
+                data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
+                start = commaPos + 1;
+            }
+            // Last value (no trailing comma)
+            if (start < hexStr.length() && dataLen < 60) {
+                String byteStr = hexStr.substring(start);
+                data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
+            }
+
+            // Validate: must be multiple of 3
+            if (dataLen > 0 && dataLen % 3 == 0) {
+                ADV_sendCustomI2C(data, dataLen);
+                SerialM.print(F("ADV Controller - Custom I2C sent: "));
+                SerialM.print(dataLen / 3);
+                SerialM.println(F(" commands"));
+                request->send(200, "application/json", "true");
+            } else {
+                SerialM.println(F("ADV Controller - Custom I2C error: invalid data length"));
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
         // No valid parameter provided
         request->send(400, "application/json", "false");
     });

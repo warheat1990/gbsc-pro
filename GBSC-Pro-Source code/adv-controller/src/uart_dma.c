@@ -280,17 +280,66 @@ void UART_ProcessCommand(void)
 
     if (SET == m_enRxFrameEnd)
     {
-        buff[1] =
-            dma_au8RxBuf[5] + dma_au8RxBuf[4] + dma_au8RxBuf[3] + dma_au8RxBuf[2] + dma_au8RxBuf[1] + dma_au8RxBuf[0];
-        if (dma_au8RxBuf[5] != 0xFE || dma_au8RxBuf[6] != buff[1] ||
-            (dma_au8RxBuf[0] != 0x41 || dma_au8RxBuf[1] != 0x44))
+        /* Check header first */
+        if (dma_au8RxBuf[0] != 0x41 || dma_au8RxBuf[1] != 0x44)
         {
             m_enRxFrameEnd = RESET;
             memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
             return;
         }
-        else if (dma_au8RxBuf[5] == 0xFE && dma_au8RxBuf[6] == buff[1] &&
-                 (dma_au8RxBuf[0] == 0x41 && dma_au8RxBuf[1] == 0x44))
+
+        /* Handle Custom I2C command with variable length */
+        if (dma_au8RxBuf[2] == 'C')
+        {
+            uint8_t count = dma_au8RxBuf[3];
+            /* Max triplets limited by buffer size: (APP_FRAME_LEN_MAX - 6) / 3 */
+            uint8_t max_count = (APP_FRAME_LEN_MAX - 6) / 3;
+            if (count > 0 && count <= max_count)
+            {
+                /* Variable length packet:
+                 * [0x41 0x44] ['C'] [count] [data...] [0xFE] [checksum]
+                 * Data length = count * 3
+                 * 0xFE position = 4 + count*3
+                 * checksum position = 5 + count*3
+                 */
+                uint16_t data_len   = count * 3;
+                uint16_t fe_pos     = 4 + data_len;
+                uint16_t chksum_pos = fe_pos + 1;
+
+                /* Calculate checksum for variable length packet */
+                uint8_t calc_sum = 0;
+                for (uint16_t i = 0; i <= fe_pos; i++)
+                {
+                    calc_sum += dma_au8RxBuf[i];
+                }
+
+                if (dma_au8RxBuf[fe_pos] == 0xFE && dma_au8RxBuf[chksum_pos] == calc_sum)
+                {
+                    uint8_t *i2c_data = &dma_au8RxBuf[4];
+                    (void)I2C_TransmitBatch(i2c_data, count, TIMEOUT);
+                    printf("Custom I2C: %d cmds\n", count);
+                    c_state = 1;
+                }
+                else
+                {
+                    printf("Custom I2C: chksum err\n");
+                }
+            }
+            m_enRxFrameEnd = RESET;
+            memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
+            return;
+        }
+
+        /* Standard fixed-length packet validation (7 bytes) */
+        buff[1] =
+            dma_au8RxBuf[5] + dma_au8RxBuf[4] + dma_au8RxBuf[3] + dma_au8RxBuf[2] + dma_au8RxBuf[1] + dma_au8RxBuf[0];
+        if (dma_au8RxBuf[5] != 0xFE || dma_au8RxBuf[6] != buff[1])
+        {
+            m_enRxFrameEnd = RESET;
+            memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
+            return;
+        }
+        else
         {
             if (dma_au8RxBuf[2] == 'T')
             {

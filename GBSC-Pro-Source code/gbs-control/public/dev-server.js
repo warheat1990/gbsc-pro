@@ -293,6 +293,36 @@ const handleRequest = (req, res) => {
         return;
       }
 
+      // Handle ADV Controller - Custom I2C command
+      const c = params.get('c');
+      if (c) {
+        // Parse comma-separated hex values (e.g., "42,0E,00,56,17,02")
+        const hexValues = c.split(',').map(v => v.trim());
+        const bytes = hexValues.map(v => parseInt(v, 16));
+
+        // Validate: must be multiples of 3 (addr, reg, val triplets)
+        if (bytes.length > 0 && bytes.length % 3 === 0 && bytes.every(b => !isNaN(b) && b >= 0 && b <= 255)) {
+          const tripletCount = bytes.length / 3;
+          console.log(`  ├─ ⚡ Pro: ADV Controller - Custom I2C - ${tripletCount} triplet(s)`);
+
+          // Log each triplet
+          for (let t = 0; t < tripletCount; t++) {
+            const addr = bytes[t * 3];
+            const reg = bytes[t * 3 + 1];
+            const val = bytes[t * 3 + 2];
+            console.log(`  │   [${t + 1}] I2C Addr=0x${addr.toString(16).padStart(2, '0')}, Reg=0x${reg.toString(16).padStart(2, '0')}, Val=0x${val.toString(16).padStart(2, '0')}`);
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+        } else {
+          console.log(`  ├─ ⚡ Pro: ADV Controller - Custom I2C ERROR - invalid data: ${c}`);
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
       // No valid parameter provided
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end('false');
