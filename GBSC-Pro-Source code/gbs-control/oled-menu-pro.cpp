@@ -96,13 +96,6 @@ static void showMenuValue(const char* title, const char* label, const char* valu
     display.display();
 }
 
-// Exit to Input menu (replaces 3 lines with 1)
-static void exitToInput() {
-    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-    oled_menuItem = OLED_Input;
-}
-
 // Exit menu completely (replaces 3 lines with 1)
 static void exitMenu() {
     oled_menuItem = OLED_None;
@@ -141,6 +134,9 @@ static bool IR_handleOutputResolution(void)
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
@@ -175,9 +171,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -188,7 +182,9 @@ static bool IR_handleOutputResolution(void)
                     userCommand = 's';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -206,9 +202,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -224,7 +218,9 @@ static bool IR_handleOutputResolution(void)
                     userCommand = 'p';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -243,9 +239,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -261,7 +255,9 @@ static bool IR_handleOutputResolution(void)
                     userCommand = 'f';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -280,9 +276,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_OutputResolution_960;
@@ -298,7 +292,9 @@ static bool IR_handleOutputResolution(void)
                     userCommand = 'g';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -316,9 +312,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -329,7 +323,9 @@ static bool IR_handleOutputResolution(void)
                     userCommand = 'h';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -346,9 +342,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -358,7 +352,9 @@ static bool IR_handleOutputResolution(void)
                 case IRKeyOk:
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -372,9 +368,7 @@ static bool IR_handleOutputResolution(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
-                    oled_menuItem = OLED_OutputResolution_PassThrough;
+                    exitMenu();
                     break;
                 case IRKeyRight:
                     keepSettings = 0;
@@ -407,7 +401,9 @@ static bool IR_handleOutputResolution(void)
                     oled_menuItem = OLED_OutputResolution_PassThrough;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
+                    oled_menuItem = OLED_OutputResolution_PassThrough;
                     break;
             }
             irResume();
@@ -472,9 +468,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_ScreenSettings;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -499,7 +493,9 @@ static bool IR_handleScreenSettings(void)
                     OSD_writeCharRow1(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_ScreenSettings;
                     break;
             }
             irResume();
@@ -517,9 +513,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_ScreenSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -548,7 +542,9 @@ static bool IR_handleScreenSettings(void)
                     OSD_writeCharRow2(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_ScreenSettings;
                     break;
             }
             irResume();
@@ -566,9 +562,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_ScreenSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -595,7 +589,9 @@ static bool IR_handleScreenSettings(void)
                     OSD_writeCharRow3(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_ScreenSettings;
                     break;
             }
             irResume();
@@ -624,9 +620,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    oled_menuItem = OLED_ScreenSettings_Move;
+                    exitMenu();
                     break;
                 case IRKeyOk:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
@@ -692,7 +686,9 @@ static bool IR_handleScreenSettings(void)
                     shiftVerticalDownIF();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    oled_menuItem = OLED_ScreenSettings_Move;
                     break;
             }
             irResume();
@@ -720,9 +716,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    oled_menuItem = OLED_ScreenSettings_Scale;
+                    exitMenu();
                     break;
                 case IRKeyOk:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
@@ -794,7 +788,9 @@ static bool IR_handleScreenSettings(void)
                     writeChar(0x0d, _25);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    oled_menuItem = OLED_ScreenSettings_Scale;
                     break;
             }
             irResume();
@@ -820,9 +816,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    oled_menuItem = OLED_ScreenSettings_Borders;
+                    exitMenu();
                     break;
                 case IRKeyOk:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
@@ -894,7 +888,9 @@ static bool IR_handleScreenSettings(void)
                     writeChar(0x0d, _25);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    oled_menuItem = OLED_ScreenSettings_Borders;
                     break;
             }
             irResume();
@@ -914,9 +910,7 @@ static bool IR_handleScreenSettings(void)
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_ScreenSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_ScreenSettings_Borders;
@@ -935,7 +929,9 @@ static bool IR_handleScreenSettings(void)
                     applyVideoModePreset();
                 } break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_ScreenSettings;
                     break;
             }
             irResume();
@@ -966,9 +962,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
@@ -990,7 +984,9 @@ static bool IR_handleColorSettings()
                     serialCommand = 'T';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1012,9 +1008,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1042,7 +1036,9 @@ static bool IR_handleColorSettings()
                     }
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1064,9 +1060,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1082,7 +1076,9 @@ static bool IR_handleColorSettings()
                     userCommand = 'm';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1104,9 +1100,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_ColorSettings_LineFilter;
@@ -1122,7 +1116,9 @@ static bool IR_handleColorSettings()
                     userCommand = 'W';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1147,9 +1143,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1167,7 +1161,9 @@ static bool IR_handleColorSettings()
                     }
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1189,9 +1185,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1207,7 +1201,9 @@ static bool IR_handleColorSettings()
                     serialCommand = 'V';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1228,9 +1224,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -1249,7 +1243,9 @@ static bool IR_handleColorSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1274,9 +1270,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1300,7 +1294,9 @@ static bool IR_handleColorSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1320,9 +1316,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1346,7 +1340,9 @@ static bool IR_handleColorSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1369,9 +1365,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_ColorSettings_RGB_B;
@@ -1392,7 +1386,9 @@ static bool IR_handleColorSettings()
                     GBS::VDS_Y_GAIN::write(cur);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1412,9 +1408,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1433,7 +1427,9 @@ static bool IR_handleColorSettings()
                     userCommand = 'R';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1453,9 +1449,7 @@ static bool IR_handleColorSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_ColorSettings_StepResponse;
@@ -1466,7 +1460,9 @@ static bool IR_handleColorSettings()
                     userCommand = 'U';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
                     break;
             }
             irResume();
@@ -1497,9 +1493,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1515,7 +1509,9 @@ static bool IR_handleSystemSettings()
                     serialCommand = 'Z';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1537,9 +1533,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1552,7 +1546,9 @@ static bool IR_handleSystemSettings()
                     OSD_handleCommand(OSD_CMD_SYS_PAGE2);
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1573,9 +1569,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1597,7 +1591,9 @@ static bool IR_handleSystemSettings()
                     applyVideoModePreset();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1618,9 +1614,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1631,7 +1625,9 @@ static bool IR_handleSystemSettings()
                     userCommand = 'X';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1652,9 +1648,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_SystemSettings_LockMethod;
@@ -1670,7 +1664,9 @@ static bool IR_handleSystemSettings()
                     userCommand = 'w';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1691,9 +1687,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1709,7 +1703,9 @@ static bool IR_handleSystemSettings()
                     userCommand = '5';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1732,9 +1728,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1750,7 +1744,9 @@ static bool IR_handleSystemSettings()
                     userCommand = 'i';
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1772,9 +1768,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_SystemSettings_MatchedPresets;
@@ -1801,7 +1795,9 @@ static bool IR_handleSystemSettings()
                     applyVideoModePreset();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1830,10 +1826,7 @@ static bool IR_handleSystemSettings()
                     }
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -1841,7 +1834,10 @@ static bool IR_handleSystemSettings()
                     oled_menuItem = OLED_SystemSettings_Compatibility;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -1861,10 +1857,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -1876,7 +1869,10 @@ static bool IR_handleSystemSettings()
                     settingLineOptionChanged = 1;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
             }
             irResume();
@@ -1896,10 +1892,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -1918,7 +1911,10 @@ static bool IR_handleSystemSettings()
                     }
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
             }
             irResume();
@@ -1938,11 +1934,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
-                    saveUserPrefs();
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -1966,7 +1958,11 @@ static bool IR_handleSystemSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    saveUserPrefs();
                     break;
             }
             irResume();
@@ -1986,10 +1982,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
@@ -2013,7 +2006,10 @@ static bool IR_handleSystemSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
             }
             irResume();
@@ -2033,10 +2029,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -2060,7 +2053,10 @@ static bool IR_handleSystemSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
             }
             irResume();
@@ -2080,10 +2076,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
-                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -2098,7 +2091,10 @@ static bool IR_handleSystemSettings()
                     saveUserPrefs();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_SYS_PAGE1);
+                    oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
             }
             irResume();
@@ -2118,9 +2114,7 @@ static bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_SystemSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -2141,7 +2135,9 @@ static bool IR_handleSystemSettings()
                         applyVideoModePreset();
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_SystemSettings;
                     break;
             }
             irResume();
@@ -2183,7 +2179,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = 'L';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2254,7 +2252,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = '-';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2295,7 +2295,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = '1';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2337,7 +2339,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = 'A';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2379,7 +2383,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = 'D';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2420,7 +2426,9 @@ static bool IR_handleSystemSettings()
     //                 serialCommand = 'F';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2462,7 +2470,9 @@ static bool IR_handleSystemSettings()
     //                 userCommand = 'F';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -2491,6 +2501,9 @@ static bool IR_handleInputSelection()
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
@@ -2528,10 +2541,7 @@ static bool IR_handleInputSelection()
                     rto->isInLowPowerMode = false;
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     selectedMenuLine = 2;
@@ -2539,7 +2549,10 @@ static bool IR_handleInputSelection()
                     oled_menuItem = OLED_Input_RGsB;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2563,10 +2576,7 @@ static bool IR_handleInputSelection()
                     InputRGsB_mode(rgbComponentMode);
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -2579,7 +2589,10 @@ static bool IR_handleInputSelection()
                     oled_menuItem = OLED_Input_VGA;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2603,10 +2616,7 @@ static bool IR_handleInputSelection()
                     InputVGA_mode(rgbComponentMode);
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -2619,7 +2629,10 @@ static bool IR_handleInputSelection()
                     oled_menuItem = OLED_Input_YPBPR;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2643,10 +2656,7 @@ static bool IR_handleInputSelection()
                     InputYUV();
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 3;
@@ -2660,7 +2670,10 @@ static bool IR_handleInputSelection()
                     oled_menuItem = OLED_Input_SV;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2707,10 +2720,7 @@ static bool IR_handleInputSelection()
                     InputSV_mode(SVModeOption + 1);
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -2735,7 +2745,10 @@ static bool IR_handleInputSelection()
                     SVModeOptionChanged = 1;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2782,10 +2795,7 @@ static bool IR_handleInputSelection()
                     InputAV_mode(AVModeOption + 1);
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
-                    oled_menuItem = OLED_Input;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
@@ -2805,7 +2815,10 @@ static bool IR_handleInputSelection()
                     AVModeOptionChanged = 1;
                     break;
                 case IRKeyExit:
-                    exitToInput();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    oled_menuItem = OLED_Input;
                     break;
             }
             irResume();
@@ -2835,8 +2848,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -2854,7 +2866,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -2875,8 +2888,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -2894,7 +2906,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -2915,8 +2928,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -2934,7 +2946,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -2955,8 +2968,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -2974,7 +2986,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -2995,8 +3008,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3014,7 +3026,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3035,8 +3048,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3054,7 +3066,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3075,8 +3088,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3094,7 +3106,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3114,9 +3127,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3142,7 +3153,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3162,9 +3175,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3190,7 +3201,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3210,9 +3223,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3238,7 +3249,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3258,9 +3271,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3286,7 +3297,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3306,9 +3319,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3334,7 +3345,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3354,9 +3367,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3382,7 +3393,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3402,9 +3415,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3430,7 +3441,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3451,8 +3464,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3470,7 +3482,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3491,8 +3504,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3510,7 +3522,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3531,8 +3544,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3550,7 +3562,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3571,8 +3584,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3590,7 +3602,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3611,8 +3624,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3630,7 +3642,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3651,8 +3664,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3670,7 +3682,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3691,8 +3704,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3710,7 +3722,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3731,8 +3744,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3750,7 +3762,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3771,8 +3784,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3790,7 +3802,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3811,8 +3824,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3830,7 +3842,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3851,8 +3864,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3870,7 +3882,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3891,8 +3904,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3910,7 +3922,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3931,8 +3944,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyDown:
                     oled_menuItem = OLED_Profile_SelectSlot;
@@ -3950,7 +3962,8 @@ static bool IR_handleProfileManagement()
                     OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -3970,9 +3983,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -3998,7 +4009,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4018,9 +4031,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4046,7 +4057,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4066,9 +4079,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4094,7 +4105,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4114,9 +4127,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4142,7 +4153,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4162,9 +4175,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4190,7 +4201,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4210,9 +4223,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4238,7 +4249,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4258,9 +4271,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4286,7 +4297,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4306,9 +4319,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4334,7 +4345,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4354,9 +4367,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4382,7 +4393,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4402,9 +4415,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4430,7 +4441,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4450,9 +4463,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4478,7 +4489,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4498,9 +4511,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4526,7 +4537,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4546,9 +4559,7 @@ static bool IR_handleProfileManagement()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     oled_menuItem = OLED_Profile;
@@ -4574,7 +4585,9 @@ static bool IR_handleProfileManagement()
                     OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -4601,6 +4614,9 @@ static bool IR_handleMainMenu()
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
@@ -4638,6 +4654,9 @@ static bool IR_handleMainMenu()
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
@@ -4672,6 +4691,9 @@ static bool IR_handleMainMenu()
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyUp:
                     oled_menuItem = OLED_ScreenSettings;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
@@ -4706,6 +4728,9 @@ static bool IR_handleMainMenu()
 
         if (irDecode()) {
             switch (results.value) {
+                case IRKeyMenu:
+                    exitMenu();
+                    break;
                 case IRKeyUp:
                     selectedMenuLine = 2;
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
@@ -4736,9 +4761,7 @@ static bool IR_handleMainMenu()
         if (irDecode()) {
             switch (results.value) {
                 case IRKeyMenu:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ResetSettings;
+                    exitMenu();
                     break;
                 case IRKeyUp:
                     selectedMenuLine = 1;
@@ -4754,7 +4777,9 @@ static bool IR_handleMainMenu()
                     userCommand = 'a';
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ResetSettings;
                     break;
             }
             irResume();
@@ -4791,7 +4816,9 @@ static bool IR_handleMainMenu()
     //                 serialCommand = 'c';
     //                 break;
     //             case IRKeyExit:
-    //                 exitToInput();
+    //                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+    //                 oled_menuItem = OLED_Input;
     //                 break;
     //         }
     //         irResume();
@@ -4880,9 +4907,7 @@ static bool IR_handleMiscSettings()
                     PT_2257(volume);
                     break;
                 case IRKeyMenu:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_OutputResolution;
+                    exitMenu();
                     break;
                 case IRKeyOk:
                     saveUserPrefs();
@@ -4896,7 +4921,9 @@ static bool IR_handleMiscSettings()
                     }
                     break;
                 case IRKeyExit:
-                    exitMenu();
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
+                    oled_menuItem = OLED_OutputResolution;
                     break;
             }
             irResume();
@@ -5153,17 +5180,12 @@ static bool IR_handleInfoDisplay()
     if (irDecode()) {
         switch (results.value) {
             case IRKeyMenu:
+                exitMenu();
+                break;
+            case IRKeyExit:
                 selectedMenuLine = 1;
                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                 oled_menuItem = OLED_Input;
-                break;
-            case IRKeyExit:
-                if (isInfoDisplayActive) {
-                    GBS::VDS_DIS_HB_ST::write(horizontalBlankStart);
-                    GBS::VDS_DIS_HB_SP::write(horizontalBlankStop);
-                    isInfoDisplayActive = 0;
-                }
-                exitMenu();
                 break;
         }
         irResume();
