@@ -36,12 +36,64 @@ extern void applyPresets(uint8_t videoMode);
 static void (*osd_cx_ptr)(int, int, int) = nullptr;
 
 // ====================================================================================
+// OSD Helper Functions
+// ====================================================================================
+
+// Set menu line colors based on selection (replaces ~15 lines per handler)
+static void OSD_setMenuLineColors(uint8_t selectedLine) {
+    if (selectedLine == 1) {
+        menuLine1Color = yellowT;
+        menuLine2Color = main0;
+        menuLine3Color = main0;
+    } else if (selectedLine == 2) {
+        menuLine1Color = main0;
+        menuLine2Color = yellowT;
+        menuLine3Color = main0;
+    } else {
+        menuLine1Color = main0;
+        menuLine2Color = main0;
+        menuLine3Color = yellowT;
+    }
+}
+
+// Set menu line colors with custom color for line 2 (for disabled items)
+static void OSD_setMenuLineColorsWithLine2(uint8_t selectedLine, uint8_t line2Color) {
+    if (selectedLine == 1) {
+        menuLine1Color = yellowT;
+        menuLine2Color = line2Color;
+        menuLine3Color = main0;
+    } else if (selectedLine == 2) {
+        menuLine1Color = main0;
+        menuLine2Color = (line2Color == red) ? red : yellowT;
+        menuLine3Color = main0;
+    } else {
+        menuLine1Color = main0;
+        menuLine2Color = line2Color;
+        menuLine3Color = yellowT;
+    }
+}
+
+// Draw dashes on a row from startPos to endPos (P0=0, P1=1, etc.)
+// Row: 1=OSD_writeCharRow1, 2=OSD_writeCharRow2, 3=OSD_writeCharRow3
+static void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos) {
+    void (*osd_func)(int, int, int);
+    if (row == 1) osd_func = OSD_writeCharRow1;
+    else if (row == 2) osd_func = OSD_writeCharRow2;
+    else osd_func = OSD_writeCharRow3;
+
+    for (uint8_t p = startPos; p <= endPos; p++) {
+        osd_func(0x3E, 0x01 + p * 2, main0);  // P0=0x01, P1=0x03, Pn=0x01+n*2
+    }
+}
+
+
+// ====================================================================================
 // TV OSD Display Helper Functions
 // ====================================================================================
 
 void OSD_writeChar(const int T, const char C)
 {
-    __(T, (C * 2) + 1);
+    writeChar(T, (C * 2) + 1);
 }
 
 void OSD_writeString(uint8_t start, const char str[])
@@ -82,11 +134,11 @@ void OSD_writeStringAtLine(int startPos, int row, const char *str)
     int pos = startPos;
     while (*str != '\0') {
         if (row == 1)
-            osd_cx_ptr = OSD_c1;
+            osd_cx_ptr = OSD_writeCharRow1;
         else if (row == 2)
-            osd_cx_ptr = OSD_c2;
+            osd_cx_ptr = OSD_writeCharRow2;
         else if (row == 3)
-            osd_cx_ptr = OSD_c3;
+            osd_cx_ptr = OSD_writeCharRow3;
 
         if (*str == ' ')
             osd_cx_ptr(*str, 1 + pos * 2, blue_fill);
@@ -115,51 +167,51 @@ void OSD_writeStringAtLine(int startPos, int row, const char *str)
 // ====================================================================================
 
 const MenuEntry menuTable[] = {
-    {'0', handle_0},
-    {'1', handle_1},
-    {'2', handle_2},
-    {'3', handle_3},
-    {'4', handle_4},
-    {'5', handle_5},
-    {'6', handle_6},
-    {'7', handle_7},
-    {'8', handle_8},
-    {'9', handle_9},
-    {'a', handle_a},
-    {'b', handle_b},
-    {'c', handle_c},
-    {'d', handle_d},
-    {'e', handle_e},
-    {'f', handle_f},
-    {'g', handle_g},
-    {'h', handle_h},
-    {'i', handle_i},
-    {'j', handle_j},
-    {'k', handle_k},
-    {'l', handle_l},
-    {'m', handle_m},
-    {'n', handle_n},
-    {'o', handle_o},
-    {'p', handle_p},
-    {'q', handle_q},
-    {'r', handle_r},
-    {'s', handle_s},
-    {'t', handle_t},
-    {'u', handle_u},
-    {'v', handle_v},
-    {'w', handle_w},
-    {'x', handle_x},
-    {'y', handle_y},
-    {'z', handle_z},
-    {'A', handle_A},
-    {'^', handle_caret},
-    {'@', handle_at},
-    {'!', handle_exclamation},
-    {'#', handle_hash},
-    {'$', handle_dollar},
-    {'%', handle_percent},
-    {'&', handle_ampersand},
-    {'*', handle_asterisk}
+    {'0', handle_MainMenu_Page1},
+    {'1', handle_MainMenu_Page1_Update},
+    {'2', handle_MainMenu_Page2},
+    {'3', handle_OutputRes_1080_1024_960},
+    {'4', handle_OutputRes_720_480},
+    {'5', handle_OutputRes_PassThrough},
+    {'6', handle_ScreenSettings},
+    {'7', handle_HighlightRow1},
+    {'8', handle_HighlightRow2},
+    {'9', handle_HighlightRow3},
+    {'a', handle_ColorSettings_Page1},
+    {'b', handle_ColorSettings_Page2},
+    {'c', handle_ColorSettings_Page3},
+    {'d', handle_ColorSettings_RGB_R},
+    {'e', handle_ColorSettings_RGB_GB},
+    {'f', handle_ColorSettings_Y_Gain},
+    {'g', handle_ColorSettings_ADCGain},
+    {'h', handle_SysSettings_SVInput_Page1},
+    {'i', handle_SysSettings_Page1},
+    {'j', handle_SysSettings_Page2},
+    {'k', handle_SysSettings_Page3},
+    {'l', handle_SysSettings_SVInput_Page2},
+    {'m', handle_Reserved_M},
+    {'n', handle_Reserved_N},
+    {'o', handle_ScreenSettings_FullHeight},
+    {'p', handle_Reserved_P},
+    {'q', handle_Developer_Memory},
+    {'r', handle_Developer_HSync},
+    {'s', handle_Developer_Debug},
+    {'t', handle_Developer_Page},
+    {'u', handle_Reserved_U},
+    {'v', handle_ResetSettings},
+    {'w', handle_Profile_SaveLoad},
+    {'x', handle_Profile_SlotDisplay},
+    {'y', handle_Profile_SlotRow1},
+    {'z', handle_Profile_SlotRow2},
+    {'A', handle_Profile_SlotRow3},
+    {'^', handle_ADCCalib_Running},
+    {'@', handle_InputMenu_Page1},
+    {'!', handle_InputInfo},
+    {'#', handle_InputMenu_Page2},
+    {'$', handle_InfoDisplay},
+    {'%', handle_InfoDisplay_Source},
+    {'&', handle_ADCCalib_Display},
+    {'*', handle_Restart}
 };
 
 const size_t menuTableSize = sizeof(menuTable) / sizeof(menuTable[0]);
@@ -168,7 +220,7 @@ const size_t menuTableSize = sizeof(menuTable) / sizeof(menuTable[0]);
 // MENU DISPATCHER
 // ====================================================================================
 
-static bool isMainMenuCommand(char cmd) {
+static bool OSD_isMainMenuCommand(char cmd) {
     static const char mainMenuCommands[] = "abcdikmowz@#^";
     return strchr(mainMenuCommands, cmd) != nullptr;
 }
@@ -180,7 +232,7 @@ void OSD_handleCommand(char incomingByte)
     for (size_t i = 0; i < menuTableSize; i++) {
         if (menuTable[i].key == key) {
             // Save only main menu commands that calculate colors, not update commands
-            if (isMainMenuCommand(key)) {
+            if (OSD_isMainMenuCommand(key)) {
                 lastOsdCommand = incomingByte;
             }
             menuTable[i].handler();
@@ -193,1740 +245,1319 @@ void OSD_handleCommand(char incomingByte)
 // MENU HANDLER FUNCTIONS
 // ====================================================================================
 
-void handle_0(void)
+void handle_MainMenu_Page1(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    // OSD_c2(0x15, P9 , blue_fill);
-    // OSD_c3(0x15, P18, blue_fill);
+    // OSD_writeCharRow2(0x15, P9 , blue_fill);
+    // OSD_writeCharRow3(0x15, P18, blue_fill);
 
-    OSD_background();
-    colour1 = blue_fill;
-    number_stroca = stroca2;
-    __(icon4, _0);
-    number_stroca = stroca3;
-    __(icon4, _0);
-    colour1 = yellow;
-    number_stroca = stroca1;
-    __(icon4, _0);
+    OSD_fillBackground();
+    currentColor = blue_fill;
+    currentRow = ROW_2;
+    writeChar(icon4, _0);
+    currentRow = ROW_3;
+    writeChar(icon4, _0);
+    currentColor = yellow;
+    currentRow = ROW_1;
+    writeChar(icon4, _0);
 
-    colour1 = blue;
+    currentColor = blue;
 
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "1 Input");
-    OSD_c1(0x15, P8, yellowT);
+    OSD_writeCharRow1(0x15, P8, yellowT);
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "2 Output Resolution");
 
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "3 Screen Settings");
 };
-void handle_1(void)
+void handle_MainMenu_Page1_Update(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writeCharRow1(0x15, P8, (selectedMenuLine == 1) ? yellowT : blue_fill);
+    OSD_writeCharRow2(0x15, P20, (selectedMenuLine == 2) ? yellowT : blue_fill);
+    OSD_writeCharRow3(0x15, P18, (selectedMenuLine == 3) ? yellowT : blue_fill);
 
-        OSD_c1(0x15, P8, yellowT);
-        OSD_c2(0x15, P20, blue_fill);
-        OSD_c3(0x15, P18, blue_fill);
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-        OSD_c1(0x15, P8, blue_fill);
-        OSD_c2(0x15, P20, yellowT);
-        OSD_c3(0x15, P18, blue_fill);
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-
-        OSD_c1(0x15, P8, blue_fill);
-        OSD_c2(0x15, P20, blue_fill);
-        OSD_c3(0x15, P18, yellowT);
-    }
-
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
-
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "1 Input");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "2 Output Resolution"); //__(0X15, _9);
 
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "3 Screen Settings"); //__(0X15, _18);
 };
-void handle_2(void)
+void handle_MainMenu_Page2(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writeCharRow1(0x15, P18, (selectedMenuLine == 1) ? yellowT : blue_fill);
+    OSD_writeCharRow2(0x15, P19, (selectedMenuLine == 2) ? yellowT : blue_fill);
 
-        OSD_c1(0x15, P18, yellowT);
-        OSD_c2(0x15, P19, blue_fill);
-        // OSD_c3(0x15, P15 , blue_fill  );
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-        OSD_c1(0x15, P18, blue_fill);
-        OSD_c2(0x15, P19, yellowT);
-        // OSD_c3(0x15, P15 , blue_fill  );
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-
-        OSD_c1(0x15, P18, blue_fill);
-        OSD_c2(0x15, P19, blue_fill);
-        // OSD_c3(0x15, P15 , blue_fill  );
-    }
-
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('2', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
-
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "4 System Settings");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     // OSD_writeString(1, "5 Color Settings");
     OSD_writeString(1, "5 Picture Settings");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "6 Reset Settings");
 };
-void handle_3(void)
+void handle_OutputRes_1080_1024_960(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "1920x1080");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "1280x1024");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "1280x960");
 };
-void handle_4(void)
+void handle_OutputRes_720_480(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
+    currentColor = blue;
 
-    number_stroca = stroca1;
-    __(icon5, _27);
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
 
-    number_stroca = stroca2;
-    __('2', _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "1280x720");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "480p/576p");
-    // colour1 = A3_main0;
-    // number_stroca = stroca3;
-    // __(D, _1), __(o, _2), __(w, _3), __(n, _4), __(s, _5), __(c, _6), __(a, _7), __(l, _8), __(e, _9), __(n1, _11), __(n5, _12), __(K, _13), __(H, _14), __(z, _15);
+    // currentColor = menuLine3Color;
+    // currentRow = ROW_3;
+    // writeChar(D, _1), __(o, _2), __(w, _3), __(n, _4), __(s, _5), __(c, _6), __(a, _7), __(l, _8), __(e, _9), __(n1, _11), __(n5, _12), __(K, _13), __(H, _14), __(z, _15);
 };
-void handle_5(void)
+void handle_OutputRes_PassThrough(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __(I, _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar(I, _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Pass through");
 };
-void handle_6(void)
+void handle_ScreenSettings(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
+    currentColor = blue;
 
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Move");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Scale");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Borders");
 };
-void handle_7(void)
+void handle_HighlightRow1(void)
 {
-    OSD_background();
-    OSD_c1(icon4, P0, yellow);
-    OSD_c2(icon4, P0, blue_fill);
-    OSD_c3(icon4, P0, blue_fill);
+    OSD_fillBackground();
+    OSD_writeCharRow1(icon4, P0, yellow);
+    OSD_writeCharRow2(icon4, P0, blue_fill);
+    OSD_writeCharRow3(icon4, P0, blue_fill);
     selectedMenuLine = 1;
 };
-void handle_8(void)
+void handle_HighlightRow2(void)
 {
-    OSD_background();
-    OSD_c1(icon4, P0, blue_fill);
-    OSD_c2(icon4, P0, yellow);
-    OSD_c3(icon4, P0, blue_fill);
+    OSD_fillBackground();
+    OSD_writeCharRow1(icon4, P0, blue_fill);
+    OSD_writeCharRow2(icon4, P0, yellow);
+    OSD_writeCharRow3(icon4, P0, blue_fill);
     selectedMenuLine = 2;
 };
-void handle_9(void)
+void handle_HighlightRow3(void)
 {
-    OSD_background();
-    OSD_c1(icon4, P0, blue_fill);
-    OSD_c2(icon4, P0, blue_fill);
-    OSD_c3(icon4, P0, yellow);
+    OSD_fillBackground();
+    OSD_writeCharRow1(icon4, P0, blue_fill);
+    OSD_writeCharRow2(icon4, P0, blue_fill);
+    OSD_writeCharRow3(icon4, P0, yellow);
     selectedMenuLine = 3;
 };
-void handle_a(void)
+void handle_ColorSettings_Page1(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        // Check if scanlines are allowed for line 2
-        if (!areScanLinesAllowed()) {
-            A2_main0 = red;  // Disabled color
-        } else {
-            A2_main0 = main0;
-        }
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        // Check if scanlines are allowed when selected
-        if (!areScanLinesAllowed()) {
-            A2_main0 = red;  // Disabled color
-        } else {
-            A2_main0 = yellowT;
-        }
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        // Check if scanlines are allowed for line 2
-        if (!areScanLinesAllowed()) {
-            A2_main0 = red;  // Disabled color
-        } else {
-            A2_main0 = main0;
-        }
-        A3_main0 = yellowT;
-    }
+    // Line 2 (Scanlines) disabled when not allowed
+    uint8_t line2Color = areScanLinesAllowed() ? main0 : red;
+    OSD_setMenuLineColorsWithLine2(selectedMenuLine, line2Color);
 
-    colour1 = blue;
+    currentColor = blue;
 
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('2', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "ADC gain");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Scanlines");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Line filter");
 };
-void handle_b(void)
+void handle_ColorSettings_Page2(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('3', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('3', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Sharpness");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Peaking");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Step response");
 };
-void handle_c(void)
+void handle_ColorSettings_Page3(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('4', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('4', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Default Color");
     // OSD_writeString(1, "Y gain");
-    // colour1 = A2_main0;
-    // number_stroca = stroca2;
+    // currentColor = menuLine2Color;
+    // currentRow = ROW_2;
     // OSD_writeString(1, "Color");
-    // colour1 = A3_main0;
-    // number_stroca = stroca3;
+    // currentColor = menuLine3Color;
+    // currentRow = ROW_3;
 };
-void handle_d(void)
+void handle_ColorSettings_RGB_R(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "R");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "G");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "B");
 };
-void handle_e(void)
+void handle_ColorSettings_RGB_GB(void)
 {
-    OSD_c1(0x3E, P9, main0);
-    OSD_c1(0x3E, P10, main0);
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P22, main0);
+    OSD_writeCharRow1(0x3E, P9, main0);
+    OSD_writeCharRow1(0x3E, P10, main0);
+    OSD_writeCharRow1(0x3E, P11, main0);
+    OSD_writeCharRow1(0x3E, P12, main0);
+    OSD_writeCharRow1(0x3E, P13, main0);
+    OSD_writeCharRow1(0x3E, P14, main0);
+    OSD_writeCharRow1(0x3E, P15, main0);
+    OSD_writeCharRow1(0x3E, P16, main0);
+    OSD_writeCharRow1(0x3E, P17, main0);
+    OSD_writeCharRow1(0x3E, P18, main0);
+    OSD_writeCharRow1(0x3E, P22, main0);
 
     // Only show dashes for scanlines if they are available
     if (areScanLinesAllowed()) {
-        OSD_c2(0x3E, P10, main0);
-        OSD_c2(0x3E, P11, main0);
-        OSD_c2(0x3E, P12, main0);
-        OSD_c2(0x3E, P13, main0);
-        OSD_c2(0x3E, P14, main0);
-        OSD_c2(0x3E, P15, main0);
-        OSD_c2(0x3E, P16, main0);
-        OSD_c2(0x3E, P17, main0);
-        OSD_c2(0x3E, P18, main0);
-        OSD_c2(0x3E, P19, main0);
-        OSD_c2(0x3E, P22, main0);
+        OSD_writeCharRow2(0x3E, P10, main0);
+        OSD_writeCharRow2(0x3E, P11, main0);
+        OSD_writeCharRow2(0x3E, P12, main0);
+        OSD_writeCharRow2(0x3E, P13, main0);
+        OSD_writeCharRow2(0x3E, P14, main0);
+        OSD_writeCharRow2(0x3E, P15, main0);
+        OSD_writeCharRow2(0x3E, P16, main0);
+        OSD_writeCharRow2(0x3E, P17, main0);
+        OSD_writeCharRow2(0x3E, P18, main0);
+        OSD_writeCharRow2(0x3E, P19, main0);
+        OSD_writeCharRow2(0x3E, P22, main0);
 
         if (uopt->wantScanlines) {
-            OSD_c2(O, P23, main0);
-            OSD_c2(N, P24, main0);
-            OSD_c2(F, P25, blue_fill);
+            OSD_writeCharRow2(O, P23, main0);
+            OSD_writeCharRow2(N, P24, main0);
+            OSD_writeCharRow2(F, P25, blue_fill);
         } else {
-            OSD_c2(O, P23, main0);
-            OSD_c2(F, P24, main0);
-            OSD_c2(F, P25, main0);
+            OSD_writeCharRow2(O, P23, main0);
+            OSD_writeCharRow2(F, P24, main0);
+            OSD_writeCharRow2(F, P25, main0);
         }
 
         osdDisplayValue = uopt->scanlineStrength;
         if (osdDisplayValue == 0x00) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n0, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n0, P20, main0);
         } else if (osdDisplayValue == 0x10) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n1, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n1, P20, main0);
         } else if (osdDisplayValue == 0x20) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n2, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n2, P20, main0);
         } else if (osdDisplayValue == 0x30) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n3, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n3, P20, main0);
         } else if (osdDisplayValue == 0x40) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n4, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n4, P20, main0);
         } else if (osdDisplayValue == 0x50) {
-            OSD_c2(n0, P21, main0);
-            OSD_c2(n5, P20, main0);
+            OSD_writeCharRow2(n0, P21, main0);
+            OSD_writeCharRow2(n5, P20, main0);
         }
     }
 
-    OSD_c3(0x3E, P12, main0);
-    OSD_c3(0x3E, P13, main0);
-    OSD_c3(0x3E, P14, main0);
-    OSD_c3(0x3E, P15, main0);
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
-    OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+    OSD_writeCharRow3(0x3E, P12, main0);
+    OSD_writeCharRow3(0x3E, P13, main0);
+    OSD_writeCharRow3(0x3E, P14, main0);
+    OSD_writeCharRow3(0x3E, P15, main0);
+    OSD_writeCharRow3(0x3E, P16, main0);
+    OSD_writeCharRow3(0x3E, P17, main0);
+    OSD_writeCharRow3(0x3E, P18, main0);
+    OSD_writeCharRow3(0x3E, P19, main0);
+    OSD_writeCharRow3(0x3E, P20, main0);
+    OSD_writeCharRow3(0x3E, P21, main0);
+    OSD_writeCharRow3(0x3E, P22, main0);
 
     if (uopt->wantVdsLineFilter) {
-        OSD_c3(O, P23, main0);
-        OSD_c3(N, P24, main0);
-        OSD_c3(F, P25, blue_fill);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(N, P24, main0);
+        OSD_writeCharRow3(F, P25, blue_fill);
     } else {
-        OSD_c3(O, P23, main0);
-        OSD_c3(F, P24, main0);
-        OSD_c3(F, P25, main0);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(F, P24, main0);
+        OSD_writeCharRow3(F, P25, main0);
     }
     osdDisplayValue = GBS::ADC_RGCTRL::read();
-    Type4(osdDisplayValue);
+    displayNumber3DigitInverted(osdDisplayValue);
 
     if (uopt->enableAutoGain == 0) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(0x3E, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(0x3E, P25, blue_fill);
     }
 };
-void handle_f(void)
+void handle_ColorSettings_Y_Gain(void)
 {
-    OSD_c1(0x3E, P10, main0);
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    OSD_c2(0x3E, P8, main0);
-    OSD_c2(0x3E, P9, main0);
-    OSD_c2(0x3E, P10, main0);
-    OSD_c2(0x3E, P11, main0);
-    OSD_c2(0x3E, P12, main0);
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
+    OSD_writeCharRow1(0x3E, P10, main0);
+    OSD_writeCharRow1(0x3E, P11, main0);
+    OSD_writeCharRow1(0x3E, P12, main0);
+    OSD_writeCharRow1(0x3E, P13, main0);
+    OSD_writeCharRow1(0x3E, P14, main0);
+    OSD_writeCharRow1(0x3E, P15, main0);
+    OSD_writeCharRow1(0x3E, P16, main0);
+    OSD_writeCharRow1(0x3E, P17, main0);
+    OSD_writeCharRow1(0x3E, P18, main0);
+    OSD_writeCharRow1(0x3E, P19, main0);
+    OSD_writeCharRow1(0x3E, P20, main0);
+    OSD_writeCharRow1(0x3E, P21, main0);
+    OSD_writeCharRow1(0x3E, P22, main0);
+    OSD_writeCharRow2(0x3E, P8, main0);
+    OSD_writeCharRow2(0x3E, P9, main0);
+    OSD_writeCharRow2(0x3E, P10, main0);
+    OSD_writeCharRow2(0x3E, P11, main0);
+    OSD_writeCharRow2(0x3E, P12, main0);
+    OSD_writeCharRow2(0x3E, P13, main0);
+    OSD_writeCharRow2(0x3E, P14, main0);
+    OSD_writeCharRow2(0x3E, P15, main0);
+    OSD_writeCharRow2(0x3E, P16, main0);
+    OSD_writeCharRow2(0x3E, P17, main0);
+    OSD_writeCharRow2(0x3E, P18, main0);
+    OSD_writeCharRow2(0x3E, P19, main0);
     if (!isPeakingLocked()) {
-        OSD_c2(0x3E, P20, main0);
-        OSD_c2(0x3E, P21, main0);
-        OSD_c2(0x3E, P22, main0);
+        OSD_writeCharRow2(0x3E, P20, main0);
+        OSD_writeCharRow2(0x3E, P21, main0);
+        OSD_writeCharRow2(0x3E, P22, main0);
     }
-    OSD_c3(0x3E, P14, main0);
-    OSD_c3(0x3E, P15, main0);
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
-    OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+    OSD_writeCharRow3(0x3E, P14, main0);
+    OSD_writeCharRow3(0x3E, P15, main0);
+    OSD_writeCharRow3(0x3E, P16, main0);
+    OSD_writeCharRow3(0x3E, P17, main0);
+    OSD_writeCharRow3(0x3E, P18, main0);
+    OSD_writeCharRow3(0x3E, P19, main0);
+    OSD_writeCharRow3(0x3E, P20, main0);
+    OSD_writeCharRow3(0x3E, P21, main0);
+    OSD_writeCharRow3(0x3E, P22, main0);
 
     if (GBS::VDS_PK_LB_GAIN::read() == 0x16) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(F, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(F, P25, blue_fill);
     }
 
     if (isPeakingLocked()) {
         // Locked state - overwrite dashes and ON/OFF with LOCKED
-        OSD_c2(L, P20, main0);
-        OSD_c2(O, P21, main0);
-        OSD_c2(C, P22, main0);
-        OSD_c2(K, P23, main0);
-        OSD_c2(E, P24, main0);
-        OSD_c2(D, P25, main0);
+        OSD_writeCharRow2(L, P20, main0);
+        OSD_writeCharRow2(O, P21, main0);
+        OSD_writeCharRow2(C, P22, main0);
+        OSD_writeCharRow2(K, P23, main0);
+        OSD_writeCharRow2(E, P24, main0);
+        OSD_writeCharRow2(D, P25, main0);
     } else {
         if (uopt->wantPeaking == 0) {
-            OSD_c2(O, P23, main0);
-            OSD_c2(F, P24, main0);
-            OSD_c2(F, P25, main0);
+            OSD_writeCharRow2(O, P23, main0);
+            OSD_writeCharRow2(F, P24, main0);
+            OSD_writeCharRow2(F, P25, main0);
         } else {
-            OSD_c2(O, P23, main0);
-            OSD_c2(N, P24, main0);
-            OSD_c2(F, P25, blue_fill);
+            OSD_writeCharRow2(O, P23, main0);
+            OSD_writeCharRow2(N, P24, main0);
+            OSD_writeCharRow2(F, P25, blue_fill);
         }
     }
 
     if (uopt->wantStepResponse) {
-        OSD_c3(O, P23, main0);
-        OSD_c3(N, P24, main0);
-        OSD_c3(F, P25, blue_fill);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(N, P24, main0);
+        OSD_writeCharRow3(F, P25, blue_fill);
     } else {
-        OSD_c3(O, P23, main0);
-        OSD_c3(F, P24, main0);
-        OSD_c3(F, P25, main0);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(F, P24, main0);
+        OSD_writeCharRow3(F, P25, main0);
     }
 };
-void handle_g(void)
-{ // OSD_c1(0x3E, P2, main0);
-    // OSD_c1(0x3E, P3, main0);
-    // OSD_c1(0x3E, P4, main0);
-    OSD_c1(0x3E, P5, main0);
-    OSD_c1(0x3E, P6, main0);
-    OSD_c1(0x3E, P7, main0);
-    OSD_c1(0x3E, P8, main0);
-    OSD_c1(0x3E, P9, main0);
-    OSD_c1(0x3E, P10, main0);
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-
-    // OSD_c2(0x3E, P2, main0);
-    // OSD_c2(0x3E, P3, main0);
-    // OSD_c2(0x3E, P4, main0);
-    OSD_c2(0x3E, P5, main0);
-    OSD_c2(0x3E, P6, main0);
-    OSD_c2(0x3E, P7, main0);
-    OSD_c2(0x3E, P8, main0);
-    OSD_c2(0x3E, P9, main0);
-    OSD_c2(0x3E, P10, main0);
-    OSD_c2(0x3E, P11, main0);
-    OSD_c2(0x3E, P12, main0);
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
-
-    // OSD_c3(0x3E, P2, main0);
-    // OSD_c3(0x3E, P3, main0);
-    // OSD_c3(0x3E, P4, main0);
-    OSD_c3(0x3E, P5, main0);
-    OSD_c3(0x3E, P6, main0);
-    OSD_c3(0x3E, P7, main0);
-    OSD_c3(0x3E, P8, main0);
-    OSD_c3(0x3E, P9, main0);
-    OSD_c3(0x3E, P10, main0);
-    OSD_c3(0x3E, P11, main0);
-    OSD_c3(0x3E, P12, main0);
-    OSD_c3(0x3E, P13, main0);
-    OSD_c3(0x3E, P14, main0);
-    OSD_c3(0x3E, P15, main0);
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
-    OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+void handle_ColorSettings_ADCGain(void)
+{
+    OSD_drawDashRange(1, 5, 22);  // Row 1: P5-P22
+    OSD_drawDashRange(2, 5, 22);  // Row 2: P5-P22
+    OSD_drawDashRange(3, 5, 22);  // Row 3: P5-P22
 
     // osdDisplayValue = (128 + GBS::VDS_Y_OFST::read());  //R
     // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 1.402 * ((signed char)GBS::VDS_V_OFST::read()-128));  //R
     // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 1.5 * ((signed char)GBS::VDS_V_OFST::read()));  //R
     // osdDisplayValue= (signed char)GBS::VDS_Y_OFST::read()+1.402*((signed char)GBS::VDS_V_OFST::read()-128);
     // osdDisplayValue = R_VAL;
-    colour1 = main0;
-    number_stroca = stroca1;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    // Typ(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.402     * (signed char)((signed char)GBS::VDS_V_OFST::read()) )) + 128);
-    Typ(R_VAL);
+    currentColor = main0;
+    currentRow = ROW_1;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    // displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.402     * (signed char)((signed char)GBS::VDS_V_OFST::read()) )) + 128);
+    displayNumber3Digit(R_VAL);
     // osdDisplayValue = (128 + GBS::VDS_U_OFST::read());  //G
     // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() - 0.88 * ((signed char)GBS::VDS_U_OFST::read()) - 0.764 * ((signed char)GBS::VDS_V_OFST::read()));  //G
     // osdDisplayValue = (signed char)GBS::VDS_Y_OFST::read()-0.344136*((signed char)GBS::VDS_U_OFST::read()-128)-0.714136*((signed char)GBS::VDS_V_OFST::read()-128);
     // osdDisplayValue = G_VAL;
-    colour1 = main0;
-    number_stroca = stroca2;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    // Typ(((signed char)((signed char)GBS::VDS_Y_OFST::read()) -(float)( 0.344136  * (signed char)((signed char)GBS::VDS_U_OFST::read()) )- 0.714136 * (signed char)((signed char)GBS::VDS_V_OFST::read()) ) + 128);
-    Typ(G_VAL);
+    currentColor = main0;
+    currentRow = ROW_2;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    // displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) -(float)( 0.344136  * (signed char)((signed char)GBS::VDS_U_OFST::read()) )- 0.714136 * (signed char)((signed char)GBS::VDS_V_OFST::read()) ) + 128);
+    displayNumber3Digit(G_VAL);
 
     // osdDisplayValue = (128 + GBS::VDS_V_OFST::read());  //B
     // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 2 * ((signed char)GBS::VDS_U_OFST::read()));  //B
     // osdDisplayValue = (signed char)GBS::VDS_Y_OFST::read()+1.772*((signed char)GBS::VDS_U_OFST::read()-128);
     // osdDisplayValue = B_VAL;
-    colour1 = main0;
-    number_stroca = stroca3;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    // Typ(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.772     * (signed char)((signed char)GBS::VDS_U_OFST::read()) )) + 128);
-    Typ(B_VAL);
+    currentColor = main0;
+    currentRow = ROW_3;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    // displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.772     * (signed char)((signed char)GBS::VDS_U_OFST::read()) )) + 128);
+    displayNumber3Digit(B_VAL);
 };
-void handle_h(void)
+void handle_SysSettings_SVInput_Page1(void)
 {
-    OSD_c1(0x3E, P7, main0);
-    OSD_c1(0x3E, P8, main0);
-    OSD_c1(0x3E, P9, main0);
-    OSD_c1(0x3E, P10, main0);
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    OSD_c2(0x3E, P6, main0);
-    OSD_c2(0x3E, P7, main0);
-    OSD_c2(0x3E, P8, main0);
-    OSD_c2(0x3E, P9, main0);
-    OSD_c2(0x3E, P10, main0);
-    OSD_c2(0x3E, P11, main0);
-    OSD_c2(0x3E, P12, main0);
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
+    OSD_drawDashRange(1, 7, 22);  // Row 1: P7-P22
+    OSD_drawDashRange(2, 6, 22);  // Row 2: P6-P22
 
     osdDisplayValue = GBS::VDS_Y_GAIN::read();
-    colour1 = main0;
-    number_stroca = stroca1;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(osdDisplayValue);
+    currentColor = main0;
+    currentRow = ROW_1;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(osdDisplayValue);
     osdDisplayValue = GBS::VDS_VCOS_GAIN::read();
-    colour1 = main0;
-    number_stroca = stroca2;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(osdDisplayValue);
+    currentColor = main0;
+    currentRow = ROW_2;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(osdDisplayValue);
 };
-void handle_i(void)
+void handle_SysSettings_Page1(void)
 {
-    if (selectedMenuLine == 1) {
-        if ((inputType != InputTypeSV) && (inputType != InputTypeAV)) {
-            A1_yellow = red;  // Disabled color
-        } else {
-            A1_yellow = yellowT;
-        }
+    // Line 1 (SV/AV Input Settings) disabled when not SV/AV input
+    bool isSvAvInput = (inputType == InputTypeSV) || (inputType == InputTypeAV);
+    OSD_setMenuLineColors(selectedMenuLine);
+    if (!isSvAvInput) menuLine1Color = red;  // Override line 1 color if disabled
+    OSD_writeCharRow1(0x15, P21, (selectedMenuLine == 1) ? yellowT : blue_fill);
 
-        A2_main0 = main0;
-        A3_main0 = main0;
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-        OSD_c1(0x15, P21, yellowT);
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-
-        OSD_c1(0x15, P21, blue_fill);
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-
-        OSD_c1(0x15, P21, blue_fill);
-    }
-
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
-
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "SV/AV Input Settings");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Compatibility Mode");
 
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     // OSD_writeString(1, "Lowres:use upscaling");
     OSD_writeString(1, "Matched presets");
 };
-void handle_j(void)
+void handle_SysSettings_Page2(void)
 {
-    // OSD_c2(0x3E, P16, main0);
-    // OSD_c2(0x3E, P17, main0);
-    // OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
+    // OSD_writeCharRow2(0x3E, P16, main0);
+    // OSD_writeCharRow2(0x3E, P17, main0);
+    // OSD_writeCharRow2(0x3E, P18, main0);
+    OSD_writeCharRow2(0x3E, P19, main0);
+    OSD_writeCharRow2(0x3E, P20, main0);
+    OSD_writeCharRow2(0x3E, P21, main0);
+    OSD_writeCharRow2(0x3E, P22, main0);
     if (rgbComponentMode == 1) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(N, P24, main0);
+        OSD_writeCharRow2(F, P25, blue_fill);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(F, P24, main0);
+        OSD_writeCharRow2(F, P25, main0);
     }
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
-    OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+    OSD_writeCharRow3(0x3E, P16, main0);
+    OSD_writeCharRow3(0x3E, P17, main0);
+    OSD_writeCharRow3(0x3E, P18, main0);
+    OSD_writeCharRow3(0x3E, P19, main0);
+    OSD_writeCharRow3(0x3E, P20, main0);
+    OSD_writeCharRow3(0x3E, P21, main0);
+    OSD_writeCharRow3(0x3E, P22, main0);
     if (uopt->matchPresetSource) {
-        OSD_c3(O, P23, main0);
-        OSD_c3(N, P24, main0);     // ON
-        OSD_c3(F, P25, blue_fill); // ON
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(N, P24, main0);     // ON
+        OSD_writeCharRow3(F, P25, blue_fill); // ON
     } else {
-        OSD_c3(O, P23, main0);
-        OSD_c3(F, P24, main0);
-        OSD_c3(F, P25, main0); // OFF
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(F, P24, main0);
+        OSD_writeCharRow3(F, P25, main0); // OFF
     }
     /*
     upscaling
-        // OSD_c3(0x3E, P21, main0);
-        // OSD_c3(0x3E, P22, main0);
+        // OSD_writeCharRow3(0x3E, P21, main0);
+        // OSD_writeCharRow3(0x3E, P22, main0);
         // if (uopt->preferScalingRgbhv)
         // {
-        //   OSD_c3(O, P23, main0);
-        //   OSD_c3(N, P24, main0);
-        //   OSD_c3(F, P25, blue_fill);
+        //   OSD_writeCharRow3(O, P23, main0);
+        //   OSD_writeCharRow3(N, P24, main0);
+        //   OSD_writeCharRow3(F, P25, blue_fill);
         // }
         // else
         // {
-        //   OSD_c3(O, P23, main0);
-        //   OSD_c3(F, P24, main0);
-        //   OSD_c3(F, P25, main0);
+        //   OSD_writeCharRow3(O, P23, main0);
+        //   OSD_writeCharRow3(F, P24, main0);
+        //   OSD_writeCharRow3(F, P25, main0);
         // }
     */
 };
-void handle_k(void)
+void handle_SysSettings_Page3(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('2', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Deinterlace");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Force:50Hz to 60Hz");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     // OSD_writeString(1, "Clock generator");
     OSD_writeString(1, "Lock method");
 };
-void handle_l(void)
+void handle_SysSettings_SVInput_Page2(void)
 {
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
+    OSD_writeCharRow1(0x3E, P12, main0);
+    OSD_writeCharRow1(0x3E, P13, main0);
+    OSD_writeCharRow1(0x3E, P14, main0);
+    OSD_writeCharRow1(0x3E, P15, main0);
+    OSD_writeCharRow1(0x3E, P16, main0);
+    OSD_writeCharRow1(0x3E, P17, main0);
     if (uopt->deintMode == 0) {
-        OSD_c1(A, P18, main0);
-        OSD_c1(d, P19, main0);
-        OSD_c1(a, P20, main0);
-        OSD_c1(p, P21, main0);
-        OSD_c1(t, P22, main0);
-        OSD_c1(i, P23, main0);
-        OSD_c1(v, P24, main0);
-        OSD_c1(e, P25, main0);
+        OSD_writeCharRow1(A, P18, main0);
+        OSD_writeCharRow1(d, P19, main0);
+        OSD_writeCharRow1(a, P20, main0);
+        OSD_writeCharRow1(p, P21, main0);
+        OSD_writeCharRow1(t, P22, main0);
+        OSD_writeCharRow1(i, P23, main0);
+        OSD_writeCharRow1(v, P24, main0);
+        OSD_writeCharRow1(e, P25, main0);
     } else {
-        OSD_c1(0x3E, P18, main0);
-        OSD_c1(0x3E, P19, main0);
-        OSD_c1(0x3E, P20, main0);
-        OSD_c1(0x3E, P21, main0);
-        OSD_c1(0x3E, P22, main0);
-        OSD_c1(B, P23, main0);
-        OSD_c1(o, P24, main0);
-        OSD_c1(b, P25, main0);
+        OSD_writeCharRow1(0x3E, P18, main0);
+        OSD_writeCharRow1(0x3E, P19, main0);
+        OSD_writeCharRow1(0x3E, P20, main0);
+        OSD_writeCharRow1(0x3E, P21, main0);
+        OSD_writeCharRow1(0x3E, P22, main0);
+        OSD_writeCharRow1(B, P23, main0);
+        OSD_writeCharRow1(o, P24, main0);
+        OSD_writeCharRow1(b, P25, main0);
     }
 
-    // OSD_c1(0x3E, P21, main0);
-    // OSD_c1(0x3E, P22, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
-    // OSD_c3(0x3E, P16, main0);
-    // OSD_c3(0x3E, P17, main0);
-    // OSD_c3(0x3E, P18, main0);
-    // OSD_c3(0x3E, P19, main0);
-    // OSD_c3(0x3E, P20, main0);
-    // OSD_c3(0x3E, P21, main0);
-    // OSD_c3(0x3E, P22, main0);
-    OSD_c3(0x3E, P12, main0);
-    OSD_c3(0x3E, P13, main0);
+    // OSD_writeCharRow1(0x3E, P21, main0);
+    // OSD_writeCharRow1(0x3E, P22, main0);
+    OSD_writeCharRow2(0x3E, P19, main0);
+    OSD_writeCharRow2(0x3E, P20, main0);
+    OSD_writeCharRow2(0x3E, P21, main0);
+    OSD_writeCharRow2(0x3E, P22, main0);
+    // OSD_writeCharRow3(0x3E, P16, main0);
+    // OSD_writeCharRow3(0x3E, P17, main0);
+    // OSD_writeCharRow3(0x3E, P18, main0);
+    // OSD_writeCharRow3(0x3E, P19, main0);
+    // OSD_writeCharRow3(0x3E, P20, main0);
+    // OSD_writeCharRow3(0x3E, P21, main0);
+    // OSD_writeCharRow3(0x3E, P22, main0);
+    OSD_writeCharRow3(0x3E, P12, main0);
+    OSD_writeCharRow3(0x3E, P13, main0);
 
     // if (uopt->wantOutputComponent)
     // {
-    //     OSD_c1(O, P23, main0);
-    //     OSD_c1(N, P24, main0);
-    //     OSD_c1(F, P25, blue_fill);
+    //     OSD_writeCharRow1(O, P23, main0);
+    //     OSD_writeCharRow1(N, P24, main0);
+    //     OSD_writeCharRow1(F, P25, blue_fill);
     // }
     // else
     // {
-    //     OSD_c1(O, P23, main0);
-    //     OSD_c1(F, P24, main0);
-    //     OSD_c1(F, P25, main0);
+    //     OSD_writeCharRow1(O, P23, main0);
+    //     OSD_writeCharRow1(F, P24, main0);
+    //     OSD_writeCharRow1(F, P25, main0);
     // }
 
     if (uopt->PalForce60) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(N, P24, main0);
+        OSD_writeCharRow2(F, P25, blue_fill);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(F, P24, main0);
+        OSD_writeCharRow2(F, P25, main0);
     }
 
     // if (uopt->disableExternalClockGenerator)
     // {
-    //   OSD_c3(O, P23, main0);
-    //   OSD_c3(F, P24, main0);
-    //   OSD_c3(F, P25, main0);
+    //   OSD_writeCharRow3(O, P23, main0);
+    //   OSD_writeCharRow3(F, P24, main0);
+    //   OSD_writeCharRow3(F, P25, main0);
     // }
     // else
     // {
-    //   OSD_c3(O, P23, main0);
-    //   OSD_c3(N, P24, main0);
-    //   OSD_c3(F, P25, blue_fill);
+    //   OSD_writeCharRow3(O, P23, main0);
+    //   OSD_writeCharRow3(N, P24, main0);
+    //   OSD_writeCharRow3(F, P25, blue_fill);
     // }
 
     if (uopt->frameTimeLockMethod == 0) {
-        OSD_c3(n0, P14, main0);
-        OSD_c3(V, P15, main0);
-        OSD_c3(t, P16, main0);
-        OSD_c3(o, P17, main0);
-        OSD_c3(t, P18, main0);
-        OSD_c3(a, P19, main0);
-        OSD_c3(l, P20, main0);
-        OSD_c3(0x3C, P21, main0);
-        OSD_c3(V, P22, main0);
-        OSD_c3(S, P23, main0);
-        OSD_c3(S, P24, main0);
-        OSD_c3(T, P25, main0);
+        OSD_writeCharRow3(n0, P14, main0);
+        OSD_writeCharRow3(V, P15, main0);
+        OSD_writeCharRow3(t, P16, main0);
+        OSD_writeCharRow3(o, P17, main0);
+        OSD_writeCharRow3(t, P18, main0);
+        OSD_writeCharRow3(a, P19, main0);
+        OSD_writeCharRow3(l, P20, main0);
+        OSD_writeCharRow3(0x3C, P21, main0);
+        OSD_writeCharRow3(V, P22, main0);
+        OSD_writeCharRow3(S, P23, main0);
+        OSD_writeCharRow3(S, P24, main0);
+        OSD_writeCharRow3(T, P25, main0);
     } else {
-        OSD_c3(n1, P14, main0);
-        OSD_c3(V, P15, main0);
-        OSD_c3(t, P16, main0);
-        OSD_c3(o, P17, main0);
-        OSD_c3(t, P18, main0);
-        OSD_c3(a, P19, main0);
-        OSD_c3(l, P20, main0);
-        OSD_c3(o, P22, main0);
-        OSD_c3(n, P23, main0);
-        OSD_c3(l, P24, main0);
-        OSD_c3(y, P25, main0);
-        OSD_c3(F, P21, blue_fill);
+        OSD_writeCharRow3(n1, P14, main0);
+        OSD_writeCharRow3(V, P15, main0);
+        OSD_writeCharRow3(t, P16, main0);
+        OSD_writeCharRow3(o, P17, main0);
+        OSD_writeCharRow3(t, P18, main0);
+        OSD_writeCharRow3(a, P19, main0);
+        OSD_writeCharRow3(l, P20, main0);
+        OSD_writeCharRow3(o, P22, main0);
+        OSD_writeCharRow3(n, P23, main0);
+        OSD_writeCharRow3(l, P24, main0);
+        OSD_writeCharRow3(y, P25, main0);
+        OSD_writeCharRow3(F, P21, blue_fill);
     }
 };
-void handle_m(void)
+void handle_Reserved_M(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('3', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('3', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "ADC calibration");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Frame Time lock");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "EnableFrameTimeLock");
 };
-void handle_n(void)
+void handle_Reserved_N(void)
 {
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
-    // OSD_c3(0x3E, P16, main0);
-    // OSD_c3(0x3E, P17, main0);
-    // OSD_c3(0x3E, P18, main0);
-    // OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+    OSD_drawDashRange(1, 16, 22);  // Row 1: P16-P22
+    OSD_drawDashRange(2, 16, 22);  // Row 2: P16-P22
+    OSD_drawDashRange(3, 20, 22);  // Row 3: P20-P22
 
     if (uopt->enableCalibrationADC) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(F, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(F, P25, blue_fill);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     }
 
     if (uopt->enableFrameTimeLock) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(N, P24, main0);
+        OSD_writeCharRow2(F, P25, blue_fill);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(F, P24, main0);
+        OSD_writeCharRow2(F, P25, main0);
     }
 
     if (uopt->disableExternalClockGenerator) {
-        OSD_c3(O, P23, main0);
-        OSD_c3(F, P24, main0);
-        OSD_c3(F, P25, main0);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(F, P24, main0);
+        OSD_writeCharRow3(F, P25, main0);
     } else {
-        OSD_c3(O, P23, main0);
-        OSD_c3(N, P24, main0);
-        OSD_c3(F, P25, blue_fill);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(N, P24, main0);
+        OSD_writeCharRow3(F, P25, blue_fill);
     }
 };
-void handle_o(void)
+void handle_ScreenSettings_FullHeight(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('2', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Full height");
 
-    // colour1 = A2_main0;
-    // number_stroca = stroca2;
-    // __(M, _1), __(a, _2), __(t, _3), __(c, _4), __(h, _5), __(e, _6), __(d, _7), __(p, _9), __(r, _10), __(e, _11), __(s, _12), __(e, _13), __(t, _14), __(s, _15);
+    // currentColor = menuLine2Color;
+    // currentRow = ROW_2;
+    // writeChar(M, _1), __(a, _2), __(t, _3), __(c, _4), __(h, _5), __(e, _6), __(d, _7), __(p, _9), __(r, _10), __(e, _11), __(s, _12), __(e, _13), __(t, _14), __(s, _15);
 };
-void handle_p(void)
+void handle_Reserved_P(void)
 {
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    // OSD_c3(0x3E, P22, main0);
+    OSD_writeCharRow1(0x3E, P12, main0);
+    OSD_writeCharRow1(0x3E, P13, main0);
+    OSD_writeCharRow1(0x3E, P14, main0);
+    OSD_writeCharRow1(0x3E, P15, main0);
+    OSD_writeCharRow1(0x3E, P16, main0);
+    OSD_writeCharRow1(0x3E, P17, main0);
+    OSD_writeCharRow1(0x3E, P18, main0);
+    OSD_writeCharRow1(0x3E, P19, main0);
+    OSD_writeCharRow1(0x3E, P20, main0);
+    OSD_writeCharRow1(0x3E, P21, main0);
+    OSD_writeCharRow1(0x3E, P22, main0);
+    // OSD_writeCharRow3(0x3E, P22, main0);
 
     if (uopt->wantFullHeight) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(F, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(F, P25, blue_fill);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     }
 };
-void handle_q(void)
+void handle_Developer_Memory(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __(I, _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar(I, _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "MEM left/right");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "HS left/right");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "HTotal");
 };
-void handle_r(void)
+void handle_Developer_HSync(void)
 {
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    OSD_c1(0x03, P23, yellow);
-    OSD_c1(0x13, P24, yellow);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
-    OSD_c2(0x03, P23, yellow);
-    OSD_c2(0x13, P24, yellow);
-    OSD_c3(0x3E, P7, main0);
-    OSD_c3(0x3E, P8, main0);
-    OSD_c3(0x3E, P9, main0);
-    OSD_c3(0x3E, P10, main0);
-    OSD_c3(0x3E, P11, main0);
-    OSD_c3(0x3E, P12, main0);
-    OSD_c3(0x3E, P13, main0);
-    OSD_c3(0x3E, P14, main0);
-    OSD_c3(0x3E, P15, main0);
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
-    OSD_c3(0x3E, P19, main0);
-    OSD_c3(0x3E, P20, main0);
-    OSD_c3(0x3E, P21, main0);
-    OSD_c3(0x3E, P22, main0);
+    OSD_drawDashRange(1, 15, 22);  // Row 1: P15-P22
+    OSD_writeCharRow1(0x03, P23, yellow);
+    OSD_writeCharRow1(0x13, P24, yellow);
+    OSD_drawDashRange(2, 14, 22);  // Row 2: P14-P22
+    OSD_writeCharRow2(0x03, P23, yellow);
+    OSD_writeCharRow2(0x13, P24, yellow);
+    OSD_drawDashRange(3, 7, 22);   // Row 3: P7-P22
     osdDisplayValue = GBS::VDS_HSYNC_RST::read();
-    colour1 = main0;
-    number_stroca = stroca3;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(osdDisplayValue);
+    currentColor = main0;
+    currentRow = ROW_3;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(osdDisplayValue);
 };
-void handle_s(void)
+void handle_Developer_Debug(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __(I, _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar(I, _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Debug view");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "ADC filter");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Freeze capture");
 };
-void handle_t(void)
+void handle_Developer_Page(void)
 {
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
-    OSD_c2(0x3E, P11, main0);
-    OSD_c2(0x3E, P12, main0);
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-    OSD_c2(0x3E, P19, main0);
-    OSD_c2(0x3E, P20, main0);
-    OSD_c2(0x3E, P21, main0);
-    OSD_c2(0x3E, P22, main0);
-    colour1 = main0;
-    number_stroca = stroca3;
-    __(0x3E, _15), __(0x3E, _16), __(0x3E, _17), __(0x3E, _18), __(0x3E, _19), __(0x3E, _20), __(0x3E, _21), __(0x3E, _22);
+    OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
+    OSD_drawDashRange(2, 11, 22);  // Row 2: P11-P22
+    currentColor = main0;
+    currentRow = ROW_3;
+    writeChar(0x3E, _15), writeChar(0x3E, _16), writeChar(0x3E, _17), writeChar(0x3E, _18), writeChar(0x3E, _19), writeChar(0x3E, _20), writeChar(0x3E, _21), writeChar(0x3E, _22);
 
     if (GBS::ADC_UNUSED_62::read() == 0x00) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(F, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(F, P25, blue_fill);
     }
 
     if (GBS::ADC_FLTR::read() > 0) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(N, P24, main0);
+        OSD_writeCharRow2(F, P25, blue_fill);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(F, P24, main0);
+        OSD_writeCharRow2(F, P25, main0);
     }
 
     if (GBS::CAPTURE_ENABLE::read() > 0) {
-        OSD_c3(O, P23, main0);
-        OSD_c3(F, P24, main0);
-        OSD_c3(F, P25, main0);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(F, P24, main0);
+        OSD_writeCharRow3(F, P25, main0);
     } else {
-        OSD_c3(O, P23, main0);
-        OSD_c3(N, P24, main0);
-        OSD_c3(F, P25, blue_fill);
+        OSD_writeCharRow3(O, P23, main0);
+        OSD_writeCharRow3(N, P24, main0);
+        OSD_writeCharRow3(F, P25, blue_fill);
     }
 };
-void handle_u(void)
+void handle_Reserved_U(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __(I, _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar(I, _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Enable OTA");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Restart");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Reset defaults");
 };
-void handle_v(void)
+void handle_ResetSettings(void)
 {
-    OSD_c1(0x3E, P11, main0);
-    OSD_c1(0x3E, P12, main0);
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-    OSD_c1(0x3E, P19, main0);
-    OSD_c1(0x3E, P20, main0);
-    OSD_c1(0x3E, P21, main0);
-    OSD_c1(0x3E, P22, main0);
+    OSD_writeCharRow1(0x3E, P11, main0);
+    OSD_writeCharRow1(0x3E, P12, main0);
+    OSD_writeCharRow1(0x3E, P13, main0);
+    OSD_writeCharRow1(0x3E, P14, main0);
+    OSD_writeCharRow1(0x3E, P15, main0);
+    OSD_writeCharRow1(0x3E, P16, main0);
+    OSD_writeCharRow1(0x3E, P17, main0);
+    OSD_writeCharRow1(0x3E, P18, main0);
+    OSD_writeCharRow1(0x3E, P19, main0);
+    OSD_writeCharRow1(0x3E, P20, main0);
+    OSD_writeCharRow1(0x3E, P21, main0);
+    OSD_writeCharRow1(0x3E, P22, main0);
 
     if (rto->allowUpdatesOTA) {
-        OSD_c1(O, P23, main0);
-        OSD_c1(N, P24, main0);
-        OSD_c1(F, P25, blue_fill);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(N, P24, main0);
+        OSD_writeCharRow1(F, P25, blue_fill);
     } else {
-        OSD_c1(O, P23, main0);
-        OSD_c1(F, P24, main0);
-        OSD_c1(F, P25, main0);
+        OSD_writeCharRow1(O, P23, main0);
+        OSD_writeCharRow1(F, P24, main0);
+        OSD_writeCharRow1(F, P25, main0);
     }
 };
-void handle_w(void)
+void handle_Profile_SaveLoad(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    }
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    OSD_setMenuLineColors(selectedMenuLine);
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Loadprofile:");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Saveprofile:");
 
-    colour1 = yellowT;
-    number_stroca = stroca3;
+    currentColor = yellowT;
+    currentRow = ROW_3;
     OSD_writeString(1, "Active save:");
 };
-void handle_x(void)
+void handle_Profile_SlotDisplay(void)
 {
     if (oled_menuItem == OLED_Profile) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending1();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_1();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_SaveConfirm) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending2();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_2();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Save) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending3();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_3();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Load) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending4();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_4();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Operation1) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending5();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_5();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Operation2) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending6();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_6();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Operation3) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending7();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_7();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot7) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending8();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_8();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot8) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending9();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_9();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot9) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending10();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_10();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot10) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending11();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_11();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot11) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending12();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_12();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot12) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending13();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_13();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot13) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending14();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_14();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot14) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending15();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_15();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot15) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending16();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_16();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot16) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending17();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_17();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot17) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending18();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_18();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot18) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending19();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_19();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot19) {
-        colour1 = main0;
-        number_stroca = stroca1;
-        sending20();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_1;
+        name_20();
+        displayProfileName();
     }
 
     if (uopt->presetSlot == 'A') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending1a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_1();
+        displayProfileName();
     } else if (uopt->presetSlot == 'B') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending2a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_2();
+        displayProfileName();
     } else if (uopt->presetSlot == 'C') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending3a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_3();
+        displayProfileName();
     } else if (uopt->presetSlot == 'D') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending4a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_4();
+        displayProfileName();
     } else if (uopt->presetSlot == 'E') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending5a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_5();
+        displayProfileName();
     } else if (uopt->presetSlot == 'F') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending6a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_6();
+        displayProfileName();
     } else if (uopt->presetSlot == 'G') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending7a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_7();
+        displayProfileName();
     } else if (uopt->presetSlot == 'H') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending8a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_8();
+        displayProfileName();
     } else if (uopt->presetSlot == 'I') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending9a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_9();
+        displayProfileName();
     } else if (uopt->presetSlot == 'J') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending10a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_10();
+        displayProfileName();
     } else if (uopt->presetSlot == 'K') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending11a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_11();
+        displayProfileName();
     } else if (uopt->presetSlot == 'L') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending12a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_12();
+        displayProfileName();
     } else if (uopt->presetSlot == 'M') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending13a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_13();
+        displayProfileName();
     } else if (uopt->presetSlot == 'N') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending14a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_14();
+        displayProfileName();
     } else if (uopt->presetSlot == 'O') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending15a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_15();
+        displayProfileName();
     } else if (uopt->presetSlot == 'P') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending16a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_16();
+        displayProfileName();
     } else if (uopt->presetSlot == 'Q') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending17a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_17();
+        displayProfileName();
     } else if (uopt->presetSlot == 'R') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending18a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_18();
+        displayProfileName();
     } else if (uopt->presetSlot == 'S') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending19a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_19();
+        displayProfileName();
     } else if (uopt->presetSlot == 'T') {
-        colour1 = yellowT;
-        number_stroca = stroca3;
-        sending20a();
-        nameP();
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        name_20();
+        displayProfileName();
     }
 
     if (oled_menuItem == OLED_Profile_SelectSlot) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending1b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_1();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot1) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending2b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_2();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot2) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending3b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_3();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot3) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending4b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_4();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot4) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending5b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_5();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot5) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending6b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_6();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Slot6) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending7b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_7();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_SelectPreset) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending8b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_8();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset1) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending9b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_9();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset2) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending10b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_10();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset3) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending11b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_11();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset4) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending12b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_12();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset5) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending13b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_13();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset6) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending14b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_14();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset7) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending15b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_15();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset8) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending16b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_16();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset9) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending17b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_17();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset10) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending18b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_18();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset11) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending19b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_19();
+        displayProfileName();
     } else if (oled_menuItem == OLED_Profile_Preset12) {
-        colour1 = main0;
-        number_stroca = stroca2;
-        sending20b();
-        nameP();
+        currentColor = main0;
+        currentRow = ROW_2;
+        name_20();
+        displayProfileName();
     }
 };
-void handle_y(void)
+void handle_Profile_SlotRow1(void)
 {
     uopt->presetPreference = OutputCustomized;
     saveUserPrefs();
@@ -1939,226 +1570,163 @@ void handle_y(void)
     saveUserPrefs();
 };
 
-void handle_z(void)
+void handle_Profile_SlotRow2(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Contrast");
     // OSD_writeString(1, "Saturation");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Saturation");
 
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Default");
 }
 
-void handle_A(void)
+void handle_Profile_SlotRow3(void)
 {
+    OSD_drawDashRange(1, 13, 18);  // Row 1: P13-P18
+
+    currentColor = main0;
+    currentRow = ROW_1;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(contrast);
+
+    OSD_drawDashRange(2, 13, 18);  // Row 2: P13-P18
 
 
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-
-
-    colour1 = main0;
-    number_stroca = stroca1;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(contrast);
-
-
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-
-
-    colour1 = main0;
-    number_stroca = stroca2;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(saturation);
+    currentColor = main0;
+    currentRow = ROW_2;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(saturation);
 };
 
 
-void handle_caret(void)
+void handle_ADCCalib_Running(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        if (!lineOption)
-            A2_main0 = red;  // Disabled color
-        else
-            A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    // Line 2 (Smooth) disabled when lineOption is false
+    uint8_t line2Color = lineOption ? main0 : red;
+    OSD_setMenuLineColorsWithLine2(selectedMenuLine, line2Color);
 
-    // colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    // number_stroca = stroca2;
-    // __(I, _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    // currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    // currentRow = ROW_2;
+    // writeChar(I, _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "DoubleLine");
     // OSD_writeString(1, "Smooth");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "Smooth");
     // OSD_writeString(1, "Bright");
 
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "Bright");
     // OSD_writeString(1, "Contrast");
 };
-void handle_at(void)
+void handle_InputMenu_Page1(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    number_stroca = stroca2;
-    __('1', _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('1', _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "RGBs");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "RGsB");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "VGA");
 };
-void handle_exclamation(void)
+void handle_InputInfo(void)
 {
-    A1_yellow = main0;
-    A2_main0 = main0;
-    A3_main0 = main0;
+    menuLine1Color = main0;
+    menuLine2Color = main0;
+    menuLine3Color = main0;
 
-    colour1 = blue;
-    // number_stroca = stroca1;
-    // __(icon5, _27);
-    // number_stroca = stroca2;
-    // __('1', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    // currentRow = ROW_1;
+    // writeChar(icon5, _27);
+    // currentRow = ROW_2;
+    // writeChar('1', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(0, "Whether to keep the settings");
 
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(0, "Restore in ");
 
     if (keepSettings) {
-        colour1 = yellowT;
-        OSD_c3(0x15, P2, yellowT);
+        currentColor = yellowT;
+        OSD_writeCharRow3(0x15, P2, yellowT);
     } else {
-        colour1 = A3_main0;
-        OSD_c3(0x15, P2, blue_fill);
+        currentColor = menuLine3Color;
+        OSD_writeCharRow3(0x15, P2, blue_fill);
     }
-    number_stroca = stroca3;
+    currentRow = ROW_3;
     OSD_writeString(3, "Changes");
 
     if (!keepSettings) {
-        colour1 = yellowT;
-        OSD_c3(0x15, P13, yellowT);
+        currentColor = yellowT;
+        OSD_writeCharRow3(0x15, P13, yellowT);
     } else {
-        colour1 = A3_main0;
-        OSD_c3(0x15, P13, blue_fill);
+        currentColor = menuLine3Color;
+        OSD_writeCharRow3(0x15, P13, blue_fill);
     }
     OSD_writeString(0xff, "    Recover");
 
-    // OSD_c3(0x15, P2, blue_fill);
+    // OSD_writeCharRow3(0x15, P2, blue_fill);
 };
-void handle_hash(void)
+void handle_InputMenu_Page2(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('2', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('2', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "YPBPR");
-    colour1 = A2_main0;
-    number_stroca = stroca2;
+    currentColor = menuLine2Color;
+    currentRow = ROW_2;
     OSD_writeString(1, "SV");
-    colour1 = A3_main0;
-    number_stroca = stroca3;
+    currentColor = menuLine3Color;
+    currentRow = ROW_3;
     OSD_writeString(1, "AV");
 };
-void handle_dollar(void)
+void handle_InfoDisplay(void)
 {
     if (oled_menuItem == OLED_Input_SV) {
         OSD_writeStringAtLine(4, 2, "Format:");
@@ -2280,111 +1848,76 @@ void handle_dollar(void)
         } break;
     }
 };
-void handle_percent(void)
+void handle_InfoDisplay_Source(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __(I, _27);
-    number_stroca = stroca3;
-    __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar(I, _27);
+    currentRow = ROW_3;
+    writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Setting");
 };
-void handle_ampersand(void)
+void handle_ADCCalib_Display(void)
 {
-
-    OSD_c1(0x3E, P13, main0);
-    OSD_c1(0x3E, P14, main0);
-    OSD_c1(0x3E, P15, main0);
-    OSD_c1(0x3E, P16, main0);
-    OSD_c1(0x3E, P17, main0);
-    OSD_c1(0x3E, P18, main0);
-
-    OSD_c2(0x3E, P13, main0);
-    OSD_c2(0x3E, P14, main0);
-    OSD_c2(0x3E, P15, main0);
-    OSD_c2(0x3E, P16, main0);
-    OSD_c2(0x3E, P17, main0);
-    OSD_c2(0x3E, P18, main0);
-
-
-    OSD_c3(0x3E, P13, main0);
-    OSD_c3(0x3E, P14, main0);
-    OSD_c3(0x3E, P15, main0);
-    OSD_c3(0x3E, P16, main0);
-    OSD_c3(0x3E, P17, main0);
-    OSD_c3(0x3E, P18, main0);
+    OSD_drawDashRange(1, 13, 18);  // Row 1: P13-P18
+    OSD_drawDashRange(2, 13, 18);  // Row 2: P13-P18
+    OSD_drawDashRange(3, 13, 18);  // Row 3: P13-P18
 
     if (lineOption) {
-        OSD_c1(n2, P23, main0);
-        OSD_c1(X, P24, main0);
+        OSD_writeCharRow1(n2, P23, main0);
+        OSD_writeCharRow1(X, P24, main0);
     } else {
-        OSD_c1(n1, P23, main0);
-        OSD_c1(X, P24, main0);
+        OSD_writeCharRow1(n1, P23, main0);
+        OSD_writeCharRow1(X, P24, main0);
         smoothOption = false;
     }
     if (smoothOption) {
-        OSD_c2(O, P23, main0);
-        OSD_c2(N, P24, main0);
-        OSD_c2(F, P25, blue_fill);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(N, P24, main0);
+        OSD_writeCharRow2(F, P25, blue_fill);
     } else {
-        OSD_c2(O, P23, main0);
-        OSD_c2(F, P24, main0);
-        OSD_c2(F, P25, main0);
+        OSD_writeCharRow2(O, P23, main0);
+        OSD_writeCharRow2(F, P24, main0);
+        OSD_writeCharRow2(F, P25, main0);
     }
 
-    colour1 = main0;
-    number_stroca = stroca3;
-    sequence_number1 = _25;
-    sequence_number2 = _24;
-    sequence_number3 = _23;
-    Typ(brightness);
+    currentColor = main0;
+    currentRow = ROW_3;
+    digitPos1 = _25;
+    digitPos2 = _24;
+    digitPos3 = _23;
+    displayNumber3Digit(brightness);
 
 
-    // colour1 = main0;
-    // number_stroca = stroca3;
-    // sequence_number1 = _25;
-    // sequence_number2 = _24;
-    // sequence_number3 = _23;
-    // Typ(contrast);
+    // currentColor = main0;
+    // currentRow = ROW_3;
+    // digitPos1 = _25;
+    // digitPos2 = _24;
+    // digitPos3 = _23;
+    // displayNumber3Digit(contrast);
 };
-void handle_asterisk(void)
+void handle_Restart(void)
 {
-    if (selectedMenuLine == 1) {
-        A1_yellow = yellowT;
-        A2_main0 = main0;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 2) {
-        A1_yellow = main0;
-        A2_main0 = yellowT;
-        A3_main0 = main0;
-    } else if (selectedMenuLine == 3) {
-        A1_yellow = main0;
-        A2_main0 = main0;
-        A3_main0 = yellowT;
-    }
+    OSD_setMenuLineColors(selectedMenuLine);
 
-    colour1 = blue;
-    number_stroca = stroca1;
-    __(icon5, _27);
-    number_stroca = stroca2;
-    __('4', _27);
-    // number_stroca = stroca3;
-    // __(icon6, _27);
+    currentColor = blue;
+    currentRow = ROW_1;
+    writeChar(icon5, _27);
+    currentRow = ROW_2;
+    writeChar('4', _27);
+    // currentRow = ROW_3;
+    // writeChar(icon6, _27);
 
-    colour1 = A1_yellow;
-    number_stroca = stroca1;
+    currentColor = menuLine1Color;
+    currentRow = ROW_1;
     OSD_writeString(1, "Matched presets");
-    // colour1 = A2_main0;
-    // number_stroca = stroca2;
+    // currentColor = menuLine2Color;
+    // currentRow = ROW_2;
 };

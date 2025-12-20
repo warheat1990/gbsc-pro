@@ -7289,8 +7289,8 @@ void setup()
     display.flipScreenVertically(); //orientation fix for OLED
 
     irrecv.enableIRIn();
-    OSD_clear();
-    OSD();
+    OSD_clearAll();
+    OSD_init();
     PT_MUTE(0x78);
     PT_2257(12); // -12 dB (display shows 38/50)
 
