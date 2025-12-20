@@ -86,6 +86,47 @@ static void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos) {
     }
 }
 
+// Write ON or OFF indicator at end of row (P23-P25)
+// Row: 1=OSD_writeCharRow1, 2=OSD_writeCharRow2, 3=OSD_writeCharRow3
+static void OSD_writeOnOff(uint8_t row, bool isOn) {
+    void (*osd_func)(int, int, int);
+    if (row == 1) osd_func = OSD_writeCharRow1;
+    else if (row == 2) osd_func = OSD_writeCharRow2;
+    else osd_func = OSD_writeCharRow3;
+
+    osd_func(O, P23, main0);
+    if (isOn) {
+        osd_func(N, P24, main0);
+        osd_func(F, P25, blue_fill);
+    } else {
+        osd_func(F, P24, main0);
+        osd_func(F, P25, main0);
+    }
+}
+
+// Write a string at specified row starting at position (P0=0, P1=1, etc.)
+// Row: 1=OSD_writeCharRow1, 2=OSD_writeCharRow2, 3=OSD_writeCharRow3
+// Characters are written in main0 color, spaces are written in blue_fill
+static void OSD_writeStringAtRow(uint8_t row, uint8_t startPos, const char* str) {
+    void (*osd_func)(int, int, int);
+    if (row == 1) osd_func = OSD_writeCharRow1;
+    else if (row == 2) osd_func = OSD_writeCharRow2;
+    else osd_func = OSD_writeCharRow3;
+
+    uint8_t pos = startPos;
+    while (*str != '\0') {
+        uint8_t posCode = 0x01 + pos * 2;  // P0=0x01, P1=0x03, Pn=0x01+n*2
+        if (*str == ' ')
+            osd_func(*str, posCode, blue_fill);
+        else if (*str == '<')
+            osd_func(0x3C, posCode, main0);
+        else
+            osd_func(*str, posCode, main0);
+        pos++;
+        str++;
+    }
+}
+
 
 // ====================================================================================
 // TV OSD Display Helper Functions
@@ -167,51 +208,74 @@ void OSD_writeStringAtLine(int startPos, int row, const char *str)
 // ====================================================================================
 
 const MenuEntry menuTable[] = {
-    {'0', handle_MainMenu_Page1},
-    {'1', handle_MainMenu_Page1_Update},
-    {'2', handle_MainMenu_Page2},
-    {'3', handle_OutputRes_1080_1024_960},
-    {'4', handle_OutputRes_720_480},
-    {'5', handle_OutputRes_PassThrough},
-    {'6', handle_ScreenSettings},
-    {'7', handle_HighlightRow1},
-    {'8', handle_HighlightRow2},
-    {'9', handle_HighlightRow3},
-    {'a', handle_ColorSettings_Page1},
-    {'b', handle_ColorSettings_Page2},
-    {'c', handle_ColorSettings_Page3},
-    {'d', handle_ColorSettings_RGB_R},
-    {'e', handle_ColorSettings_RGB_GB},
-    {'f', handle_ColorSettings_Y_Gain},
-    {'g', handle_ColorSettings_ADCGain},
-    {'h', handle_SysSettings_SVInput_Page1},
-    {'i', handle_SysSettings_Page1},
-    {'j', handle_SysSettings_Page2},
-    {'k', handle_SysSettings_Page3},
-    {'l', handle_SysSettings_SVInput_Page2},
-    {'m', handle_Reserved_M},
-    {'n', handle_Reserved_N},
-    {'o', handle_ScreenSettings_FullHeight},
-    {'p', handle_Reserved_P},
-    {'q', handle_Developer_Memory},
-    {'r', handle_Developer_HSync},
-    {'s', handle_Developer_Debug},
-    {'t', handle_Developer_Page},
-    {'u', handle_Reserved_U},
-    {'v', handle_ResetSettings},
-    {'w', handle_Profile_SaveLoad},
-    {'x', handle_Profile_SlotDisplay},
-    {'y', handle_Profile_SlotRow1},
-    {'z', handle_Profile_SlotRow2},
-    {'A', handle_Profile_SlotRow3},
-    {'^', handle_ADCCalib_Running},
-    {'@', handle_InputMenu_Page1},
-    {'!', handle_InputInfo},
-    {'#', handle_InputMenu_Page2},
-    {'$', handle_InfoDisplay},
-    {'%', handle_InfoDisplay_Source},
-    {'&', handle_ADCCalib_Display},
-    {'*', handle_Restart}
+    // Cursor Positioning (not saveable)
+    {OSD_CMD_CURSOR_ROW1, handle_HighlightRow1, false},
+    {OSD_CMD_CURSOR_ROW2, handle_HighlightRow2, false},
+    {OSD_CMD_CURSOR_ROW3, handle_HighlightRow3, false},
+
+    // Main Menu (not saveable)
+    {OSD_CMD_MAIN_PAGE1,        handle_MainMenu_Page1,        false},
+    {OSD_CMD_MAIN_PAGE1_UPDATE, handle_MainMenu_Page1_Update, false},
+    {OSD_CMD_MAIN_PAGE2,        handle_MainMenu_Page2,        false},
+
+    // Output Resolution (not saveable)
+    {OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960, false},
+    {OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480,       false},
+    {OSD_CMD_OUTPUT_PASSTHROUGH,   handle_OutputRes_PassThrough,   false},
+
+    // Screen Settings
+    {OSD_CMD_SCREEN_SETTINGS,        handle_ScreenSettings,          false},
+    {OSD_CMD_SCREEN_FULLHEIGHT,      handle_ScreenSettings_FullHeight, true},  // saveable
+    {OSD_CMD_SCREEN_FULLHEIGHT_VALUES, handle_ScreenFullHeight_Values, false},
+
+    // Color Settings
+    {OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1,        true},   // saveable
+    {OSD_CMD_COLOR_PAGE1_VALUES, handle_ColorSettings_Page1_Values, false},
+    {OSD_CMD_COLOR_PAGE2,        handle_ColorSettings_Page2,        true},   // saveable
+    {OSD_CMD_COLOR_PAGE2_VALUES, handle_ColorSettings_Page2_Values, false},
+    {OSD_CMD_COLOR_PAGE3,        handle_ColorSettings_Page3,        true},   // saveable
+    {OSD_CMD_COLOR_RGB_LABELS,   handle_ColorSettings_RGB_Labels,   true},   // saveable
+    {OSD_CMD_COLOR_RGB_VALUES,   handle_ColorSettings_RGB_Values,   false},
+
+    // System Settings - SV/AV Input
+    {OSD_CMD_SYS_SVINPUT_VALUES, handle_SysSettings_SVInput_Values, false},
+
+    // System Settings - General
+    {OSD_CMD_SYS_PAGE1,        handle_SysSettings_Page1,        true},   // saveable
+    {OSD_CMD_SYS_PAGE1_VALUES, handle_SysSettings_Page1_Values, false},
+    {OSD_CMD_SYS_PAGE2,        handle_SysSettings_Page2,        true},   // saveable
+    {OSD_CMD_SYS_PAGE2_VALUES, handle_SysSettings_Page2_Values, false},
+    {OSD_CMD_SYS_PAGE4,        handle_SysSettings_Page4,        true},   // saveable
+    {OSD_CMD_SYS_PAGE4_VALUES, handle_SysSettings_Page4_Values, false},
+    {OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5,        false},
+    {OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values, false},
+
+    // Developer (not saveable)
+    {OSD_CMD_DEV_MEMORY,        handle_Developer_Memory,        false},
+    {OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values, false},
+    {OSD_CMD_DEV_DEBUG,         handle_Developer_Debug,         false},
+    {OSD_CMD_DEV_DEBUG_VALUES,  handle_Developer_Debug_Values,  false},
+
+    // Restart (not saveable)
+    {OSD_CMD_RESTART, handle_Restart, false},
+
+    // Profile
+    {OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad,    true},   // saveable
+    {OSD_CMD_PROFILE_SLOTDISPLAY, handle_Profile_SlotDisplay, false},
+    {OSD_CMD_PROFILE_SLOTROW1,    handle_Profile_SlotRow1,    false},
+    {OSD_CMD_PROFILE_SLOTROW2,    handle_Profile_SlotRow2,    true},   // saveable
+    {OSD_CMD_PROFILE_SLOTROW3,    handle_Profile_SlotRow3,    false},
+
+    // Input Menu
+    {OSD_CMD_INPUT_PAGE1,   handle_InputMenu_Page1,     true},   // saveable
+    {OSD_CMD_INPUT_PAGE2,   handle_InputMenu_Page2,     true},   // saveable
+    {OSD_CMD_INPUT_INFO,    handle_InputInfo,           false},
+    {OSD_CMD_INPUT_FORMAT,  handle_InfoDisplay,         false},
+    {OSD_CMD_INPUT_SOURCE,  handle_InfoDisplay_Source,  false},
+
+    // Calibration
+    {OSD_CMD_ADCCALIB_RUNNING, handle_ADCCalib_Running, true},   // saveable
+    {OSD_CMD_ADCCALIB_DISPLAY, handle_ADCCalib_Display, false},
 };
 
 const size_t menuTableSize = sizeof(menuTable) / sizeof(menuTable[0]);
@@ -220,20 +284,12 @@ const size_t menuTableSize = sizeof(menuTable) / sizeof(menuTable[0]);
 // MENU DISPATCHER
 // ====================================================================================
 
-static bool OSD_isMainMenuCommand(char cmd) {
-    static const char mainMenuCommands[] = "abcdikmowz@#^";
-    return strchr(mainMenuCommands, cmd) != nullptr;
-}
-
-void OSD_handleCommand(char incomingByte)
+void OSD_handleCommand(OsdCommand cmd)
 {
-    const unsigned char key = (unsigned char)incomingByte;
-
     for (size_t i = 0; i < menuTableSize; i++) {
-        if (menuTable[i].key == key) {
-            // Save only main menu commands that calculate colors, not update commands
-            if (OSD_isMainMenuCommand(key)) {
-                lastOsdCommand = incomingByte;
+        if (menuTable[i].cmd == cmd) {
+            if (menuTable[i].saveable) {
+                lastOsdCommand = cmd;
             }
             menuTable[i].handler();
             return;
@@ -513,7 +569,7 @@ void handle_ColorSettings_Page3(void)
     // currentColor = menuLine3Color;
     // currentRow = ROW_3;
 };
-void handle_ColorSettings_RGB_R(void)
+void handle_ColorSettings_RGB_Labels(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
@@ -535,183 +591,52 @@ void handle_ColorSettings_RGB_R(void)
     currentRow = ROW_3;
     OSD_writeString(1, "B");
 };
-void handle_ColorSettings_RGB_GB(void)
+void handle_ColorSettings_Page1_Values(void)
 {
-    OSD_writeCharRow1(0x3E, P9, main0);
-    OSD_writeCharRow1(0x3E, P10, main0);
-    OSD_writeCharRow1(0x3E, P11, main0);
-    OSD_writeCharRow1(0x3E, P12, main0);
-    OSD_writeCharRow1(0x3E, P13, main0);
-    OSD_writeCharRow1(0x3E, P14, main0);
-    OSD_writeCharRow1(0x3E, P15, main0);
-    OSD_writeCharRow1(0x3E, P16, main0);
-    OSD_writeCharRow1(0x3E, P17, main0);
-    OSD_writeCharRow1(0x3E, P18, main0);
+    OSD_drawDashRange(1, 9, 18);   // Row 1: P9-P18
     OSD_writeCharRow1(0x3E, P22, main0);
 
     // Only show dashes for scanlines if they are available
     if (areScanLinesAllowed()) {
-        OSD_writeCharRow2(0x3E, P10, main0);
-        OSD_writeCharRow2(0x3E, P11, main0);
-        OSD_writeCharRow2(0x3E, P12, main0);
-        OSD_writeCharRow2(0x3E, P13, main0);
-        OSD_writeCharRow2(0x3E, P14, main0);
-        OSD_writeCharRow2(0x3E, P15, main0);
-        OSD_writeCharRow2(0x3E, P16, main0);
-        OSD_writeCharRow2(0x3E, P17, main0);
-        OSD_writeCharRow2(0x3E, P18, main0);
-        OSD_writeCharRow2(0x3E, P19, main0);
+        OSD_drawDashRange(2, 10, 19);  // Row 2: P10-P19
         OSD_writeCharRow2(0x3E, P22, main0);
 
-        if (uopt->wantScanlines) {
-            OSD_writeCharRow2(O, P23, main0);
-            OSD_writeCharRow2(N, P24, main0);
-            OSD_writeCharRow2(F, P25, blue_fill);
-        } else {
-            OSD_writeCharRow2(O, P23, main0);
-            OSD_writeCharRow2(F, P24, main0);
-            OSD_writeCharRow2(F, P25, main0);
-        }
+        OSD_writeOnOff(2, uopt->wantScanlines);
 
+        // Display scanline strength (0x00-0x50 → 00-05)
         osdDisplayValue = uopt->scanlineStrength;
-        if (osdDisplayValue == 0x00) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n0, P20, main0);
-        } else if (osdDisplayValue == 0x10) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n1, P20, main0);
-        } else if (osdDisplayValue == 0x20) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n2, P20, main0);
-        } else if (osdDisplayValue == 0x30) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n3, P20, main0);
-        } else if (osdDisplayValue == 0x40) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n4, P20, main0);
-        } else if (osdDisplayValue == 0x50) {
-            OSD_writeCharRow2(n0, P21, main0);
-            OSD_writeCharRow2(n5, P20, main0);
-        }
+        OSD_writeCharRow2(n0, P21, main0);
+        OSD_writeCharRow2(n0 + (osdDisplayValue >> 4), P20, main0);
     }
 
-    OSD_writeCharRow3(0x3E, P12, main0);
-    OSD_writeCharRow3(0x3E, P13, main0);
-    OSD_writeCharRow3(0x3E, P14, main0);
-    OSD_writeCharRow3(0x3E, P15, main0);
-    OSD_writeCharRow3(0x3E, P16, main0);
-    OSD_writeCharRow3(0x3E, P17, main0);
-    OSD_writeCharRow3(0x3E, P18, main0);
-    OSD_writeCharRow3(0x3E, P19, main0);
-    OSD_writeCharRow3(0x3E, P20, main0);
-    OSD_writeCharRow3(0x3E, P21, main0);
-    OSD_writeCharRow3(0x3E, P22, main0);
-
-    if (uopt->wantVdsLineFilter) {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(N, P24, main0);
-        OSD_writeCharRow3(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(F, P24, main0);
-        OSD_writeCharRow3(F, P25, main0);
-    }
+    OSD_drawDashRange(3, 12, 22);  // Row 3: P12-P22
+    OSD_writeOnOff(3, uopt->wantVdsLineFilter);
     osdDisplayValue = GBS::ADC_RGCTRL::read();
     displayNumber3DigitInverted(osdDisplayValue);
 
-    if (uopt->enableAutoGain == 0) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(0x3E, P25, blue_fill);
-    }
+    OSD_writeOnOff(1, uopt->enableAutoGain != 0);
 };
-void handle_ColorSettings_Y_Gain(void)
+void handle_ColorSettings_Page2_Values(void)
 {
-    OSD_writeCharRow1(0x3E, P10, main0);
-    OSD_writeCharRow1(0x3E, P11, main0);
-    OSD_writeCharRow1(0x3E, P12, main0);
-    OSD_writeCharRow1(0x3E, P13, main0);
-    OSD_writeCharRow1(0x3E, P14, main0);
-    OSD_writeCharRow1(0x3E, P15, main0);
-    OSD_writeCharRow1(0x3E, P16, main0);
-    OSD_writeCharRow1(0x3E, P17, main0);
-    OSD_writeCharRow1(0x3E, P18, main0);
-    OSD_writeCharRow1(0x3E, P19, main0);
-    OSD_writeCharRow1(0x3E, P20, main0);
-    OSD_writeCharRow1(0x3E, P21, main0);
-    OSD_writeCharRow1(0x3E, P22, main0);
-    OSD_writeCharRow2(0x3E, P8, main0);
-    OSD_writeCharRow2(0x3E, P9, main0);
-    OSD_writeCharRow2(0x3E, P10, main0);
-    OSD_writeCharRow2(0x3E, P11, main0);
-    OSD_writeCharRow2(0x3E, P12, main0);
-    OSD_writeCharRow2(0x3E, P13, main0);
-    OSD_writeCharRow2(0x3E, P14, main0);
-    OSD_writeCharRow2(0x3E, P15, main0);
-    OSD_writeCharRow2(0x3E, P16, main0);
-    OSD_writeCharRow2(0x3E, P17, main0);
-    OSD_writeCharRow2(0x3E, P18, main0);
-    OSD_writeCharRow2(0x3E, P19, main0);
+    OSD_drawDashRange(1, 10, 22);  // Row 1: P10-P22
+    OSD_drawDashRange(2, 8, 19);   // Row 2: P8-P19
     if (!isPeakingLocked()) {
-        OSD_writeCharRow2(0x3E, P20, main0);
-        OSD_writeCharRow2(0x3E, P21, main0);
-        OSD_writeCharRow2(0x3E, P22, main0);
+        OSD_drawDashRange(2, 20, 22);  // Row 2: P20-P22 (when not locked)
     }
-    OSD_writeCharRow3(0x3E, P14, main0);
-    OSD_writeCharRow3(0x3E, P15, main0);
-    OSD_writeCharRow3(0x3E, P16, main0);
-    OSD_writeCharRow3(0x3E, P17, main0);
-    OSD_writeCharRow3(0x3E, P18, main0);
-    OSD_writeCharRow3(0x3E, P19, main0);
-    OSD_writeCharRow3(0x3E, P20, main0);
-    OSD_writeCharRow3(0x3E, P21, main0);
-    OSD_writeCharRow3(0x3E, P22, main0);
+    OSD_drawDashRange(3, 14, 22);  // Row 3: P14-P22
 
-    if (GBS::VDS_PK_LB_GAIN::read() == 0x16) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(F, P25, blue_fill);
-    }
+    OSD_writeOnOff(1, GBS::VDS_PK_LB_GAIN::read() != 0x16);
 
     if (isPeakingLocked()) {
         // Locked state - overwrite dashes and ON/OFF with LOCKED
-        OSD_writeCharRow2(L, P20, main0);
-        OSD_writeCharRow2(O, P21, main0);
-        OSD_writeCharRow2(C, P22, main0);
-        OSD_writeCharRow2(K, P23, main0);
-        OSD_writeCharRow2(E, P24, main0);
-        OSD_writeCharRow2(D, P25, main0);
+        OSD_writeStringAtRow(2, 20, "LOCKED");
     } else {
-        if (uopt->wantPeaking == 0) {
-            OSD_writeCharRow2(O, P23, main0);
-            OSD_writeCharRow2(F, P24, main0);
-            OSD_writeCharRow2(F, P25, main0);
-        } else {
-            OSD_writeCharRow2(O, P23, main0);
-            OSD_writeCharRow2(N, P24, main0);
-            OSD_writeCharRow2(F, P25, blue_fill);
-        }
+        OSD_writeOnOff(2, uopt->wantPeaking != 0);
     }
 
-    if (uopt->wantStepResponse) {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(N, P24, main0);
-        OSD_writeCharRow3(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(F, P24, main0);
-        OSD_writeCharRow3(F, P25, main0);
-    }
+    OSD_writeOnOff(3, uopt->wantStepResponse);
 };
-void handle_ColorSettings_ADCGain(void)
+void handle_ColorSettings_RGB_Values(void)
 {
     OSD_drawDashRange(1, 5, 22);  // Row 1: P5-P22
     OSD_drawDashRange(2, 5, 22);  // Row 2: P5-P22
@@ -753,7 +678,7 @@ void handle_ColorSettings_ADCGain(void)
     // displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.772     * (signed char)((signed char)GBS::VDS_U_OFST::read()) )) + 128);
     displayNumber3Digit(B_VAL);
 };
-void handle_SysSettings_SVInput_Page1(void)
+void handle_SysSettings_SVInput_Values(void)
 {
     OSD_drawDashRange(1, 7, 22);  // Row 1: P7-P22
     OSD_drawDashRange(2, 6, 22);  // Row 2: P6-P22
@@ -802,40 +727,16 @@ void handle_SysSettings_Page1(void)
     // OSD_writeString(1, "Lowres:use upscaling");
     OSD_writeString(1, "Matched presets");
 };
-void handle_SysSettings_Page2(void)
+void handle_SysSettings_Page1_Values(void)
 {
     // OSD_writeCharRow2(0x3E, P16, main0);
     // OSD_writeCharRow2(0x3E, P17, main0);
     // OSD_writeCharRow2(0x3E, P18, main0);
-    OSD_writeCharRow2(0x3E, P19, main0);
-    OSD_writeCharRow2(0x3E, P20, main0);
-    OSD_writeCharRow2(0x3E, P21, main0);
-    OSD_writeCharRow2(0x3E, P22, main0);
-    if (rgbComponentMode == 1) {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(N, P24, main0);
-        OSD_writeCharRow2(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(F, P24, main0);
-        OSD_writeCharRow2(F, P25, main0);
-    }
-    OSD_writeCharRow3(0x3E, P16, main0);
-    OSD_writeCharRow3(0x3E, P17, main0);
-    OSD_writeCharRow3(0x3E, P18, main0);
-    OSD_writeCharRow3(0x3E, P19, main0);
-    OSD_writeCharRow3(0x3E, P20, main0);
-    OSD_writeCharRow3(0x3E, P21, main0);
-    OSD_writeCharRow3(0x3E, P22, main0);
-    if (uopt->matchPresetSource) {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(N, P24, main0);     // ON
-        OSD_writeCharRow3(F, P25, blue_fill); // ON
-    } else {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(F, P24, main0);
-        OSD_writeCharRow3(F, P25, main0); // OFF
-    }
+    OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
+    OSD_writeOnOff(2, rgbComponentMode == 1);
+
+    OSD_drawDashRange(3, 16, 22);  // Row 3: P16-P22
+    OSD_writeOnOff(3, uopt->matchPresetSource);
     /*
     upscaling
         // OSD_writeCharRow3(0x3E, P21, main0);
@@ -854,7 +755,7 @@ void handle_SysSettings_Page2(void)
         // }
     */
 };
-void handle_SysSettings_Page3(void)
+void handle_SysSettings_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
@@ -877,49 +778,18 @@ void handle_SysSettings_Page3(void)
     // OSD_writeString(1, "Clock generator");
     OSD_writeString(1, "Lock method");
 };
-void handle_SysSettings_SVInput_Page2(void)
+void handle_SysSettings_Page2_Values(void)
 {
-    OSD_writeCharRow1(0x3E, P12, main0);
-    OSD_writeCharRow1(0x3E, P13, main0);
-    OSD_writeCharRow1(0x3E, P14, main0);
-    OSD_writeCharRow1(0x3E, P15, main0);
-    OSD_writeCharRow1(0x3E, P16, main0);
-    OSD_writeCharRow1(0x3E, P17, main0);
+    OSD_drawDashRange(1, 12, 17);  // Row 1: P12-P17
     if (uopt->deintMode == 0) {
-        OSD_writeCharRow1(A, P18, main0);
-        OSD_writeCharRow1(d, P19, main0);
-        OSD_writeCharRow1(a, P20, main0);
-        OSD_writeCharRow1(p, P21, main0);
-        OSD_writeCharRow1(t, P22, main0);
-        OSD_writeCharRow1(i, P23, main0);
-        OSD_writeCharRow1(v, P24, main0);
-        OSD_writeCharRow1(e, P25, main0);
+        OSD_writeStringAtRow(1, 18, "Adaptive");
     } else {
-        OSD_writeCharRow1(0x3E, P18, main0);
-        OSD_writeCharRow1(0x3E, P19, main0);
-        OSD_writeCharRow1(0x3E, P20, main0);
-        OSD_writeCharRow1(0x3E, P21, main0);
-        OSD_writeCharRow1(0x3E, P22, main0);
-        OSD_writeCharRow1(B, P23, main0);
-        OSD_writeCharRow1(o, P24, main0);
-        OSD_writeCharRow1(b, P25, main0);
+        OSD_drawDashRange(1, 18, 22);  // Row 1: P18-P22
+        OSD_writeStringAtRow(1, 23, "Bob");
     }
 
-    // OSD_writeCharRow1(0x3E, P21, main0);
-    // OSD_writeCharRow1(0x3E, P22, main0);
-    OSD_writeCharRow2(0x3E, P19, main0);
-    OSD_writeCharRow2(0x3E, P20, main0);
-    OSD_writeCharRow2(0x3E, P21, main0);
-    OSD_writeCharRow2(0x3E, P22, main0);
-    // OSD_writeCharRow3(0x3E, P16, main0);
-    // OSD_writeCharRow3(0x3E, P17, main0);
-    // OSD_writeCharRow3(0x3E, P18, main0);
-    // OSD_writeCharRow3(0x3E, P19, main0);
-    // OSD_writeCharRow3(0x3E, P20, main0);
-    // OSD_writeCharRow3(0x3E, P21, main0);
-    // OSD_writeCharRow3(0x3E, P22, main0);
-    OSD_writeCharRow3(0x3E, P12, main0);
-    OSD_writeCharRow3(0x3E, P13, main0);
+    OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
+    OSD_drawDashRange(3, 12, 13);  // Row 3: P12-P13
 
     // if (uopt->wantOutputComponent)
     // {
@@ -934,15 +804,7 @@ void handle_SysSettings_SVInput_Page2(void)
     //     OSD_writeCharRow1(F, P25, main0);
     // }
 
-    if (uopt->PalForce60) {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(N, P24, main0);
-        OSD_writeCharRow2(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(F, P24, main0);
-        OSD_writeCharRow2(F, P25, main0);
-    }
+    OSD_writeOnOff(2, uopt->PalForce60);
 
     // if (uopt->disableExternalClockGenerator)
     // {
@@ -958,34 +820,12 @@ void handle_SysSettings_SVInput_Page2(void)
     // }
 
     if (uopt->frameTimeLockMethod == 0) {
-        OSD_writeCharRow3(n0, P14, main0);
-        OSD_writeCharRow3(V, P15, main0);
-        OSD_writeCharRow3(t, P16, main0);
-        OSD_writeCharRow3(o, P17, main0);
-        OSD_writeCharRow3(t, P18, main0);
-        OSD_writeCharRow3(a, P19, main0);
-        OSD_writeCharRow3(l, P20, main0);
-        OSD_writeCharRow3(0x3C, P21, main0);
-        OSD_writeCharRow3(V, P22, main0);
-        OSD_writeCharRow3(S, P23, main0);
-        OSD_writeCharRow3(S, P24, main0);
-        OSD_writeCharRow3(T, P25, main0);
+        OSD_writeStringAtRow(3, 14, "0Vtotal<VSST");
     } else {
-        OSD_writeCharRow3(n1, P14, main0);
-        OSD_writeCharRow3(V, P15, main0);
-        OSD_writeCharRow3(t, P16, main0);
-        OSD_writeCharRow3(o, P17, main0);
-        OSD_writeCharRow3(t, P18, main0);
-        OSD_writeCharRow3(a, P19, main0);
-        OSD_writeCharRow3(l, P20, main0);
-        OSD_writeCharRow3(o, P22, main0);
-        OSD_writeCharRow3(n, P23, main0);
-        OSD_writeCharRow3(l, P24, main0);
-        OSD_writeCharRow3(y, P25, main0);
-        OSD_writeCharRow3(F, P21, blue_fill);
+        OSD_writeStringAtRow(3, 14, "1Vtotal only");
     }
 };
-void handle_Reserved_M(void)
+void handle_SysSettings_Page4(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
@@ -1007,41 +847,15 @@ void handle_Reserved_M(void)
     currentRow = ROW_3;
     OSD_writeString(1, "EnableFrameTimeLock");
 };
-void handle_Reserved_N(void)
+void handle_SysSettings_Page4_Values(void)
 {
     OSD_drawDashRange(1, 16, 22);  // Row 1: P16-P22
     OSD_drawDashRange(2, 16, 22);  // Row 2: P16-P22
     OSD_drawDashRange(3, 20, 22);  // Row 3: P20-P22
 
-    if (uopt->enableCalibrationADC) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    }
-
-    if (uopt->enableFrameTimeLock) {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(N, P24, main0);
-        OSD_writeCharRow2(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(F, P24, main0);
-        OSD_writeCharRow2(F, P25, main0);
-    }
-
-    if (uopt->disableExternalClockGenerator) {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(F, P24, main0);
-        OSD_writeCharRow3(F, P25, main0);
-    } else {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(N, P24, main0);
-        OSD_writeCharRow3(F, P25, blue_fill);
-    }
+    OSD_writeOnOff(1, uopt->enableCalibrationADC);
+    OSD_writeOnOff(2, uopt->enableFrameTimeLock);
+    OSD_writeOnOff(3, !uopt->disableExternalClockGenerator);
 };
 void handle_ScreenSettings_FullHeight(void)
 {
@@ -1063,30 +877,10 @@ void handle_ScreenSettings_FullHeight(void)
     // currentRow = ROW_2;
     // writeChar(M, _1), __(a, _2), __(t, _3), __(c, _4), __(h, _5), __(e, _6), __(d, _7), __(p, _9), __(r, _10), __(e, _11), __(s, _12), __(e, _13), __(t, _14), __(s, _15);
 };
-void handle_Reserved_P(void)
+void handle_ScreenFullHeight_Values(void)
 {
-    OSD_writeCharRow1(0x3E, P12, main0);
-    OSD_writeCharRow1(0x3E, P13, main0);
-    OSD_writeCharRow1(0x3E, P14, main0);
-    OSD_writeCharRow1(0x3E, P15, main0);
-    OSD_writeCharRow1(0x3E, P16, main0);
-    OSD_writeCharRow1(0x3E, P17, main0);
-    OSD_writeCharRow1(0x3E, P18, main0);
-    OSD_writeCharRow1(0x3E, P19, main0);
-    OSD_writeCharRow1(0x3E, P20, main0);
-    OSD_writeCharRow1(0x3E, P21, main0);
-    OSD_writeCharRow1(0x3E, P22, main0);
-    // OSD_writeCharRow3(0x3E, P22, main0);
-
-    if (uopt->wantFullHeight) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    }
+    OSD_drawDashRange(1, 12, 22);  // Row 1: P12-P22
+    OSD_writeOnOff(1, uopt->wantFullHeight);
 };
 void handle_Developer_Memory(void)
 {
@@ -1110,7 +904,7 @@ void handle_Developer_Memory(void)
     currentRow = ROW_3;
     OSD_writeString(1, "HTotal");
 };
-void handle_Developer_HSync(void)
+void handle_Developer_Memory_Values(void)
 {
     OSD_drawDashRange(1, 15, 22);  // Row 1: P15-P22
     OSD_writeCharRow1(0x03, P23, yellow);
@@ -1149,7 +943,7 @@ void handle_Developer_Debug(void)
     currentRow = ROW_3;
     OSD_writeString(1, "Freeze capture");
 };
-void handle_Developer_Page(void)
+void handle_Developer_Debug_Values(void)
 {
     OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
     OSD_drawDashRange(2, 11, 22);  // Row 2: P11-P22
@@ -1157,37 +951,11 @@ void handle_Developer_Page(void)
     currentRow = ROW_3;
     writeChar(0x3E, _15), writeChar(0x3E, _16), writeChar(0x3E, _17), writeChar(0x3E, _18), writeChar(0x3E, _19), writeChar(0x3E, _20), writeChar(0x3E, _21), writeChar(0x3E, _22);
 
-    if (GBS::ADC_UNUSED_62::read() == 0x00) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(F, P25, blue_fill);
-    }
-
-    if (GBS::ADC_FLTR::read() > 0) {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(N, P24, main0);
-        OSD_writeCharRow2(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(F, P24, main0);
-        OSD_writeCharRow2(F, P25, main0);
-    }
-
-    if (GBS::CAPTURE_ENABLE::read() > 0) {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(F, P24, main0);
-        OSD_writeCharRow3(F, P25, main0);
-    } else {
-        OSD_writeCharRow3(O, P23, main0);
-        OSD_writeCharRow3(N, P24, main0);
-        OSD_writeCharRow3(F, P25, blue_fill);
-    }
+    OSD_writeOnOff(1, GBS::ADC_UNUSED_62::read() != 0x00);
+    OSD_writeOnOff(2, GBS::ADC_FLTR::read() > 0);
+    OSD_writeOnOff(3, GBS::CAPTURE_ENABLE::read() == 0);  // Inverted: ON when frozen (capture disabled)
 };
-void handle_Reserved_U(void)
+void handle_SysSettings_Page5(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
@@ -1209,30 +977,10 @@ void handle_Reserved_U(void)
     currentRow = ROW_3;
     OSD_writeString(1, "Reset defaults");
 };
-void handle_ResetSettings(void)
+void handle_SysSettings_Page5_Values(void)
 {
-    OSD_writeCharRow1(0x3E, P11, main0);
-    OSD_writeCharRow1(0x3E, P12, main0);
-    OSD_writeCharRow1(0x3E, P13, main0);
-    OSD_writeCharRow1(0x3E, P14, main0);
-    OSD_writeCharRow1(0x3E, P15, main0);
-    OSD_writeCharRow1(0x3E, P16, main0);
-    OSD_writeCharRow1(0x3E, P17, main0);
-    OSD_writeCharRow1(0x3E, P18, main0);
-    OSD_writeCharRow1(0x3E, P19, main0);
-    OSD_writeCharRow1(0x3E, P20, main0);
-    OSD_writeCharRow1(0x3E, P21, main0);
-    OSD_writeCharRow1(0x3E, P22, main0);
-
-    if (rto->allowUpdatesOTA) {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(N, P24, main0);
-        OSD_writeCharRow1(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow1(O, P23, main0);
-        OSD_writeCharRow1(F, P24, main0);
-        OSD_writeCharRow1(F, P25, main0);
-    }
+    OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
+    OSD_writeOnOff(1, rto->allowUpdatesOTA);
 };
 void handle_Profile_SaveLoad(void)
 {
@@ -1249,312 +997,76 @@ void handle_Profile_SaveLoad(void)
     currentRow = ROW_3;
     OSD_writeString(1, "Active save:");
 };
+// Profile state → name index mapping for Row 1 (Load profile display)
+typedef struct {
+    OLED_MenuState state;
+    uint8_t nameIndex;  // 1-20
+} ProfileStateMapping;
+
+static const ProfileStateMapping profileRow1Mappings[] = {
+    {OLED_Profile, 1}, {OLED_Profile_SaveConfirm, 2}, {OLED_Profile_Save, 3},
+    {OLED_Profile_Load, 4}, {OLED_Profile_Operation1, 5}, {OLED_Profile_Operation2, 6},
+    {OLED_Profile_Operation3, 7}, {OLED_Profile_Slot7, 8}, {OLED_Profile_Slot8, 9},
+    {OLED_Profile_Slot9, 10}, {OLED_Profile_Slot10, 11}, {OLED_Profile_Slot11, 12},
+    {OLED_Profile_Slot12, 13}, {OLED_Profile_Slot13, 14}, {OLED_Profile_Slot14, 15},
+    {OLED_Profile_Slot15, 16}, {OLED_Profile_Slot16, 17}, {OLED_Profile_Slot17, 18},
+    {OLED_Profile_Slot18, 19}, {OLED_Profile_Slot19, 20},
+};
+
+// Profile state → name index mapping for Row 2 (Save profile display)
+static const ProfileStateMapping profileRow2Mappings[] = {
+    {OLED_Profile_SelectSlot, 1}, {OLED_Profile_Slot1, 2}, {OLED_Profile_Slot2, 3},
+    {OLED_Profile_Slot3, 4}, {OLED_Profile_Slot4, 5}, {OLED_Profile_Slot5, 6},
+    {OLED_Profile_Slot6, 7}, {OLED_Profile_SelectPreset, 8}, {OLED_Profile_Preset1, 9},
+    {OLED_Profile_Preset2, 10}, {OLED_Profile_Preset3, 11}, {OLED_Profile_Preset4, 12},
+    {OLED_Profile_Preset5, 13}, {OLED_Profile_Preset6, 14}, {OLED_Profile_Preset7, 15},
+    {OLED_Profile_Preset8, 16}, {OLED_Profile_Preset9, 17}, {OLED_Profile_Preset10, 18},
+    {OLED_Profile_Preset11, 19}, {OLED_Profile_Preset12, 20},
+};
+
+// Helper: call name_N() by index (1-20)
+static void callProfileName(uint8_t index) {
+    switch (index) {
+        case 1:  name_1();  break; case 2:  name_2();  break; case 3:  name_3();  break;
+        case 4:  name_4();  break; case 5:  name_5();  break; case 6:  name_6();  break;
+        case 7:  name_7();  break; case 8:  name_8();  break; case 9:  name_9();  break;
+        case 10: name_10(); break; case 11: name_11(); break; case 12: name_12(); break;
+        case 13: name_13(); break; case 14: name_14(); break; case 15: name_15(); break;
+        case 16: name_16(); break; case 17: name_17(); break; case 18: name_18(); break;
+        case 19: name_19(); break; case 20: name_20(); break;
+    }
+}
+
 void handle_Profile_SlotDisplay(void)
 {
-    if (oled_menuItem == OLED_Profile) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_1();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_SaveConfirm) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_2();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Save) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_3();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Load) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_4();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Operation1) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_5();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Operation2) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_6();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Operation3) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_7();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot7) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_8();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot8) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_9();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot9) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_10();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot10) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_11();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot11) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_12();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot12) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_13();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot13) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_14();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot14) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_15();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot15) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_16();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot16) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_17();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot17) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_18();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot18) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_19();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot19) {
-        currentColor = main0;
-        currentRow = ROW_1;
-        name_20();
+    // Row 1: Load profile display (lookup by oled_menuItem)
+    for (size_t i = 0; i < sizeof(profileRow1Mappings) / sizeof(profileRow1Mappings[0]); i++) {
+        if (oled_menuItem == profileRow1Mappings[i].state) {
+            currentColor = main0;
+            currentRow = ROW_1;
+            callProfileName(profileRow1Mappings[i].nameIndex);
+            displayProfileName();
+            break;
+        }
+    }
+
+    // Row 3: Active save slot (presetSlot 'A'-'T' → index 1-20)
+    if (uopt->presetSlot >= 'A' && uopt->presetSlot <= 'T') {
+        currentColor = yellowT;
+        currentRow = ROW_3;
+        callProfileName(uopt->presetSlot - 'A' + 1);
         displayProfileName();
     }
 
-    if (uopt->presetSlot == 'A') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_1();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'B') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_2();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'C') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_3();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'D') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_4();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'E') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_5();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'F') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_6();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'G') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_7();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'H') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_8();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'I') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_9();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'J') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_10();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'K') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_11();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'L') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_12();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'M') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_13();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'N') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_14();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'O') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_15();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'P') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_16();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'Q') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_17();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'R') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_18();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'S') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_19();
-        displayProfileName();
-    } else if (uopt->presetSlot == 'T') {
-        currentColor = yellowT;
-        currentRow = ROW_3;
-        name_20();
-        displayProfileName();
-    }
-
-    if (oled_menuItem == OLED_Profile_SelectSlot) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_1();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot1) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_2();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot2) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_3();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot3) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_4();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot4) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_5();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot5) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_6();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Slot6) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_7();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_SelectPreset) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_8();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset1) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_9();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset2) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_10();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset3) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_11();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset4) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_12();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset5) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_13();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset6) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_14();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset7) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_15();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset8) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_16();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset9) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_17();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset10) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_18();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset11) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_19();
-        displayProfileName();
-    } else if (oled_menuItem == OLED_Profile_Preset12) {
-        currentColor = main0;
-        currentRow = ROW_2;
-        name_20();
-        displayProfileName();
+    // Row 2: Save profile display (lookup by oled_menuItem)
+    for (size_t i = 0; i < sizeof(profileRow2Mappings) / sizeof(profileRow2Mappings[0]); i++) {
+        if (oled_menuItem == profileRow2Mappings[i].state) {
+            currentColor = main0;
+            currentRow = ROW_2;
+            callProfileName(profileRow2Mappings[i].nameIndex);
+            displayProfileName();
+            break;
+        }
     }
 };
 void handle_Profile_SlotRow1(void)
@@ -1726,126 +1238,51 @@ void handle_InputMenu_Page2(void)
     currentRow = ROW_3;
     OSD_writeString(1, "AV");
 };
+// Video format names (shared for SV and AV mode display)
+static const char* const videoFormatNames[] = {
+    "Auto           ",  // 0
+    "PAL            ",  // 1
+    "NTSC-M         ",  // 2
+    "PAL-60         ",  // 3
+    "NTSC443        ",  // 4
+    "NTSC-J         ",  // 5
+    "PAL-N w/ p     ",  // 6
+    "PAL-M w/o p    ",  // 7
+    "PAL-M          ",  // 8
+    "PAL Cmb -N     ",  // 9
+    "PAL Cmb -N w/ p",  // 10
+    "SECAM          ",  // 11
+};
+static const size_t videoFormatCount = sizeof(videoFormatNames) / sizeof(videoFormatNames[0]);
+
 void handle_InfoDisplay(void)
 {
-    if (oled_menuItem == OLED_Input_SV) {
+    bool isSV = (oled_menuItem == OLED_Input_SV);
+    bool isAV = (oled_menuItem == OLED_Input_AV);
+
+    // Clear or show "Format:" label
+    if (isSV) {
         OSD_writeStringAtLine(4, 2, "Format:");
         OSD_writeStringAtLine(4, 3, "                      ");
-    } else if (oled_menuItem == OLED_Input_AV) {
+    } else if (isAV) {
         OSD_writeStringAtLine(4, 3, "Format:");
         OSD_writeStringAtLine(4, 2, "                      ");
     } else {
         OSD_writeStringAtLine(4, 2, "                      ");
         OSD_writeStringAtLine(4, 3, "                      ");
     }
-    switch (SVModeOption) {
-        case 0: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "Auto           ");
-        } break;
-        case 1: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL            ");
-        } break;
-        case 2: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "NTSC-M         ");
-        } break;
-        case 3: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL-60         ");
-        } break;
-        case 4: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "NTSC443        ");
-        } break;
-        case 5: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "NTSC-J          ");
-        } break;
-        case 6: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL-N w/ p      ");
-        } break;
-        case 7: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL-M w/o p    ");
-        } break;
-        case 8: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL-M          ");
-        } break;
-        case 9: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL Cmb -N     ");
-        } break;
-        case 10: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "PAL Cmb -N w/ p");
-        } break;
-        case 11: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "SECAM          ");
-        } break;
-        default: {
-            if (oled_menuItem == OLED_Input_SV)
-                OSD_writeStringAtLine(11, 2, "               ");
-        } break;
-    }
 
-    switch (AVModeOption) {
-        case 0: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "Auto           ");
-        } break;
-        case 1: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL            ");
-        } break;
-        case 2: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "NTSC-M         ");
-        } break;
-        case 3: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL-60         ");
-        } break;
-        case 4: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "NTSC443        ");
-        } break;
-        case 5: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "NTSC-J          ");
-        } break;
-        case 6: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL-N w/ p      ");
-        } break;
-        case 7: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL-M w/o p    ");
-        } break;
-        case 8: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL-M          ");
-        } break;
-        case 9: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL Cmb -N     ");
-        } break;
-        case 10: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "PAL Cmb -N w/ p");
-        } break;
-        case 11: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "SECAM          ");
-        } break;
-        default: {
-            if (oled_menuItem == OLED_Input_AV)
-                OSD_writeStringAtLine(11, 3, "               ");
-        } break;
+    // Display format name for SV or AV
+    if (isSV) {
+        const char* name = (SVModeOption < videoFormatCount)
+            ? videoFormatNames[SVModeOption]
+            : "               ";
+        OSD_writeStringAtLine(11, 2, name);
+    } else if (isAV) {
+        const char* name = (AVModeOption < videoFormatCount)
+            ? videoFormatNames[AVModeOption]
+            : "               ";
+        OSD_writeStringAtLine(11, 3, name);
     }
 };
 void handle_InfoDisplay_Source(void)
@@ -1871,22 +1308,12 @@ void handle_ADCCalib_Display(void)
     OSD_drawDashRange(3, 13, 18);  // Row 3: P13-P18
 
     if (lineOption) {
-        OSD_writeCharRow1(n2, P23, main0);
-        OSD_writeCharRow1(X, P24, main0);
+        OSD_writeStringAtRow(1, 23, "2X");
     } else {
-        OSD_writeCharRow1(n1, P23, main0);
-        OSD_writeCharRow1(X, P24, main0);
+        OSD_writeStringAtRow(1, 23, "1X");
         smoothOption = false;
     }
-    if (smoothOption) {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(N, P24, main0);
-        OSD_writeCharRow2(F, P25, blue_fill);
-    } else {
-        OSD_writeCharRow2(O, P23, main0);
-        OSD_writeCharRow2(F, P24, main0);
-        OSD_writeCharRow2(F, P25, main0);
-    }
+    OSD_writeOnOff(2, smoothOption);
 
     currentColor = main0;
     currentRow = ROW_3;

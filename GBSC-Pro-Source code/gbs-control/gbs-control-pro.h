@@ -32,12 +32,92 @@ struct userOptions;
 template <uint8_t> class TV5725;
 
 // ====================================================================================
-// Types - Menu System
+// Types - TV OSD Menu (STV9426 chip)
 // ====================================================================================
 
+// TV OSD command enum for type-safe menu dispatch (used by osd-render-pro.cpp)
+// Naming convention:
+//   - Labels handlers: show menu text on the left (e.g., OSD_CMD_COLOR_PAGE1)
+//   - Values handlers: show ON/OFF or numeric values on the right (e.g., OSD_CMD_COLOR_PAGE1_VALUES)
+typedef enum : uint8_t {
+    OSD_CMD_NONE = 0,
+
+    // Cursor Positioning
+    OSD_CMD_CURSOR_ROW1,
+    OSD_CMD_CURSOR_ROW2,
+    OSD_CMD_CURSOR_ROW3,
+
+    // Main Menu
+    OSD_CMD_MAIN_PAGE1,
+    OSD_CMD_MAIN_PAGE1_UPDATE,
+    OSD_CMD_MAIN_PAGE2,
+
+    // Output Resolution
+    OSD_CMD_OUTPUT_1080_1024_960,
+    OSD_CMD_OUTPUT_720_480,
+    OSD_CMD_OUTPUT_PASSTHROUGH,
+
+    // Screen Settings
+    OSD_CMD_SCREEN_SETTINGS,
+    OSD_CMD_SCREEN_FULLHEIGHT,
+    OSD_CMD_SCREEN_FULLHEIGHT_VALUES,
+
+    // Color Settings
+    OSD_CMD_COLOR_PAGE1,
+    OSD_CMD_COLOR_PAGE1_VALUES,
+    OSD_CMD_COLOR_PAGE2,
+    OSD_CMD_COLOR_PAGE2_VALUES,
+    OSD_CMD_COLOR_PAGE3,
+    OSD_CMD_COLOR_RGB_LABELS,
+    OSD_CMD_COLOR_RGB_VALUES,
+
+    // System Settings - SV/AV Input
+    OSD_CMD_SYS_SVINPUT_VALUES,
+
+    // System Settings - General
+    OSD_CMD_SYS_PAGE1,
+    OSD_CMD_SYS_PAGE1_VALUES,
+    OSD_CMD_SYS_PAGE2,
+    OSD_CMD_SYS_PAGE2_VALUES,
+    OSD_CMD_SYS_PAGE4,
+    OSD_CMD_SYS_PAGE4_VALUES,
+    OSD_CMD_SYS_PAGE5,
+    OSD_CMD_SYS_PAGE5_VALUES,
+
+    // Developer
+    OSD_CMD_DEV_MEMORY,
+    OSD_CMD_DEV_MEMORY_VALUES,
+    OSD_CMD_DEV_DEBUG,
+    OSD_CMD_DEV_DEBUG_VALUES,
+
+    // Restart
+    OSD_CMD_RESTART,
+
+    // Profile
+    OSD_CMD_PROFILE_SAVELOAD,
+    OSD_CMD_PROFILE_SLOTDISPLAY,
+    OSD_CMD_PROFILE_SLOTROW1,
+    OSD_CMD_PROFILE_SLOTROW2,
+    OSD_CMD_PROFILE_SLOTROW3,
+
+    // Input Menu
+    OSD_CMD_INPUT_PAGE1,
+    OSD_CMD_INPUT_PAGE2,
+    OSD_CMD_INPUT_INFO,
+    OSD_CMD_INPUT_FORMAT,
+    OSD_CMD_INPUT_SOURCE,
+
+    // Calibration
+    OSD_CMD_ADCCALIB_RUNNING,
+    OSD_CMD_ADCCALIB_DISPLAY,
+
+    OSD_CMD_COUNT
+} OsdCommand;
+
 typedef struct {
-    int key;
+    OsdCommand cmd;
     void (*handler)(void);
+    bool saveable;  // If true, saved to lastOsdCommand for refresh on signal change
 } MenuEntry;
 
 // ====================================================================================
@@ -97,14 +177,6 @@ typedef struct {
 #define InputTypeAV   6
 
 // ====================================================================================
-// Constants - OSD Characters
-// ====================================================================================
-
-#define OSD_CROSS_TOP '7'
-#define OSD_CROSS_MID '8'
-#define OSD_CROSS_BOTTOM '9'
-
-// ====================================================================================
 // Macros
 // ====================================================================================
 
@@ -112,11 +184,10 @@ typedef struct {
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
 // ====================================================================================
-// Enums - OLED Menu States
+// Types - OLED Menu States (SSD1306 display, used by ir-menu-pro.cpp)
 // ====================================================================================
 
 typedef enum {
-    // No menu / OSD closed
     OLED_None,
 
     // Main menu (top level)
@@ -142,6 +213,7 @@ typedef enum {
     OLED_OutputResolution_720,
     OLED_OutputResolution_480,
     OLED_OutputResolution_PassThrough,
+    // OLED_OutputResolution_Downscale,  // disabled
 
     // Screen Settings submenu
     OLED_ScreenSettings_Move,
@@ -176,6 +248,7 @@ typedef enum {
     OLED_SystemSettings_LockMethod,
     OLED_SystemSettings_Deinterlace,
     OLED_SystemSettings_Compatibility,
+    // OLED_SystemSettings_ComponentVGA,  // disabled
 
     // SV/AV Input Settings submenu
     OLED_SystemSettings_SVAVInputSettings,
@@ -193,6 +266,15 @@ typedef enum {
     OLED_EnableOTA,
     OLED_Restart,
     OLED_ResetDefaults,
+
+    // Developer submenu (disabled)
+    // OLED_Developer,
+    // OLED_Developer_MemoryAdjust,
+    // OLED_Developer_HSyncAdjust,
+    // OLED_Developer_HTotalAdjust,
+    // OLED_Developer_DebugView,
+    // OLED_Developer_ADCFilter,
+    // OLED_Developer_FreezeCapture,
 
     // Profile/Slot Management
     OLED_Profile,
@@ -235,10 +317,10 @@ typedef enum {
     OLED_Profile_Preset10,
     OLED_Profile_Preset11,
     OLED_Profile_Preset12,
-} OSD_Menu;
+} OLED_MenuState;
 
 // ====================================================================================
-// Sub-module Headers (after MenuEntry and OSD_Menu are defined)
+// Sub-module Headers (after MenuEntry and OLED_MenuState are defined)
 // ====================================================================================
 
 #include "ir-menu-pro.h"
@@ -289,7 +371,7 @@ extern int selectedMenuLine;
 // ====================================================================================
 
 extern char osdDisplayValue;
-extern char lastOsdCommand;
+extern OsdCommand lastOsdCommand;
 extern boolean irEnabled;
 extern int menuLine1Color;
 extern int menuLine2Color;

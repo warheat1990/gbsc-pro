@@ -116,7 +116,7 @@ int selectedMenuLine = 0;
 // ====================================================================================
 
 char osdDisplayValue = 0;
-char lastOsdCommand = 0;
+OsdCommand lastOsdCommand = OSD_CMD_NONE;
 boolean irEnabled = true;
 int menuLine1Color = 0;
 int menuLine2Color = 0;
@@ -726,7 +726,7 @@ void refreshMenusOnSignalChange()
         // Refresh OLED display
         oledClearFlag = ~0;
         // Refresh OSD TV display
-        if (lastOsdCommand != 0) {
+        if (lastOsdCommand != OSD_CMD_NONE) {
             OSD_handleCommand(lastOsdCommand);
         }
     }
