@@ -1,6 +1,6 @@
 // ====================================================================================
-// ir-menu-pro.h
-// IR Remote and Menu Navigation
+// oled-menu-pro.h
+// OLED Menu Navigation and IR Remote Handling
 //
 // This file contains declarations for:
 // - IR_handleMenuSelection(): Main menu state machine

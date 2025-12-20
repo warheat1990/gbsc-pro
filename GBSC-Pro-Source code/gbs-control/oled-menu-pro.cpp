@@ -1,13 +1,13 @@
 // ====================================================================================
-// ir-menu-pro.cpp
-// IR Remote and Menu Navigation
+// oled-menu-pro.cpp
+// OLED Menu Navigation and IR Remote Handling
 //
 // This file contains:
 // - IR_handleMenuSelection(): Main menu state machine for IR remote navigation
 // - IR_handleInput(): IR remote input handler and decoder
 // ====================================================================================
 
-#include "ir-menu-pro.h"
+#include "oled-menu-pro.h"
 #include "gbs-control-pro.h"
 #include "osd-render-pro.h"
 #include "OLEDMenuImplementation-pro.h"
@@ -65,9 +65,9 @@ static void showMenu(const char* title, const char* label) {
 
 // Highlight icon at position (1=top, 2=mid, 3=bottom)
 static void highlightIcon(uint8_t pos) {
-    OSD_writeCharRow1(icon4, P0, pos == 1 ? yellow : blue_fill);
-    OSD_writeCharRow2(icon4, P0, pos == 2 ? yellow : blue_fill);
-    OSD_writeCharRow3(icon4, P0, pos == 3 ? yellow : blue_fill);
+    OSD_writeCharRow1(icon4, P0, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharRow2(icon4, P0, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharRow3(icon4, P0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
 }
 
 // Display menu with ON/OFF toggle
@@ -484,19 +484,19 @@ static bool IR_handleScreenSettings(void)
                 case IRKeyOk:
                     oled_menuItem = OLED_ScreenSettings_MoveAdjust;
                     OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    OSD_writeCharRow1(0x3E, P5, main0);
-                    OSD_writeCharRow1(0x3E, P6, main0);
-                    OSD_writeCharRow1(0x3E, P7, main0);
-                    OSD_writeCharRow1(0x3E, P8, main0);
-                    OSD_writeCharRow1(0x3E, P9, main0);
-                    OSD_writeCharRow1(0x3E, P10, main0);
-                    OSD_writeCharRow1(0x3E, P11, main0);
-                    OSD_writeCharRow1(0x3E, P12, main0);
-                    OSD_writeCharRow1(0x3E, P13, main0);
-                    OSD_writeCharRow1(0x08, P15, yellow);
-                    OSD_writeCharRow1(0x18, P16, yellow);
-                    OSD_writeCharRow1(0x03, P14, yellow);
-                    OSD_writeCharRow1(0x13, P17, yellow);
+                    OSD_writeCharRow1(0x3E, P5, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P6, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P7, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P8, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P9, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P10, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P11, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P12, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x3E, P13, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow1(0x08, P15, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow1(0x18, P16, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow1(0x03, P14, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow1(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
                     exitToInput();
@@ -534,18 +534,18 @@ static bool IR_handleScreenSettings(void)
                 case IRKeyOk:
                     oled_menuItem = OLED_ScreenSettings_ScaleAdjust;
                     OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    OSD_writeCharRow2(0x3E, P6, main0);
-                    OSD_writeCharRow2(0x3E, P7, main0);
-                    OSD_writeCharRow2(0x3E, P8, main0);
-                    OSD_writeCharRow2(0x3E, P9, main0);
-                    OSD_writeCharRow2(0x3E, P10, main0);
-                    OSD_writeCharRow2(0x3E, P11, main0);
-                    OSD_writeCharRow2(0x3E, P12, main0);
-                    OSD_writeCharRow2(0x3E, P13, main0);
-                    OSD_writeCharRow2(0x08, P15, yellow);
-                    OSD_writeCharRow2(0x18, P16, yellow);
-                    OSD_writeCharRow2(0x03, P14, yellow);
-                    OSD_writeCharRow2(0x13, P17, yellow);
+                    OSD_writeCharRow2(0x3E, P6, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P7, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P8, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P9, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P10, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P11, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P12, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x3E, P13, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow2(0x08, P15, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow2(0x18, P16, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow2(0x03, P14, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow2(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
                     exitToInput();
@@ -583,16 +583,16 @@ static bool IR_handleScreenSettings(void)
                 case IRKeyOk:
                     oled_menuItem = OLED_ScreenSettings_BordersAdjust;
                     OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-                    OSD_writeCharRow3(0x3E, P8, main0);
-                    OSD_writeCharRow3(0x3E, P9, main0);
-                    OSD_writeCharRow3(0x3E, P10, main0);
-                    OSD_writeCharRow3(0x3E, P11, main0);
-                    OSD_writeCharRow3(0x3E, P12, main0);
-                    OSD_writeCharRow3(0x3E, P13, main0);
-                    OSD_writeCharRow3(0x08, P15, yellow);
-                    OSD_writeCharRow3(0x18, P16, yellow);
-                    OSD_writeCharRow3(0x03, P14, yellow);
-                    OSD_writeCharRow3(0x13, P17, yellow);
+                    OSD_writeCharRow3(0x3E, P8, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x3E, P9, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x3E, P10, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x3E, P11, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x3E, P12, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x3E, P13, OSD_TEXT_NORMAL);
+                    OSD_writeCharRow3(0x08, P15, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow3(0x18, P16, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow3(0x03, P14, OSD_CURSOR_ACTIVE);
+                    OSD_writeCharRow3(0x13, P17, OSD_CURSOR_ACTIVE);
                     break;
                 case IRKeyExit:
                     exitToInput();
@@ -606,19 +606,19 @@ static bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-            OSD_writeCharRow1(0x3E, P5, main0);
-            OSD_writeCharRow1(0x3E, P6, main0);
-            OSD_writeCharRow1(0x3E, P7, main0);
-            OSD_writeCharRow1(0x3E, P8, main0);
-            OSD_writeCharRow1(0x3E, P9, main0);
-            OSD_writeCharRow1(0x3E, P10, main0);
-            OSD_writeCharRow1(0x3E, P11, main0);
-            OSD_writeCharRow1(0x3E, P12, main0);
-            OSD_writeCharRow1(0x3E, P13, main0);
-            OSD_writeCharRow1(0x08, P15, yellow);
-            OSD_writeCharRow1(0x18, P16, yellow);
-            OSD_writeCharRow1(0x03, P14, yellow);
-            OSD_writeCharRow1(0x13, P17, yellow);
+            OSD_writeCharRow1(0x3E, P5, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P6, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P7, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P8, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P9, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P10, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P11, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P12, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x3E, P13, OSD_TEXT_NORMAL);
+            OSD_writeCharRow1(0x08, P15, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow1(0x18, P16, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow1(0x03, P14, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow1(0x13, P17, OSD_CURSOR_ACTIVE);
         }
 
         if (irDecode()) {
@@ -639,7 +639,7 @@ static bool IR_handleScreenSettings(void)
                     if (GBS::IF_HBIN_SP::read() >= 10) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_1;
                             writeChar(l, _20);
                             writeChar(i, _21);
@@ -649,7 +649,7 @@ static bool IR_handleScreenSettings(void)
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_1;
                     writeChar(l, _20);
                     writeChar(i, _21);
@@ -664,7 +664,7 @@ static bool IR_handleScreenSettings(void)
                     if (GBS::IF_HBIN_SP::read() < 0x150) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_1;
                             writeChar(l, _20);
                             writeChar(i, _21);
@@ -674,7 +674,7 @@ static bool IR_handleScreenSettings(void)
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_1;
                     writeChar(l, _20);
                     writeChar(i, _21);
@@ -703,18 +703,18 @@ static bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-            OSD_writeCharRow2(0x3E, P6, main0);
-            OSD_writeCharRow2(0x3E, P7, main0);
-            OSD_writeCharRow2(0x3E, P8, main0);
-            OSD_writeCharRow2(0x3E, P9, main0);
-            OSD_writeCharRow2(0x3E, P10, main0);
-            OSD_writeCharRow2(0x3E, P11, main0);
-            OSD_writeCharRow2(0x3E, P12, main0);
-            OSD_writeCharRow2(0x3E, P13, main0);
-            OSD_writeCharRow2(0x08, P15, yellow);
-            OSD_writeCharRow2(0x18, P16, yellow);
-            OSD_writeCharRow2(0x03, P14, yellow);
-            OSD_writeCharRow2(0x13, P17, yellow);
+            OSD_writeCharRow2(0x3E, P6, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P7, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P8, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P9, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P10, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P11, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P12, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x3E, P13, OSD_TEXT_NORMAL);
+            OSD_writeCharRow2(0x08, P15, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(0x18, P16, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(0x03, P14, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(0x13, P17, OSD_CURSOR_ACTIVE);
         }
 
         if (irDecode()) {
@@ -734,13 +734,13 @@ static bool IR_handleScreenSettings(void)
                     serialCommand = 'h';
                     if (GBS::VDS_HSCALE::read() == 1023) {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_2;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_2;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -750,13 +750,13 @@ static bool IR_handleScreenSettings(void)
                     serialCommand = 'z';
                     if (GBS::VDS_HSCALE::read() <= 256) {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_2;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_2;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -766,13 +766,13 @@ static bool IR_handleScreenSettings(void)
                     serialCommand = '5';
                     if (GBS::VDS_VSCALE::read() == 1023) {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_2;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_2;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -782,13 +782,13 @@ static bool IR_handleScreenSettings(void)
                     serialCommand = '4';
                     if (GBS::VDS_VSCALE::read() <= 256) {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_2;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_2;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -805,16 +805,16 @@ static bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
         if (results.value == IRKeyOk) {
             OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
-            OSD_writeCharRow3(0x3E, P8, main0);
-            OSD_writeCharRow3(0x3E, P9, main0);
-            OSD_writeCharRow3(0x3E, P10, main0);
-            OSD_writeCharRow3(0x3E, P11, main0);
-            OSD_writeCharRow3(0x3E, P12, main0);
-            OSD_writeCharRow3(0x3E, P13, main0);
-            OSD_writeCharRow3(0x08, P15, yellow);
-            OSD_writeCharRow3(0x18, P16, yellow);
-            OSD_writeCharRow3(0x03, P14, yellow);
-            OSD_writeCharRow3(0x13, P17, yellow);
+            OSD_writeCharRow3(0x3E, P8, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x3E, P9, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x3E, P10, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x3E, P11, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x3E, P12, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x3E, P13, OSD_TEXT_NORMAL);
+            OSD_writeCharRow3(0x08, P15, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow3(0x18, P16, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow3(0x03, P14, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow3(0x13, P17, OSD_CURSOR_ACTIVE);
         }
 
         if (irDecode()) {
@@ -834,13 +834,13 @@ static bool IR_handleScreenSettings(void)
                     if ((GBS::VDS_DIS_HB_ST::read() > 4) && (GBS::VDS_DIS_HB_SP::read() < (GBS::VDS_HSYNC_RST::read() - 4))) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_3;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_3;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -850,13 +850,13 @@ static bool IR_handleScreenSettings(void)
                     if ((GBS::VDS_DIS_HB_ST::read() < (GBS::VDS_HSYNC_RST::read() - 4)) && (GBS::VDS_DIS_HB_SP::read() > 4)) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_3;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_3;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -866,13 +866,13 @@ static bool IR_handleScreenSettings(void)
                     if ((GBS::VDS_DIS_VB_ST::read() > 6) && (GBS::VDS_DIS_VB_SP::read() < (GBS::VDS_VSYNC_RST::read() - 4))) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_3;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_3;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -882,13 +882,13 @@ static bool IR_handleScreenSettings(void)
                     if ((GBS::VDS_DIS_VB_ST::read() < (GBS::VDS_VSYNC_RST::read() - 4)) && (GBS::VDS_DIS_VB_SP::read() > 6)) {
                     } else {
                         for (int p = 0; p <= 400; p++) {
-                            currentColor = red;
+                            currentColor = OSD_TEXT_DISABLED;
                             currentRow = ROW_3;
                             OSD_writeString(20, "limit");
                             writeChar(0x0d, _25);
                         }
                     }
-                    currentColor = blue_fill;
+                    currentColor = OSD_BACKGROUND;
                     currentRow = ROW_3;
                     OSD_writeString(20, "limit");
                     writeChar(0x0d, _25);
@@ -2864,9 +2864,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_SaveConfirm) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -2904,9 +2904,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Save) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -2944,9 +2944,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Load) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -2984,9 +2984,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Operation1) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3024,9 +3024,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Operation2) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3064,9 +3064,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Operation3) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3104,9 +3104,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_SelectSlot) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3138,8 +3138,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3152,9 +3152,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot1) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3186,8 +3186,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3200,9 +3200,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot2) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3234,8 +3234,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3248,9 +3248,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot3) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3282,8 +3282,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3296,9 +3296,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot4) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3330,8 +3330,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3344,9 +3344,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot5) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3378,8 +3378,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3392,9 +3392,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot6) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3426,8 +3426,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -3440,9 +3440,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot7) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3480,9 +3480,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot8) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3520,9 +3520,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot9) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3560,9 +3560,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot10) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3600,9 +3600,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot11) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3640,9 +3640,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot12) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3680,9 +3680,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot13) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3720,9 +3720,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot14) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3760,9 +3760,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot15) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3800,9 +3800,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot16) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3840,9 +3840,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot17) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3880,9 +3880,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot18) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3920,9 +3920,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Slot19) {
         if (results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, yellow);
-            OSD_writeCharRow2(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
+            OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
+            OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
             OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
         }
 
@@ -3960,9 +3960,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_SelectPreset) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -3994,8 +3994,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4008,9 +4008,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset1) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4042,8 +4042,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4056,9 +4056,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset2) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4090,8 +4090,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4104,9 +4104,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset3) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4138,8 +4138,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4152,9 +4152,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset4) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4186,8 +4186,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4200,9 +4200,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset5) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4234,8 +4234,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4248,9 +4248,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset6) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4282,8 +4282,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4296,9 +4296,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset7) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4330,8 +4330,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4344,9 +4344,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset8) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4378,8 +4378,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4392,9 +4392,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset9) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4426,8 +4426,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4440,9 +4440,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset10) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4474,8 +4474,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4488,9 +4488,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset11) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4522,8 +4522,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4536,9 +4536,9 @@ static bool IR_handleProfileManagement()
 
     else if (oled_menuItem == OLED_Profile_Preset12) {
         if (results.value == IRKeyDown || results.value == IRKeyUp) {
-            OSD_writeCharRow1(icon4, P0, blue_fill);
-            OSD_writeCharRow3(icon4, P0, blue_fill);
-            OSD_writeCharRow2(icon4, P0, yellow);
+            OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+            OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
         }
 
         OSD_handleCommand(OSD_CMD_PROFILE_SLOTDISPLAY);
@@ -4570,8 +4570,8 @@ static bool IR_handleProfileManagement()
                         OSD_writeCharRow2(O, P25, 0x14);
                         OSD_writeCharRow2(K, P26, 0x14);
                     }
-                    OSD_writeCharRow2(O, P25, blue_fill);
-                    OSD_writeCharRow2(K, P26, blue_fill);
+                    OSD_writeCharRow2(O, P25, OSD_BACKGROUND);
+                    OSD_writeCharRow2(K, P26, OSD_BACKGROUND);
                     break;
                 case IRKeyExit:
                     exitMenu();
@@ -4854,17 +4854,17 @@ static bool IR_handleMiscSettings()
         display.display();
 
         osdDisplayValue = 50 - volume;
-        currentColor = yellowT;
+        currentColor = OSD_TEXT_SELECTED;
         currentRow = ROW_1;
         OSD_writeString(1, "Line input volume");
-        currentColor = main0;
+        currentColor = OSD_TEXT_NORMAL;
         digitPos1 = _21;
         digitPos2 = _20;
         digitPos3 = 0x3D;
-        OSD_writeCharRow1(o, _19, blue_fill);
-        OSD_writeCharRow1(o, _22, blue_fill);
-        OSD_writeCharRow1(o, _23, blue_fill);
-        OSD_writeCharRow1(o, _24, blue_fill);
+        OSD_writeCharRow1(o, _19, OSD_BACKGROUND);
+        OSD_writeCharRow1(o, _22, OSD_BACKGROUND);
+        OSD_writeCharRow1(o, _23, OSD_BACKGROUND);
+        OSD_writeCharRow1(o, _24, OSD_BACKGROUND);
         displayNumber3Digit(osdDisplayValue);
 
         if (irDecode()) {
@@ -4934,146 +4934,146 @@ static bool IR_handleInfoDisplay()
     uint8_t currentInput = GBS::ADC_INPUT_SEL::read();
     rto->presetID = GBS::GBS_PRESET_ID::read();
 
-    currentColor = yellow;
+    currentColor = OSD_CURSOR_ACTIVE;
     currentRow = ROW_1;
     OSD_writeString(0, "Info:");
-    currentColor = main0;
+    currentColor = OSD_TEXT_NORMAL;
     OSD_writeString(26, "Hz");
 
     if (rto->presetID == 0x01 || rto->presetID == 0x11) {
-        OSD_writeCharRow1(n1, P6, main0);
-        OSD_writeCharRow1(n2, P7, main0);
-        OSD_writeCharRow1(n8, P8, main0);
-        OSD_writeCharRow1(n0, P9, main0);
-        OSD_writeCharRow1(x, P10, main0);
-        OSD_writeCharRow1(n9, P11, main0);
-        OSD_writeCharRow1(n6, P12, main0);
-        OSD_writeCharRow1(n0, P13, main0);
-        OSD_writeCharRow1(n4, P14, blue_fill);
+        OSD_writeCharRow1(n1, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n9, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n6, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P13, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n4, P14, OSD_BACKGROUND);
     } else if (rto->presetID == 0x02 || rto->presetID == 0x12) {
-        OSD_writeCharRow1(n1, P6, main0);
-        OSD_writeCharRow1(n2, P7, main0);
-        OSD_writeCharRow1(n8, P8, main0);
-        OSD_writeCharRow1(n0, P9, main0);
-        OSD_writeCharRow1(x, P10, main0);
-        OSD_writeCharRow1(n1, P11, main0);
-        OSD_writeCharRow1(n0, P12, main0);
-        OSD_writeCharRow1(n2, P13, main0);
-        OSD_writeCharRow1(n4, P14, main0);
+        OSD_writeCharRow1(n1, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n1, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P13, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n4, P14, OSD_TEXT_NORMAL);
     } else if (rto->presetID == 0x03 || rto->presetID == 0x13) {
-        OSD_writeCharRow1(n1, P6, main0);
-        OSD_writeCharRow1(n2, P7, main0);
-        OSD_writeCharRow1(n8, P8, main0);
-        OSD_writeCharRow1(n0, P9, main0);
-        OSD_writeCharRow1(x, P10, main0);
-        OSD_writeCharRow1(n7, P11, main0);
-        OSD_writeCharRow1(n2, P12, main0);
-        OSD_writeCharRow1(n0, P13, main0);
-        OSD_writeCharRow1(n4, P14, blue_fill);
+        OSD_writeCharRow1(n1, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n7, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P13, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n4, P14, OSD_BACKGROUND);
     } else if (rto->presetID == 0x05 || rto->presetID == 0x15) {
-        OSD_writeCharRow1(n1, P6, main0);
-        OSD_writeCharRow1(n9, P7, main0);
-        OSD_writeCharRow1(n2, P8, main0);
-        OSD_writeCharRow1(n0, P9, main0);
-        OSD_writeCharRow1(x, P10, main0);
-        OSD_writeCharRow1(n1, P11, main0);
-        OSD_writeCharRow1(n0, P12, main0);
-        OSD_writeCharRow1(n8, P13, main0);
-        OSD_writeCharRow1(n0, P14, main0);
+        OSD_writeCharRow1(n1, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n9, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n1, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P13, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P14, OSD_TEXT_NORMAL);
     } else if (rto->presetID == 0x06 || rto->presetID == 0x16) {
-        OSD_writeCharRow1(D, P6, main0);
-        OSD_writeCharRow1(o, P7, main0);
-        OSD_writeCharRow1(w, P8, main0);
-        OSD_writeCharRow1(n, P9, main0);
-        OSD_writeCharRow1(s, P10, main0);
-        OSD_writeCharRow1(c, P11, main0);
-        OSD_writeCharRow1(a, P12, main0);
-        OSD_writeCharRow1(l, P13, main0);
-        OSD_writeCharRow1(e, P14, main0);
+        OSD_writeCharRow1(D, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(o, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(w, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(s, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(c, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(a, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(l, P13, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(e, P14, OSD_TEXT_NORMAL);
     } else if (rto->presetID == 0x04) {
-        OSD_writeCharRow1(n7, P6, main0);
-        OSD_writeCharRow1(n2, P7, main0);
-        OSD_writeCharRow1(n0, P8, main0);
-        OSD_writeCharRow1(x, P9, main0);
-        OSD_writeCharRow1(n4, P10, main0);
-        OSD_writeCharRow1(n8, P11, main0);
-        OSD_writeCharRow1(n0, P12, main0);
-        OSD_writeCharRow1(n8, P13, blue_fill);
-        OSD_writeCharRow1(n0, P14, blue_fill);
+        OSD_writeCharRow1(n7, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n2, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n4, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n0, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P13, OSD_BACKGROUND);
+        OSD_writeCharRow1(n0, P14, OSD_BACKGROUND);
     } else if (rto->presetID == 0x14) {
-        OSD_writeCharRow1(n7, P6, main0);
-        OSD_writeCharRow1(n6, P7, main0);
-        OSD_writeCharRow1(n8, P8, main0);
-        OSD_writeCharRow1(x, P9, main0);
-        OSD_writeCharRow1(n5, P10, main0);
-        OSD_writeCharRow1(n7, P11, main0);
-        OSD_writeCharRow1(n6, P12, main0);
-        OSD_writeCharRow1(n8, P13, blue_fill);
-        OSD_writeCharRow1(n0, P14, blue_fill);
+        OSD_writeCharRow1(n7, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n6, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(x, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n5, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n7, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n6, P12, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n8, P13, OSD_BACKGROUND);
+        OSD_writeCharRow1(n0, P14, OSD_BACKGROUND);
     } else {
-        OSD_writeCharRow1(B, P6, main0);
-        OSD_writeCharRow1(y, P7, main0);
-        OSD_writeCharRow1(p, P8, main0);
-        OSD_writeCharRow1(a, P9, main0);
-        OSD_writeCharRow1(s, P10, main0);
-        OSD_writeCharRow1(s, P11, main0);
-        OSD_writeCharRow1(n6, P12, blue_fill);
-        OSD_writeCharRow1(n8, P13, blue_fill);
-        OSD_writeCharRow1(n0, P14, blue_fill);
+        OSD_writeCharRow1(B, P6, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(y, P7, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(p, P8, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(a, P9, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(s, P10, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(s, P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(n6, P12, OSD_BACKGROUND);
+        OSD_writeCharRow1(n8, P13, OSD_BACKGROUND);
+        OSD_writeCharRow1(n0, P14, OSD_BACKGROUND);
     }
 
     if (inputType == InputTypeRGBs) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(R, P18, main0);
-        OSD_writeCharRow1(G, P19, main0);
-        OSD_writeCharRow1(B, P20, main0);
-        OSD_writeCharRow1(s, P21, main0);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(R, P18, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(G, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(s, P21, OSD_TEXT_NORMAL);
     } else if (inputType == InputTypeRGsB) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(R, P18, main0);
-        OSD_writeCharRow1(G, P19, main0);
-        OSD_writeCharRow1(s, P20, main0);
-        OSD_writeCharRow1(B, P21, main0);
-        OSD_writeCharRow1(B, P22, blue_fill);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(R, P18, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(G, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(s, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P21, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P22, OSD_BACKGROUND);
     } else if (inputType == InputTypeVGA) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(V, P18, main0);
-        OSD_writeCharRow1(G, P19, main0);
-        OSD_writeCharRow1(A, P20, main0);
-        OSD_writeCharRow1(B, P21, blue_fill);
-        OSD_writeCharRow1(B, P22, blue_fill);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(V, P18, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(G, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(A, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P21, OSD_BACKGROUND);
+        OSD_writeCharRow1(B, P22, OSD_BACKGROUND);
     } else if (inputType == InputTypeYUV) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(Y, P18, main0);
-        OSD_writeCharRow1(P, P19, main0);
-        OSD_writeCharRow1(B, P20, main0);
-        OSD_writeCharRow1(P, P21, main0);
-        OSD_writeCharRow1(R, P22, main0);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(Y, P18, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(P, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(P, P21, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(R, P22, OSD_TEXT_NORMAL);
     } else if (inputType == InputTypeSV) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(Y, P18, blue_fill);
-        OSD_writeCharRow1(S, P19, main0);
-        OSD_writeCharRow1(V, P20, main0);
-        OSD_writeCharRow1(B, P21, blue_fill);
-        OSD_writeCharRow1(B, P22, blue_fill);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(Y, P18, OSD_BACKGROUND);
+        OSD_writeCharRow1(S, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(V, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P21, OSD_BACKGROUND);
+        OSD_writeCharRow1(B, P22, OSD_BACKGROUND);
     } else if (inputType == InputTypeAV) {
-        OSD_writeCharRow1(r, P17, blue_fill);
-        OSD_writeCharRow1(Y, P18, blue_fill);
-        OSD_writeCharRow1(A, P19, main0);
-        OSD_writeCharRow1(V, P20, main0);
-        OSD_writeCharRow1(B, P21, blue_fill);
-        OSD_writeCharRow1(B, P22, blue_fill);
+        OSD_writeCharRow1(r, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(Y, P18, OSD_BACKGROUND);
+        OSD_writeCharRow1(A, P19, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(V, P20, OSD_TEXT_NORMAL);
+        OSD_writeCharRow1(B, P21, OSD_BACKGROUND);
+        OSD_writeCharRow1(B, P22, OSD_BACKGROUND);
     } else {
-        OSD_writeCharRow1(Y, P17, blue_fill);
-        OSD_writeCharRow1(P, P18, blue_fill);
-        OSD_writeCharRow1(b, P19, blue_fill);
-        OSD_writeCharRow1(P, P20, blue_fill);
-        OSD_writeCharRow1(r, P21, blue_fill);
-        OSD_writeCharRow1(B, P22, blue_fill);
+        OSD_writeCharRow1(Y, P17, OSD_BACKGROUND);
+        OSD_writeCharRow1(P, P18, OSD_BACKGROUND);
+        OSD_writeCharRow1(b, P19, OSD_BACKGROUND);
+        OSD_writeCharRow1(P, P20, OSD_BACKGROUND);
+        OSD_writeCharRow1(r, P21, OSD_BACKGROUND);
+        OSD_writeCharRow1(B, P22, OSD_BACKGROUND);
     }
 
     osdDisplayValue = ofr;
-    currentColor = main0;
+    currentColor = OSD_TEXT_NORMAL;
     currentRow = ROW_1;
     digitPos1 = _25;
     digitPos2 = _24;
@@ -5082,19 +5082,19 @@ static bool IR_handleInfoDisplay()
 
     clearRowContent(ROW_2, 31, 0);
 
-    currentColor = yellow;
+    currentColor = OSD_CURSOR_ACTIVE;
     currentRow = ROW_2;
 
     OSD_writeString(0, "Current:");
 
-    currentColor = main0;
+    currentColor = OSD_TEXT_NORMAL;
     currentRow = ROW_2;
 
     OSD_writeString(0xFF, " ");
     if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
         OSD_writeString(0xFF, "No Input");
     } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
-        OSD_writeCharRow2(B, P16, blue_fill);
+        OSD_writeCharRow2(B, P16, OSD_BACKGROUND);
         OSD_writeString(0xFF, "RGB ");
         vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         if (vsyncActive) {
@@ -5103,11 +5103,11 @@ static bool IR_handleInfoDisplay()
                 OSD_writeString(0xFF, "HV   ");
             }
         } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
-            OSD_writeCharRow2(B, P11, blue_fill);
+            OSD_writeCharRow2(B, P11, OSD_BACKGROUND);
             OSD_writeString(0x09, "No Input");
         }
     } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
-        OSD_writeCharRow2(B, P16, blue_fill);
+        OSD_writeCharRow2(B, P16, OSD_BACKGROUND);
         if (inputType == InputTypeYUV)
             OSD_writeString(0xFF, "  YPBPR  ");
         else if (inputType == InputTypeSV)
@@ -5228,12 +5228,12 @@ static void IR_updateResolutionCountdown(void)
 
     // Display countdown timer
     if (secondsRemaining >= 10) {
-        OSD_writeCharRow2((secondsRemaining / 10) + '0', P11, main0);
-        OSD_writeCharRow2((secondsRemaining % 10) + '0', P12, main0);
+        OSD_writeCharRow2((secondsRemaining / 10) + '0', P11, OSD_TEXT_NORMAL);
+        OSD_writeCharRow2((secondsRemaining % 10) + '0', P12, OSD_TEXT_NORMAL);
         OSD_writeString(14, " s ");
     } else {
-        OSD_writeCharRow2('0', P12, blue_fill);
-        OSD_writeCharRow2(secondsRemaining + '0', P11, main0);
+        OSD_writeCharRow2('0', P12, OSD_BACKGROUND);
+        OSD_writeCharRow2(secondsRemaining + '0', P11, OSD_TEXT_NORMAL);
         OSD_writeString(13, " s ");
     }
 
@@ -5313,14 +5313,14 @@ static void IR_displayMuteStatus(bool muted)
     const char* statusText = muted ? "MUTE ON" : "MUTE OFF";
 
     NEW_OLED_MENU = false;
-    fillRowBackground(ROW_1, _9, blue_fill);
+    fillRowBackground(ROW_1, _9, OSD_BACKGROUND);
 
     // Display on OSD
     for (int i = 0; i <= 800; i++) {
-        currentColor = yellowT;
+        currentColor = OSD_TEXT_SELECTED;
         currentRow = ROW_1;
         writeChar(M, _1), writeChar(U, _2), writeChar(T, _3), writeChar(E, _4);
-        currentColor = main0;
+        currentColor = OSD_TEXT_NORMAL;
         if (muted) {
             writeChar(O, _6), writeChar(N, _7);
         } else {
@@ -5339,8 +5339,8 @@ static void IR_displayMuteStatus(bool muted)
     }
 
     oled_menuItem = OLED_None;
-    fillRowBackground(ROW_1, _9, blue_fill);
-    OSD_Cut_0x01();
+    fillRowBackground(ROW_1, _9, OSD_BACKGROUND);
+    OSD_clearRow1Colors();
     OSD_init();
 }
 
@@ -5373,8 +5373,8 @@ static void IR_handleMenuKeyPress(void)
 
     if (noSignal) {
         // Show info display when no signal
-        fillRowBackground(ROW_1, _27, blue_fill);
-        fillRowBackground(ROW_2, _27, blue_fill);
+        fillRowBackground(ROW_1, _27, OSD_BACKGROUND);
+        fillRowBackground(ROW_2, _27, OSD_BACKGROUND);
         oled_menuItem = OLED_Info_Display;
 
         // Save horizontal blank values before modifying
@@ -5413,8 +5413,8 @@ static void IR_handleInfoKeyPress(void)
 {
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
-    fillRowBackground(ROW_1, _27, blue_fill);
-    fillRowBackground(ROW_2, _27, blue_fill);
+    fillRowBackground(ROW_1, _27, OSD_BACKGROUND);
+    fillRowBackground(ROW_2, _27, OSD_BACKGROUND);
     oled_menuItem = OLED_Info_Display;
 }
 
@@ -5423,7 +5423,7 @@ static void IR_handleVolumeKeyPress(void)
 {
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
-    fillRowBackground(ROW_1, _25, blue_fill);
+    fillRowBackground(ROW_1, _25, OSD_BACKGROUND);
     oled_menuItem = OLED_Volume_Adjust;
 }
 

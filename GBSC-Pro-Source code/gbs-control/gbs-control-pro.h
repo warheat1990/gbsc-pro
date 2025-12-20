@@ -11,7 +11,7 @@
 //
 // Code organization:
 // - gbs-control-pro.cpp: Core functions, global variables
-// - ir-menu-pro.cpp: IR remote handling and menu navigation
+// - oled-menu-pro.cpp: OLED menu navigation and IR remote handling
 // - osd-render-pro.cpp: TV OSD menu rendering
 // - OLEDMenuImplementation-pro.cpp: OLED display and ADV communication
 // ====================================================================================
@@ -323,7 +323,7 @@ typedef enum {
 // Sub-module Headers (after MenuEntry and OLED_MenuState are defined)
 // ====================================================================================
 
-#include "ir-menu-pro.h"
+#include "oled-menu-pro.h"
 #include "osd-render-pro.h"
 
 // ====================================================================================

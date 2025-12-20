@@ -141,18 +141,69 @@ static const uint8_t _0 = 0x01, _1 = 0x03, _2 = 0x05, _3 = 0x07, _4 = 0x09,
                      _26 = 0x35, _27 = 0x37;
 
 // ====================================================================================
-// OSD Colors
+// OSD Colors - Attribute Byte Format (LSB of character code pair)
+// ====================================================================================
+// Datasheet format: BK3 | BK2 | BK1 | BK0 | FL | RF | GF | BF
+//
+// Bit 7:   BK3 - Shadow enable (1=shadow extends 1 pixel right/down)
+// Bit 6-4: BK[2:0] - Background RGB
+// Bit 3:   FL - Flash enable
+// Bit 2-0: RF/GF/BF - Foreground RGB
+//
+// RGB color indices (0-7):
+//   000 = Black, 001 = Blue, 010 = Green, 011 = Cyan
+//   100 = Red,   101 = Magenta, 110 = Yellow, 111 = White
+
+// ====================================================================================
+// OSD Theme System - Color Building Blocks
 // ====================================================================================
 
-static const uint8_t blue = 0x12;       // Blue text
-static const uint8_t yellow = 0x60;     // Yellow text
-static const uint8_t yellowT = 0x16;    // Yellow transparent
-static const uint8_t main0 = 0x17;      // Main color (white/default)
-static const uint8_t blue_fill = 0x11;  // Blue fill/background
-static const uint8_t clearP = 0xC0;     // Clear position (transparent)
-static const uint8_t blue_dark = 0x13;  // Dark blue
-static const uint8_t red = 0x14;        // Red text
-static const uint8_t pink = 0x15;       // Pink text
+// Foreground color indices (bits 2-0)
+#define OSD_FG_BLACK   0
+#define OSD_FG_BLUE    1
+#define OSD_FG_GREEN   2
+#define OSD_FG_CYAN    3
+#define OSD_FG_RED     4
+#define OSD_FG_MAGENTA 5
+#define OSD_FG_YELLOW  6
+#define OSD_FG_WHITE   7
+
+// Background color indices (bits 6-4, pre-shifted)
+#define OSD_BG_BLACK   0x00
+#define OSD_BG_BLUE    0x10
+#define OSD_BG_GREEN   0x20
+#define OSD_BG_CYAN    0x30
+#define OSD_BG_RED     0x40
+#define OSD_BG_MAGENTA 0x50
+#define OSD_BG_YELLOW  0x60
+#define OSD_BG_WHITE   0x70
+
+// Modifier flags
+#define OSD_SHADOW     0x80  // Bit 7: shadow effect
+#define OSD_FLASH      0x08  // Bit 3: flashing effect
+
+// Macro to combine foreground + background into color byte
+#define OSD_COLOR(fg, bg) ((bg) | (fg))
+
+// ====================================================================================
+// OSD Theme - Semantic Color Variables
+// ====================================================================================
+// These variables define the color scheme for all OSD elements.
+// They can be modified at runtime to change the theme.
+
+// Text colors
+static uint8_t OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);   // 0x17 - Normal menu text
+static uint8_t OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLUE);  // 0x16 - Selected/highlighted item
+static uint8_t OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLUE);     // 0x14 - Unavailable option
+
+// Navigation elements
+static uint8_t OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLUE);   // 0x12 - Page numbers, nav arrows
+static uint8_t OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW); // 0x60 - Active row cursor
+static uint8_t OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11 - Inactive row cursor
+
+// Background
+static uint8_t OSD_BACKGROUND       = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11 - Menu background fill
+static uint8_t OSD_HEADER           = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW); // 0x60 - Section headers
 
 // ====================================================================================
 // OSD Row Identifiers
@@ -182,9 +233,6 @@ inline void OSD_sendCommand(char reg, char bank, char value)
     Wire.write(value);     // Value to write
     Wire.endTransmission();
 }
-
-// Legacy alias
-#define OSD_parameters OSD_sendCommand
 
 // ====================================================================================
 // OSD Initialization
@@ -264,14 +312,6 @@ inline void OSD_clearRow3Colors()
     }
 }
 
-// Legacy aliases
-#define OSD_symbols_1 OSD_clearRow1Symbols
-#define OSD_symbols_2 OSD_clearRow2Symbols
-#define OSD_symbols_3 OSD_clearRow3Symbols
-#define OSD_Cut_0x01 OSD_clearRow1Colors
-#define OSD_Cut_0x02 OSD_clearRow2Colors
-#define OSD_Cut_0x03 OSD_clearRow3Colors
-
 // ====================================================================================
 // Character Write Functions (write char + color at position)
 // ====================================================================================
@@ -279,7 +319,7 @@ inline void OSD_clearRow3Colors()
 // Write character with color on row 1
 // charCode: ASCII character code (n0-n9, A-Z, a-z, etc.)
 // pos: horizontal position (P0-P27)
-// color: color code (main0, yellow, blue, etc.)
+// color: color code (OSD_TEXT_NORMAL, OSD_TEXT_SELECTED, etc.)
 inline void OSD_writeCharRow1(volatile int charCode, volatile int pos, volatile int color)
 {
     OSD_sendCommand(pos, 0x00, charCode);      // Write character
@@ -341,7 +381,7 @@ inline void OSD_clearAll()
 }
 
 // ====================================================================================
-// Row Content Clear (fills positions with 'o' character in blue_fill color)
+// Row Content Clear (fills positions with 'o' character in background color)
 // ====================================================================================
 
 // Clear row content from startPos to endPos (1-28 range)
@@ -351,7 +391,7 @@ inline void OSD_clearAll()
 inline void clearRowContent(char row, char endPos, char startPos)
 {
     currentRow = row;
-    currentColor = blue_fill;
+    currentColor = OSD_BACKGROUND;
     // Position mapping: case N writes to position _(N-1)
     // i.e., case 1 -> _0, case 2 -> _1, etc.
     for (byte pos = startPos; pos < endPos; ++pos) {
@@ -360,9 +400,6 @@ inline void clearRowContent(char row, char endPos, char startPos)
         writeChar(o, osdPos);
     }
 }
-
-// Legacy alias (Russian: очистка строки = clear row)
-#define clean_up clearRowContent
 
 // ====================================================================================
 // Background Fill
@@ -380,15 +417,12 @@ inline void fillRowBackground(char row, char length, char color)
     }
 }
 
-// Legacy alias
-#define background_up fillRowBackground
-
-// Fill all 3 rows with blue background
+// Fill all 3 rows with background color
 inline void OSD_fillBackground()
 {
-    fillRowBackground(ROW_1, _27, blue_fill);
-    fillRowBackground(ROW_2, _27, blue_fill);
-    fillRowBackground(ROW_3, _27, blue_fill);
+    fillRowBackground(ROW_1, _27, OSD_BACKGROUND);
+    fillRowBackground(ROW_2, _27, OSD_BACKGROUND);
+    fillRowBackground(ROW_3, _27, OSD_BACKGROUND);
 }
 
 // ====================================================================================
@@ -418,14 +452,14 @@ inline void displayNumber3Digit(byte value)
 // ====================================================================================
 
 // Display (255 - value) as 3 decimal digits at fixed positions P19/P20/P21 on row 1
-// Always uses main0 color
+// Always uses OSD_TEXT_NORMAL color
 // Example: displayNumber3DigitInverted(0) displays "255", displayNumber3DigitInverted(255) displays "000"
 inline void displayNumber3DigitInverted(byte value)
 {
     byte inverted = 255 - value;
-    OSD_writeCharRow1(digitChars[inverted % 10], P21, main0);         // units
-    OSD_writeCharRow1(digitChars[(inverted / 10) % 10], P20, main0);  // tens
-    OSD_writeCharRow1(digitChars[inverted / 100], P19, main0);        // hundreds
+    OSD_writeCharRow1(digitChars[inverted % 10], P21, OSD_TEXT_NORMAL);         // units
+    OSD_writeCharRow1(digitChars[(inverted / 10) % 10], P20, OSD_TEXT_NORMAL);  // tens
+    OSD_writeCharRow1(digitChars[inverted / 100], P19, OSD_TEXT_NORMAL);        // hundreds
 }
 
 #endif
