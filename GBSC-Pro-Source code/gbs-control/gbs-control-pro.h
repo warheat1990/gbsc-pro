@@ -136,6 +136,19 @@ typedef struct {
 #define MODEOPTION_MIN 0
 #define STEP 1
 
+// Video format names lookup table (for SV/AV mode display)
+static const char* const videoFormatNames[] = {
+    "Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J",
+    "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N",
+    "PAL Cmb -N w/ p", "SECAM"
+};
+
+// Get video format name by index (0-11), returns "Unknown" if out of range
+inline const char* getVideoFormatName(uint8_t index) {
+    if (index < MODEOPTION_MAX) return videoFormatNames[index];
+    return "Unknown";
+}
+
 // ====================================================================================
 // Constants - Video Format
 // ====================================================================================

@@ -3,7 +3,6 @@
 // TV OSD Menu Rendering and Handlers
 //
 // This file contains declarations for:
-// - OSD_writeChar(), OSD_writeString(), OSD_writeStringAtLine(): TV OSD display helpers
 // - menuTable[]: Command dispatch table
 // - OSD_handleCommand(): Menu command dispatcher
 // - handle_X(): Individual menu screen rendering functions
@@ -14,14 +13,6 @@
 #pragma once
 
 #include <Arduino.h>
-
-// ====================================================================================
-// Function Declarations - TV OSD Display Helpers
-// ====================================================================================
-
-void OSD_writeChar(const int T, const char C);
-void OSD_writeString(uint8_t start, const char str[]);
-void OSD_writeStringAtLine(int startPos, int row, const char *str);
 
 // ====================================================================================
 // External Variables - Menu Table

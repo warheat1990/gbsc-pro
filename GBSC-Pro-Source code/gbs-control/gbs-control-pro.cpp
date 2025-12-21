@@ -60,15 +60,15 @@ extern float getOutputFrameRate();
 // ====================================================================================
 
 // Current color for OSD character rendering
-char currentColor;
+uint8_t currentColor;
 
 // Current OSD row (ROW_1=0x00, ROW_2=0x02, ROW_3=0x03)
-char currentRow;
+uint8_t currentRow;
 
 // Digit display positions for 3-digit numbers (ones, tens, hundreds)
-char digitPos1;  // Ones position
-char digitPos2;  // Tens position
-char digitPos3;  // Hundreds position
+uint8_t digitPos1;  // Ones position
+uint8_t digitPos2;  // Tens position
+uint8_t digitPos3;  // Hundreds position
 
 // Profile name characters (9 chars, default '.' = 0x2E)
 char profileChars[9] = {0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E};
