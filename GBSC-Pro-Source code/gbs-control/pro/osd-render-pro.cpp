@@ -68,20 +68,34 @@ void OSD_highlightIcon(uint8_t pos) {
     OSD_writeCharAtRow(3, icon4, 0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
 }
 
+// Draw dashes on a row from startPos to endPos (logical positions 0-27)
+void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos) {
+    for (uint8_t p = startPos; p <= endPos; p++) {
+        OSD_writeCharAtRow(row, 0x3E, p, OSD_TEXT_NORMAL);
+    }
+}
+
+// Write ON or OFF indicator at end of row (positions 23-25), right-aligned
+void OSD_writeOnOff(uint8_t row, bool isOn) {
+    OSD_writeStringAtRow(row, 23, isOn ? " ON" : "OFF");
+}
+
 // ====================================================================================
 // MENU TABLE
 // ====================================================================================
 
 const MenuEntry menuTable[] = {
+    // Initialization (fill background once when menu opens)
+    {OSD_CMD_INIT, handle_OSD_Init, false},
+
     // Cursor Positioning (not saveable)
     {OSD_CMD_CURSOR_ROW1, handle_HighlightRow1, false},
     {OSD_CMD_CURSOR_ROW2, handle_HighlightRow2, false},
     {OSD_CMD_CURSOR_ROW3, handle_HighlightRow3, false},
 
     // Main Menu (not saveable)
-    {OSD_CMD_MAIN_PAGE1,        handle_MainMenu_Page1,        false},
-    {OSD_CMD_MAIN_PAGE1_UPDATE, handle_MainMenu_Page1_Update, false},
-    {OSD_CMD_MAIN_PAGE2,        handle_MainMenu_Page2,        false},
+    {OSD_CMD_MAIN_PAGE1, handle_MainMenu_Page1, false},
+    {OSD_CMD_MAIN_PAGE2, handle_MainMenu_Page2, false},
 
     // Output Resolution (not saveable)
     {OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960, false},
@@ -93,17 +107,15 @@ const MenuEntry menuTable[] = {
     {OSD_CMD_SCREEN_FULLHEIGHT,      handle_ScreenSettings_FullHeight, true},  // saveable
     {OSD_CMD_SCREEN_FULLHEIGHT_VALUES, handle_ScreenFullHeight_Values, false},
 
-    // Color Settings
-    {OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1,        true},   // saveable
+    // Color Settings (Picture Settings menu)
+    {OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1,        true},   // R, G, B
     {OSD_CMD_COLOR_PAGE1_VALUES, handle_ColorSettings_Page1_Values, false},
-    {OSD_CMD_COLOR_PAGE2,        handle_ColorSettings_Page2,        true},   // saveable
+    {OSD_CMD_COLOR_PAGE2,        handle_ColorSettings_Page2,        true},   // ADC gain, Scanlines, Line filter
     {OSD_CMD_COLOR_PAGE2_VALUES, handle_ColorSettings_Page2_Values, false},
-    {OSD_CMD_COLOR_PAGE3,        handle_ColorSettings_Page3,        true},   // saveable
-    {OSD_CMD_COLOR_RGB_LABELS,   handle_ColorSettings_RGB_Labels,   true},   // saveable
-    {OSD_CMD_COLOR_RGB_VALUES,   handle_ColorSettings_RGB_Values,   false},
-
-    // System Settings - SV/AV Input
-    {OSD_CMD_SYS_SVINPUT_VALUES, handle_SysSettings_SVInput_Values, false},
+    {OSD_CMD_COLOR_PAGE3,        handle_ColorSettings_Page3,        true},   // Sharpness, Peaking, Step response
+    {OSD_CMD_COLOR_PAGE3_VALUES, handle_ColorSettings_Page3_Values, false},
+    {OSD_CMD_COLOR_PAGE4,        handle_ColorSettings_Page4,        true},   // Y Gain, Color, Default Color
+    {OSD_CMD_COLOR_PAGE4_VALUES, handle_ColorSettings_Page4_Values, false},
 
     // System Settings - General
     {OSD_CMD_SYS_PAGE1,        handle_SysSettings_Page1,        true},   // saveable
@@ -128,8 +140,10 @@ const MenuEntry menuTable[] = {
     {OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad,    true},   // saveable
     {OSD_CMD_PROFILE_SLOTDISPLAY, handle_Profile_SlotDisplay, false},
     {OSD_CMD_PROFILE_SLOTROW1,    handle_Profile_SlotRow1,    false},
-    {OSD_CMD_PROFILE_SLOTROW2,    handle_Profile_SlotRow2,    true},   // saveable
-    {OSD_CMD_PROFILE_SLOTROW3,    handle_Profile_SlotRow3,    false},
+
+    // SV/AV Input Settings - Page 2
+    {OSD_CMD_SVAVINPUT_PAGE2,        handle_SVAVInput_Page2,        true},   // saveable
+    {OSD_CMD_SVAVINPUT_PAGE2_VALUES, handle_SVAVInput_Page2_Values, false},
 
     // Input Menu
     {OSD_CMD_INPUT_PAGE1,   handle_InputMenu_Page1,     true},   // saveable
@@ -138,9 +152,9 @@ const MenuEntry menuTable[] = {
     {OSD_CMD_INPUT_FORMAT,  handle_InfoDisplay,         false},
     {OSD_CMD_INPUT_SOURCE,  handle_InfoDisplay_Source,  false},
 
-    // Calibration
-    {OSD_CMD_ADCCALIB_RUNNING, handle_ADCCalib_Running, true},   // saveable
-    {OSD_CMD_ADCCALIB_DISPLAY, handle_ADCCalib_Display, false},
+    // SV/AV Input Settings - Page 1
+    {OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1,        true},   // saveable
+    {OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values, false},
 };
 
 const size_t menuTableSize = sizeof(menuTable) / sizeof(menuTable[0]);

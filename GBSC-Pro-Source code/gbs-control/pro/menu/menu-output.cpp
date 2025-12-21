@@ -40,7 +40,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }
@@ -76,7 +76,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }
@@ -113,7 +113,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }
@@ -150,7 +150,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }
@@ -181,7 +181,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }
@@ -210,7 +210,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
             }

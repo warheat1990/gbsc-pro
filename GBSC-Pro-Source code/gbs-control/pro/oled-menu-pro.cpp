@@ -286,6 +286,7 @@ static void IR_handleMenuKeyPress(void)
     } else {
         // Open main input menu
         selectedMenuLine = 1;
+        OSD_handleCommand(OSD_CMD_INIT);
         OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
         oled_menuItem = OLED_Input;
         display.clear();
@@ -297,6 +298,7 @@ static void IR_handleSaveKeyPress(void)
 {
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
+    OSD_handleCommand(OSD_CMD_INIT);
     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
     oled_menuItem = OLED_Profile_Load1;

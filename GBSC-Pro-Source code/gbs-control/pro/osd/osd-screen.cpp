@@ -27,6 +27,5 @@ void handle_ScreenSettings_FullHeight(void)
 
 void handle_ScreenFullHeight_Values(void)
 {
-    OSD_drawDashRange(1, 12, 22);  // Row 1: P12-P22
     OSD_writeOnOff(1, uopt->wantFullHeight);
 }

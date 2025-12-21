@@ -26,7 +26,7 @@ bool IR_handleMainMenu()
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             selectedMenuLine = 1;
             OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+            OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
         }
 
         if (irDecode()) {
@@ -36,7 +36,7 @@ bool IR_handleMainMenu()
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
                 case IR_KEY_OK:
@@ -61,7 +61,7 @@ bool IR_handleMainMenu()
         if (results.value == IR_KEY_UP || results.value == IR_KEY_DOWN) {
             selectedMenuLine = 2;
             OSD_highlightIcon(2);
-            OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+            OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
         }
 
         if (irDecode()) {
@@ -71,12 +71,12 @@ bool IR_handleMainMenu()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_Input;
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings;
                     break;
                 case IR_KEY_OK:
@@ -108,7 +108,7 @@ bool IR_handleMainMenu()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
                 case IR_KEY_DOWN:
@@ -150,7 +150,7 @@ bool IR_handleMainMenu()
                 case IR_KEY_UP:
                     oled_menuItem = OLED_ScreenSettings;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 2;
@@ -197,7 +197,7 @@ bool IR_handleMainMenu()
                 case IR_KEY_OK:
                     oled_menuItem = OLED_ColorSettings_RGB_R;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_COLOR_RGB_LABELS);
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
                     break;
                 case IR_KEY_EXIT:
                     exitMenu();

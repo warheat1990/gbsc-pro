@@ -260,6 +260,16 @@ inline void OSD_writeCharAtRow(uint8_t row, uint8_t charCode, uint8_t pos, uint8
 {
     uint8_t bank = OSD_rowToBank(row);
     uint8_t hwPos = (pos * 2) + 1;  // Convert logical to hardware pos
+    // Character mapping for OSD font
+    switch (charCode) {
+        case ' ':  color = OSD_BACKGROUND; break;
+        case '=':  charCode = 0x3D; break;
+        case '.':  charCode = 0x2E; break;
+        case '\'': charCode = 0x27; break;
+        case '-':  charCode = 0x3E; break;
+        case '/':  charCode = 0x2F; break;
+        case ':':  charCode = 0x3A; break;
+    }
     OSD_sendCommand(hwPos, bank, charCode);
     OSD_sendCommand(hwPos - 1, bank, color);
 }
@@ -291,52 +301,9 @@ inline void OSD_writeStringAtRow(uint8_t row, uint8_t startPos, const char* str,
     uint8_t pos = startPos;
     while (*str != '\0') {
         _osd_string_continue_pos = pos + 1;
-
-        if (*str == ' ') {
-            OSD_writeCharAtRow(row, ' ', pos, OSD_BACKGROUND);
-        } else if (*str == '=') {
-            OSD_writeCharAtRow(row, 0x3D, pos, color);
-        } else if (*str == '.') {
-            OSD_writeCharAtRow(row, 0x2E, pos, color);
-        } else if (*str == '\'') {
-            OSD_writeCharAtRow(row, 0x27, pos, color);
-        } else if (*str == '-') {
-            OSD_writeCharAtRow(row, 0x3E, pos, color);
-        } else if (*str == '/') {
-            OSD_writeCharAtRow(row, 0x2F, pos, color);
-        } else if (*str == ':') {
-            OSD_writeCharAtRow(row, 0x3A, pos, color);
-        } else {
-            OSD_writeCharAtRow(row, *str, pos, color);
-        }
-
+        OSD_writeCharAtRow(row, *str, pos, color);
         pos++;
         str++;
-    }
-}
-// Draw dashes on a row from startPos to endPos (logical positions 0-27)
-// row: 1, 2, or 3
-// startPos: starting logical position
-// endPos: ending logical position (inclusive)
-inline void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos)
-{
-    for (uint8_t p = startPos; p <= endPos; p++) {
-        OSD_writeCharAtRow(row, 0x3E, p, OSD_TEXT_NORMAL);
-    }
-}
-
-// Write ON or OFF indicator at end of row (positions 23-25)
-// row: 1, 2, or 3
-// isOn: true = "ON", false = "OFF"
-inline void OSD_writeOnOff(uint8_t row, bool isOn)
-{
-    OSD_writeCharAtRow(row, 'O', 23, OSD_TEXT_NORMAL);
-    if (isOn) {
-        OSD_writeCharAtRow(row, 'N', 24, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(row, ' ', 25, OSD_BACKGROUND);  // Clear position for "ON"
-    } else {
-        OSD_writeCharAtRow(row, 'F', 24, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(row, 'F', 25, OSD_TEXT_NORMAL);
     }
 }
 

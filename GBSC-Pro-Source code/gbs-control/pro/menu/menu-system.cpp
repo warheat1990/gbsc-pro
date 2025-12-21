@@ -368,7 +368,7 @@ bool IR_handleSystemSettings()
                     if (inputType == InputTypeSV || inputType == InputTypeAV) {
                         selectedMenuLine = 1;
                         OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                        OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                         oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
                     }
                     break;
@@ -398,9 +398,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
         }
-        OSD_handleCommand(OSD_CMD_ADCCALIB_DISPLAY);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -408,7 +408,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
                     break;
                 case IR_KEY_OK:
@@ -433,9 +433,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(2);
-            OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
         }
-        OSD_handleCommand(OSD_CMD_ADCCALIB_DISPLAY);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -443,12 +443,12 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
                     break;
                 case IR_KEY_OK:
@@ -475,9 +475,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(3);
-            OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
         }
-        OSD_handleCommand(OSD_CMD_ADCCALIB_DISPLAY);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -485,12 +485,12 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
                     break;
                 case IR_KEY_DOWN:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
                     break;
                 case IR_KEY_RIGHT:
@@ -523,9 +523,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW3);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -533,12 +533,12 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_ADCCALIB_RUNNING);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
                     break;
                 case IR_KEY_RIGHT:
@@ -570,9 +570,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(2);
-            OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW3);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -580,12 +580,12 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Default;
                     break;
                 case IR_KEY_RIGHT:
@@ -617,9 +617,9 @@ bool IR_handleSystemSettings()
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(3);
-            OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+            OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW3);
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_MENU:
@@ -627,7 +627,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW2);
+                    OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Saturation;
                     break;
                 case IR_KEY_OK:

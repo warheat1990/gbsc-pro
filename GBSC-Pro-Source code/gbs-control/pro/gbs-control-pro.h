@@ -42,6 +42,9 @@ template <uint8_t> class TV5725;
 typedef enum : uint8_t {
     OSD_CMD_NONE = 0,
 
+    // Initialization (fill background once when menu opens)
+    OSD_CMD_INIT,
+
     // Cursor Positioning
     OSD_CMD_CURSOR_ROW1,
     OSD_CMD_CURSOR_ROW2,
@@ -49,7 +52,6 @@ typedef enum : uint8_t {
 
     // Main Menu
     OSD_CMD_MAIN_PAGE1,
-    OSD_CMD_MAIN_PAGE1_UPDATE,
     OSD_CMD_MAIN_PAGE2,
 
     // Output Resolution
@@ -62,17 +64,15 @@ typedef enum : uint8_t {
     OSD_CMD_SCREEN_FULLHEIGHT,
     OSD_CMD_SCREEN_FULLHEIGHT_VALUES,
 
-    // Color Settings
-    OSD_CMD_COLOR_PAGE1,
+    // Color Settings (Picture Settings menu)
+    OSD_CMD_COLOR_PAGE1,         // R, G, B
     OSD_CMD_COLOR_PAGE1_VALUES,
-    OSD_CMD_COLOR_PAGE2,
+    OSD_CMD_COLOR_PAGE2,         // ADC gain, Scanlines, Line filter
     OSD_CMD_COLOR_PAGE2_VALUES,
-    OSD_CMD_COLOR_PAGE3,
-    OSD_CMD_COLOR_RGB_LABELS,
-    OSD_CMD_COLOR_RGB_VALUES,
-
-    // System Settings - SV/AV Input
-    OSD_CMD_SYS_SVINPUT_VALUES,
+    OSD_CMD_COLOR_PAGE3,         // Sharpness, Peaking, Step response
+    OSD_CMD_COLOR_PAGE3_VALUES,
+    OSD_CMD_COLOR_PAGE4,         // Y Gain, Color, Default Color
+    OSD_CMD_COLOR_PAGE4_VALUES,
 
     // System Settings - General
     OSD_CMD_SYS_PAGE1,
@@ -97,8 +97,8 @@ typedef enum : uint8_t {
     OSD_CMD_PROFILE_SAVELOAD,
     OSD_CMD_PROFILE_SLOTDISPLAY,
     OSD_CMD_PROFILE_SLOTROW1,
-    OSD_CMD_PROFILE_SLOTROW2,
-    OSD_CMD_PROFILE_SLOTROW3,
+    OSD_CMD_SVAVINPUT_PAGE2,
+    OSD_CMD_SVAVINPUT_PAGE2_VALUES,
 
     // Input Menu
     OSD_CMD_INPUT_PAGE1,
@@ -107,9 +107,9 @@ typedef enum : uint8_t {
     OSD_CMD_INPUT_FORMAT,
     OSD_CMD_INPUT_SOURCE,
 
-    // Calibration
-    OSD_CMD_ADCCALIB_RUNNING,
-    OSD_CMD_ADCCALIB_DISPLAY,
+    // SV/AV Input Settings
+    OSD_CMD_SVAVINPUT_PAGE1,
+    OSD_CMD_SVAVINPUT_PAGE1_VALUES,
 
     OSD_CMD_COUNT
 } OsdCommand;

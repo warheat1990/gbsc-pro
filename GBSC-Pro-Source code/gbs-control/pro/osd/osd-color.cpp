@@ -1,6 +1,6 @@
 // ====================================================================================
 // osd-color.cpp
-// TV OSD Handlers for Color Settings
+// TV OSD Handlers for Color Settings (Picture Settings menu)
 // ====================================================================================
 
 #include "osd-common.h"
@@ -9,7 +9,29 @@
 // Color Settings Handlers
 // ====================================================================================
 
+// Page 1: R, G, B
 void handle_ColorSettings_Page1(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(false, '1', true);
+    OSD_writeStringAtRow(1, 1, "R", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "G", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "B", OSD_getMenuLineColor(3));
+}
+
+void handle_ColorSettings_Page1_Values(void)
+{
+    OSD_drawDashRange(1, 5, 22);  // Row 1: P5-P22
+    OSD_drawDashRange(2, 5, 22);  // Row 2: P5-P22
+    OSD_drawDashRange(3, 5, 22);  // Row 3: P5-P22
+    // Display R, G, B values at P23-P25 on each row
+    OSD_displayNumber3DigitAtRow(1, R_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(2, G_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(3, B_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
+}
+
+// Page 2: ADC gain, Scanlines, Line filter
+void handle_ColorSettings_Page2(void)
 {
     // Line 2 (Scanlines) disabled when not allowed
     uint8_t line2Color = areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
@@ -20,32 +42,7 @@ void handle_ColorSettings_Page1(void)
     OSD_writeStringAtRow(3, 1, "Line filter", OSD_getMenuLineColor(3));
 }
 
-void handle_ColorSettings_Page2(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '3', true);
-    OSD_writeStringAtRow(1, 1, "Sharpness", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "Peaking", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "Step response", OSD_getMenuLineColor(3));
-}
-
-void handle_ColorSettings_Page3(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '4', false);
-    OSD_writeStringAtRow(1, 1, "Default Color", OSD_getMenuLineColor(1));
-}
-
-void handle_ColorSettings_RGB_Labels(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "R", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "G", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "B", OSD_getMenuLineColor(3));
-}
-
-void handle_ColorSettings_Page1_Values(void)
+void handle_ColorSettings_Page2_Values(void)
 {
     OSD_drawDashRange(1, 9, 18);   // Row 1: pos 9-18
     OSD_writeCharAtRow(1, 0x3E, 22, OSD_TEXT_NORMAL);
@@ -68,7 +65,17 @@ void handle_ColorSettings_Page1_Values(void)
     OSD_writeOnOff(1, uopt->enableAutoGain != 0);
 }
 
-void handle_ColorSettings_Page2_Values(void)
+// Page 3: Sharpness, Peaking, Step response
+void handle_ColorSettings_Page3(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '3', true);
+    OSD_writeStringAtRow(1, 1, "Sharpness", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Peaking", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Step response", OSD_getMenuLineColor(3));
+}
+
+void handle_ColorSettings_Page3_Values(void)
 {
     OSD_drawDashRange(1, 10, 22);  // Row 1: P10-P22
     OSD_drawDashRange(2, 8, 19);   // Row 2: P8-P19
@@ -89,13 +96,22 @@ void handle_ColorSettings_Page2_Values(void)
     OSD_writeOnOff(3, uopt->wantStepResponse);
 }
 
-void handle_ColorSettings_RGB_Values(void)
+// Page 4: Y Gain, Color, Default Color
+void handle_ColorSettings_Page4(void)
 {
-    OSD_drawDashRange(1, 5, 22);  // Row 1: P5-P22
-    OSD_drawDashRange(2, 5, 22);  // Row 2: P5-P22
-    OSD_drawDashRange(3, 5, 22);  // Row 3: P5-P22
-    // Display R, G, B values at P23-P25 on each row
-    OSD_displayNumber3DigitAtRow(1, R_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
-    OSD_displayNumber3DigitAtRow(2, G_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
-    OSD_displayNumber3DigitAtRow(3, B_VAL, 25, 24, 23, OSD_TEXT_NORMAL);
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '4', false);
+    OSD_writeStringAtRow(1, 1, "Y Gain", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Color", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Default Color", OSD_getMenuLineColor(3));
+}
+
+void handle_ColorSettings_Page4_Values(void)
+{
+    OSD_displayNumber3DigitAtRow(1, GBS::VDS_Y_GAIN::read(), 25, 24, 23, OSD_TEXT_NORMAL);
+    // Show both UCOS and VCOS values in format U:xxx-V:xxx (positions 15-25)
+    OSD_writeStringAtRow(2, 15, "U:");
+    OSD_displayNumber3DigitAtRow(2, GBS::VDS_UCOS_GAIN::read(), 19, 18, 17, OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(2, 20, "-V:");
+    OSD_displayNumber3DigitAtRow(2, GBS::VDS_VCOS_GAIN::read(), 25, 24, 23, OSD_TEXT_NORMAL);
 }

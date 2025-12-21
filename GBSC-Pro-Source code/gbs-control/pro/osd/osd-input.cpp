@@ -77,34 +77,3 @@ void handle_InfoDisplay_Source(void)
     OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Setting", OSD_getMenuLineColor(1));
 }
-
-// ====================================================================================
-// ADC Calibration Handlers
-// ====================================================================================
-
-void handle_ADCCalib_Running(void)
-{
-    // Line 2 (Smooth) disabled when lineOption is false
-    uint8_t line2Color = lineOption ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
-    OSD_writeStringAtRow(1, 1, "DoubleLine", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "Smooth", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "Bright", OSD_getMenuLineColor(3));
-}
-
-void handle_ADCCalib_Display(void)
-{
-    OSD_drawDashRange(1, 13, 18);  // Row 1: P13-P18
-    OSD_drawDashRange(2, 13, 18);  // Row 2: P13-P18
-    OSD_drawDashRange(3, 13, 18);  // Row 3: P13-P18
-
-    if (lineOption) {
-        OSD_writeStringAtRow(1, 23, "2X");
-    } else {
-        OSD_writeStringAtRow(1, 23, "1X");
-        smoothOption = false;
-    }
-
-    OSD_writeOnOff(2, smoothOption);
-    OSD_displayNumber3DigitAtRow(3, brightness, 25, 24, 23, OSD_TEXT_NORMAL);
-}

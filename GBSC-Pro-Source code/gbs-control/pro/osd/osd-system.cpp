@@ -9,12 +9,44 @@
 // System Settings - SV/AV Input
 // ====================================================================================
 
-void handle_SysSettings_SVInput_Values(void)
+void handle_SVAVInput_Page1(void)
 {
-    OSD_drawDashRange(1, 7, 22);  // Row 1: P7-P22
-    OSD_drawDashRange(2, 6, 22);  // Row 2: P6-P22
-    OSD_displayNumber3DigitAtRow(1, GBS::VDS_Y_GAIN::read(), 25, 24, 23, OSD_TEXT_NORMAL);
-    OSD_displayNumber3DigitAtRow(2, GBS::VDS_VCOS_GAIN::read(), 25, 24, 23, OSD_TEXT_NORMAL);
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(false, '1', true);
+    // Line 2 (Smooth) disabled when lineOption is false
+    uint8_t line2Color = lineOption ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
+    OSD_writeStringAtRow(1, 1, "DoubleLine", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Smooth", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Bright", OSD_getMenuLineColor(3));
+}
+
+void handle_SVAVInput_Page1_Values(void)
+{
+    if (lineOption) {
+        OSD_writeStringAtRow(1, 24, "2X");
+    } else {
+        OSD_writeStringAtRow(1, 24, "1X");
+        smoothOption = false;
+    }
+
+    OSD_writeOnOff(2, smoothOption);
+    OSD_displayNumber3DigitAtRow(3, brightness, 25, 24, 23, OSD_TEXT_NORMAL);
+}
+
+void handle_SVAVInput_Page2(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '2', false);
+    OSD_writeStringAtRow(1, 1, "Contrast", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Saturation", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Default", OSD_getMenuLineColor(3));
+}
+
+void handle_SVAVInput_Page2_Values(void)
+{
+    OSD_displayNumber3DigitAtRow(1, contrast, 25, 24, 23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(2, saturation, 25, 24, 23, OSD_TEXT_NORMAL);
 }
 
 // ====================================================================================
@@ -29,7 +61,7 @@ void handle_SysSettings_Page1(void)
     OSD_setMenuLineColorsCustom(selectedMenuLine, 1, line1Color);
     OSD_writeCharAtRow(1, 0x15, 21, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "SV/AV Input Settings", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(1, 1, "AV/SV Input Settings", OSD_getMenuLineColor(1));
     OSD_writeStringAtRow(2, 1, "Compatibility Mode", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "Matched presets", OSD_getMenuLineColor(3));
 }
@@ -47,7 +79,7 @@ void handle_SysSettings_Page2(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', true);
     OSD_writeStringAtRow(1, 1, "Deinterlace", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "Force:50Hz to 60Hz", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(2, 1, "Force 50Hz to 60Hz", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "Lock method", OSD_getMenuLineColor(3));
 }
 

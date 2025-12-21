@@ -54,19 +54,3 @@ void handle_Profile_SlotRow1(void)
 
     saveUserPrefs();
 }
-
-void handle_Profile_SlotRow2(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writeStringAtRow(1, 1, "Contrast", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "Saturation", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "Default", OSD_getMenuLineColor(3));
-}
-
-void handle_Profile_SlotRow3(void)
-{
-    OSD_drawDashRange(1, 13, 18);  // Row 1: P13-P18
-    OSD_displayNumber3DigitAtRow(1, contrast, 25, 24, 23, OSD_TEXT_NORMAL);
-    OSD_drawDashRange(2, 13, 18);  // Row 2: P13-P18
-    OSD_displayNumber3DigitAtRow(2, saturation, 25, 24, 23, OSD_TEXT_NORMAL);
-}

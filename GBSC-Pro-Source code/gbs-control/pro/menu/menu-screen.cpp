@@ -50,7 +50,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings;
                     break;
             }
@@ -88,7 +88,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings;
                     break;
             }
@@ -126,7 +126,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings;
                     break;
             }
@@ -322,7 +322,7 @@ bool IR_handleScreenSettings(void)
                 } break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1_UPDATE);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings;
                     break;
             }
