@@ -1,11 +1,13 @@
 // ====================================================================================
 // oled-menu-pro.h
-// OLED Menu Navigation and IR Remote Handling
+// OLED Menu Navigation and IR Remote Handling - Core Declarations
 //
 // This file contains declarations for:
 // - IR_handleMenuSelection(): Main menu state machine
 // - IR_handleInput(): IR remote input handler
-// - OLED menu initialization and handlers
+// - OLED menu initialization and handlers (for OLEDMenuImplementation.h)
+//
+// Note: Internal handler function declarations are in menu/menu-common.h
 // ====================================================================================
 
 #pragma once
