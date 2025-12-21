@@ -2,7 +2,7 @@
 
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
-#include "options-pro.h"  // GBSC-PRO extensions
+#include "pro/options-pro.h"  // GBSC-PRO extensions
 #include "OLEDMenuImplementation.h"
 #include "options.h"
 #include "tv5725.h"

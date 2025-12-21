@@ -10,12 +10,11 @@
 
 #include "gbs-control-pro.h"
 #include "osd-render-pro.h"
-#include "OLEDMenuImplementation-pro.h"
-#include "options.h"
-#include "tv5725.h"
+#include "options-pro.h"
+#include "../options.h"
+#include "../tv5725.h"
 
-#include "OSD_TV/OSD_stv9426.h"
-#include "OSD_TV/profile_name.h"
+#include "drivers/stv9426.h"
 
 // ====================================================================================
 // External References - gbs-control.ino
@@ -82,6 +81,66 @@ static void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
     OSD_writeCharAtRow(2, pageChar, 27, OSD_ICON_PAGE);
     if (showDown)
         OSD_writeCharAtRow(3, icon6, 27, OSD_ICON_PAGE);
+}
+
+// ====================================================================================
+// TV OSD Feedback Functions (used by menu navigation)
+// ====================================================================================
+
+// Show "limit" feedback on TV OSD row, then clear (blocking)
+// row: ROW_1, ROW_2, or ROW_3 (hardware bank values)
+// iterations: number of loop iterations for delay (~400 = visible flash)
+void OSD_showLimitFeedback(uint8_t row, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_TEXT_DISABLED);
+        OSD_writeCharAtRow(logicalRow, 0x0d, 25, OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 0x0d, 25, OSD_BACKGROUND);
+}
+
+// Show "OK" feedback on TV OSD row, then clear (blocking)
+// row: ROW_1, ROW_2, or ROW_3
+// iterations: number of loop iterations for delay (~800 = visible flash)
+void OSD_showOkFeedback(uint8_t row, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_BACKGROUND);
+}
+
+// Show "saving" feedback on TV OSD row, then clear (blocking)
+// row: ROW_1, ROW_2, or ROW_3
+// startPos: starting position for "saving" text (default 19)
+// iterations: number of loop iterations for delay (~800 = visible flash)
+void OSD_showSavingFeedback(uint8_t row, uint8_t startPos, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_BACKGROUND);
+}
+
+// Show 4-direction adjustment arrows on TV OSD row
+// row: 1, 2, or 3
+// dashStart: starting position for dashes (default 8)
+// Displays dashes (dashStart-13) and arrow icons (14-17)
+void OSD_showAdjustArrows(uint8_t row, uint8_t dashStart) {
+    OSD_drawDashRange(row, dashStart, 13);
+    OSD_writeCharAtRow(row, 0x03, 14, OSD_CURSOR_ACTIVE);  // up arrow
+    OSD_writeCharAtRow(row, 0x08, 15, OSD_CURSOR_ACTIVE);  // left arrow
+    OSD_writeCharAtRow(row, 0x18, 16, OSD_CURSOR_ACTIVE);  // right arrow
+    OSD_writeCharAtRow(row, 0x13, 17, OSD_CURSOR_ACTIVE);  // down arrow
+}
+
+// Highlight menu icon at position (1=top, 2=mid, 3=bottom)
+// Writes icon4 with active/inactive cursor color
+void OSD_highlightIcon(uint8_t pos) {
+    OSD_writeCharAtRow(1, icon4, 0, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, icon4, 0, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, icon4, 0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
 }
 
 // ====================================================================================
@@ -239,7 +298,7 @@ void handle_OutputRes_720_480(void)
 void handle_OutputRes_PassThrough(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, I, true);
+    OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Pass through", OSD_getMenuLineColor(1));
 }
 
@@ -314,8 +373,8 @@ void handle_ColorSettings_Page1_Values(void)
         OSD_writeOnOff(2, uopt->wantScanlines);
         // Display scanline strength (0x00-0x50 → 00-05)
         osdDisplayValue = uopt->scanlineStrength;
-        OSD_writeCharAtRow(2, n0, 21, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(2, n0 + (osdDisplayValue >> 4), 20, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, '0', 21, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, '0' + (osdDisplayValue >> 4), 20, OSD_TEXT_NORMAL);
     }
 
     OSD_drawDashRange(3, 12, 22);  // Row 3: pos 12-22
@@ -452,7 +511,7 @@ void handle_ScreenFullHeight_Values(void)
 void handle_Developer_Memory(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, I, true);
+    OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "MEM left/right", OSD_getMenuLineColor(1));
     OSD_writeStringAtRow(2, 1, "HS left/right", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "HTotal", OSD_getMenuLineColor(3));
@@ -473,7 +532,7 @@ void handle_Developer_Memory_Values(void)
 void handle_Developer_Debug(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, I, true);
+    OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Debug view", OSD_getMenuLineColor(1));
     OSD_writeStringAtRow(2, 1, "ADC filter", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "Freeze capture", OSD_getMenuLineColor(3));
@@ -492,7 +551,7 @@ void handle_Developer_Debug_Values(void)
 void handle_SysSettings_Page5(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, I, true);
+    OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Enable OTA", OSD_getMenuLineColor(1));
     OSD_writeStringAtRow(2, 1, "Restart", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "Reset defaults", OSD_getMenuLineColor(3));
@@ -512,16 +571,21 @@ void handle_Profile_SaveLoad(void)
     OSD_writeStringAtRow(3, 1, "Active save:", OSD_TEXT_SELECTED);
 }
 
-// Helper: call name_N() by index (1-20)
-static void callProfileName(uint8_t index) {
-    switch (index) {
-        case 1:  name_1();  break; case 2:  name_2();  break; case 3:  name_3();  break;
-        case 4:  name_4();  break; case 5:  name_5();  break; case 6:  name_6();  break;
-        case 7:  name_7();  break; case 8:  name_8();  break; case 9:  name_9();  break;
-        case 10: name_10(); break; case 11: name_11(); break; case 12: name_12(); break;
-        case 13: name_13(); break; case 14: name_14(); break; case 15: name_15(); break;
-        case 16: name_16(); break; case 17: name_17(); break; case 18: name_18(); break;
-        case 19: name_19(); break; case 20: name_20(); break;
+// Generate "profile-N" name directly into profileChars[] (index 1-20)
+static void setProfileName(uint8_t index) {
+    profileChars[0] = 'p';
+    profileChars[1] = 'r';
+    profileChars[2] = 'o';
+    profileChars[3] = 'f';
+    profileChars[4] = 'i';
+    profileChars[5] = 'l';
+    profileChars[6] = 'e';
+    if (index < 10) {
+        profileChars[7] = 0x3E;  // '-'
+        profileChars[8] = '0' + index;
+    } else {
+        profileChars[7] = '0' + (index / 10);
+        profileChars[8] = '0' + (index % 10);
     }
 }
 
@@ -530,20 +594,20 @@ void handle_Profile_SlotDisplay(void)
     // Row 1: Load profile display (Load1-Load20 → index 1-20)
     int loadIdx = oled_menuItem - OLED_Profile_Load1;
     if (loadIdx >= 0 && loadIdx < 20) {
-        callProfileName(loadIdx + 1);
+        setProfileName(loadIdx + 1);
         displayProfileName(1, OSD_TEXT_NORMAL);
     }
 
     // Row 3: Active save slot (presetSlot 'A'-'T' → index 1-20)
     if (uopt->presetSlot >= 'A' && uopt->presetSlot <= 'T') {
-        callProfileName(uopt->presetSlot - 'A' + 1);
+        setProfileName(uopt->presetSlot - 'A' + 1);
         displayProfileName(3, OSD_TEXT_SELECTED);
     }
 
     // Row 2: Save profile display (Save1-Save20 → index 1-20)
     int saveIdx = oled_menuItem - OLED_Profile_Save1;
     if (saveIdx >= 0 && saveIdx < 20) {
-        callProfileName(saveIdx + 1);
+        setProfileName(saveIdx + 1);
         displayProfileName(2, OSD_TEXT_NORMAL);
     }
 }
@@ -654,7 +718,7 @@ void handle_InfoDisplay(void)
 void handle_InfoDisplay_Source(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, I, true);
+    OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Setting", OSD_getMenuLineColor(1));
 }
 

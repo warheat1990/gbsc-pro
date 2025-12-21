@@ -116,3 +116,13 @@ void handle_InfoDisplay_Source(void);
 void handle_ADCCalib_Running(void);
 void handle_ADCCalib_Display(void);
 void handle_Restart(void);
+
+// ====================================================================================
+// Function Declarations - TV OSD Feedback
+// ====================================================================================
+
+void OSD_showLimitFeedback(uint8_t row, int iterations = 400);
+void OSD_showOkFeedback(uint8_t row, int iterations = 800);
+void OSD_showSavingFeedback(uint8_t row, uint8_t startPos = 19, int iterations = 800);
+void OSD_showAdjustArrows(uint8_t row, uint8_t dashStart = 8);
+void OSD_highlightIcon(uint8_t pos);

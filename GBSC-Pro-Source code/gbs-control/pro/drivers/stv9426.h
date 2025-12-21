@@ -81,54 +81,11 @@
 // OSD Font Character Codes (ASCII mapping for STV9426)
 // ====================================================================================
 
-// Digit characters '0'-'9'
-static const uint8_t n0 = 0x30, n1 = 0x31, n2 = 0x32, n3 = 0x33, n4 = 0x34,
-                     n5 = 0x35, n6 = 0x36, n7 = 0x37, n8 = 0x38, n9 = 0x39;
-
-// Digit characters (alternate naming)
-static const uint8_t _0_ = 0x30, _1_ = 0x31, _2_ = 0x32, _3_ = 0x33, _4_ = 0x34,
-                     _5_ = 0x35, _6_ = 0x36, _7_ = 0x37, _8_ = 0x38, _9_ = 0x39;
-
-// Lowercase letters 'a'-'z'
-static const uint8_t a = 0x61, b = 0x62, c = 0x63, d = 0x64, e = 0x65, f = 0x66,
-                     g = 0x67, h = 0x68, i = 0x69, j = 0x6A, k = 0x6B, l = 0x6C,
-                     m = 0x6D, n = 0x6E, o = 0x6F, p = 0x70, q = 0x71, r = 0x72,
-                     s = 0x73, t = 0x74, u = 0x75, v = 0x76, w = 0x77, x = 0x78,
-                     y = 0x79, z = 0x7A;
-
-// Uppercase letters 'A'-'Z'
-static const uint8_t A = 0x41, B = 0x42, C = 0x43, D = 0x44, E = 0x45, F = 0x46,
-                     G = 0x47, H = 0x48, I = 0x49, J = 0x4A, K = 0x4B, L = 0x4C,
-                     M = 0x4D, N = 0x4E, O = 0x4F, P = 0x50, Q = 0x51, R = 0x52,
-                     S = 0x53, T = 0x54, U = 0x55, V = 0x56, W = 0x57, X = 0x58,
-                     Y = 0x59, Z = 0x5A;
-
 // Special icon characters
 static const uint8_t icon1 = 0x09, icon2 = 0x19, icon3 = 0x05,
                      icon4 = 0x15, icon5 = 0x06, icon6 = 0x16;
 
 // Special characters: = 0x3D, - 0x3E, . 0x2E, / 0x2F, : 0x3A, ' 0x27
-
-// ====================================================================================
-// OSD Character Positions (horizontal positions P0-P27)
-// ====================================================================================
-// Each position is 2 bytes apart: P0=0x01, P1=0x03, ..., Pn=0x01+n*2
-
-static const uint8_t P0 = 0x01, P1 = 0x03, P2 = 0x05, P3 = 0x07, P4 = 0x09,
-                     P5 = 0x0B, P6 = 0x0D, P7 = 0x0F, P8 = 0x11, P9 = 0x13, P10 = 0x15,
-                     P11 = 0x17, P12 = 0x19, P13 = 0x1B, P14 = 0x1D, P15 = 0x1F,
-                     P16 = 0x21, P17 = 0x23, P18 = 0x25, P19 = 0x27, P20 = 0x29,
-                     P21 = 0x2B, P22 = 0x2D, P23 = 0x2F, P24 = 0x31, P25 = 0x33,
-                     P26 = 0x35, P27 = 0x37;
-// P28 = 0x39, P29 = 0x3B, P30 = 0x3D (unused)
-
-// Alternate position naming (underscore prefix)
-static const uint8_t _0 = 0x01, _1 = 0x03, _2 = 0x05, _3 = 0x07, _4 = 0x09,
-                     _5 = 0x0B, _6 = 0x0D, _7 = 0x0F, _8 = 0x11, _9 = 0x13, _10 = 0x15,
-                     _11 = 0x17, _12 = 0x19, _13 = 0x1B, _14 = 0x1D, _15 = 0x1F,
-                     _16 = 0x21, _17 = 0x23, _18 = 0x25, _19 = 0x27, _20 = 0x29,
-                     _21 = 0x2B, _22 = 0x2D, _23 = 0x2F, _24 = 0x31, _25 = 0x33,
-                     _26 = 0x35, _27 = 0x37;
 
 // ====================================================================================
 // OSD Colors - Attribute Byte Format (LSB of character code pair)
@@ -373,13 +330,13 @@ inline void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos)
 // isOn: true = "ON", false = "OFF"
 inline void OSD_writeOnOff(uint8_t row, bool isOn)
 {
-    OSD_writeCharAtRow(row, O, 23, OSD_TEXT_NORMAL);
+    OSD_writeCharAtRow(row, 'O', 23, OSD_TEXT_NORMAL);
     if (isOn) {
-        OSD_writeCharAtRow(row, N, 24, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(row, F, 25, OSD_BACKGROUND);  // Hide 'F' for "ON"
+        OSD_writeCharAtRow(row, 'N', 24, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, ' ', 25, OSD_BACKGROUND);  // Clear position for "ON"
     } else {
-        OSD_writeCharAtRow(row, F, 24, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(row, F, 25, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, 'F', 24, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, 'F', 25, OSD_TEXT_NORMAL);
     }
 }
 
@@ -407,12 +364,10 @@ inline void OSD_clearAll()
 // startPos: start from this position (1-28)
 inline void OSD_clearRowContent(char row, char endPos, char startPos)
 {
-    // Position mapping: case N writes to position _(N-1)
-    // i.e., case 1 -> _0, case 2 -> _1, etc.
+    // Position N (1-28) maps to hardware address (N-1)*2 + 1
     for (byte pos = startPos; pos < endPos; ++pos) {
-        // Calculate position: _N = 0x01 + N*2, so for case N we need _(N-1) = 0x01 + (N-1)*2
         uint8_t osdPos = 0x01 + (pos - 1) * 2;
-        OSD_sendCommand(osdPos, row, o);
+        OSD_sendCommand(osdPos, row, 'o');
         OSD_sendCommand(osdPos - 1, row, OSD_BACKGROUND);
     }
 }
@@ -421,31 +376,33 @@ inline void OSD_clearRowContent(char row, char endPos, char startPos)
 // Background Fill
 // ====================================================================================
 
-// Fill row background with specified color
+// Fill row background with specified color up to endPos (exclusive)
 // row: ROW_1/ROW_2/ROW_3
-// length: number of positions to fill
+// endPos: logical position (0-28) - fills from 0 to endPos-1
 // color: fill color
-inline void OSD_fillRowBackground(char row, char length, char color)
+inline void OSD_fillRowBackground(char row, uint8_t endPos, char color)
 {
-    for (byte addr = 0x00; addr < length; ++addr) {
+    // Each logical position uses 2 bytes (char + color), so fill up to endPos*2 bytes
+    uint8_t endAddr = endPos * 2;
+    for (byte addr = 0x00; addr < endAddr; ++addr) {
         OSD_sendCommand(addr, row, color);
     }
 }
 
-// Fill all 3 rows with background color
+// Fill all 3 rows with background color (all 28 positions)
 inline void OSD_fillBackground()
 {
-    OSD_fillRowBackground(ROW_1, _27, OSD_BACKGROUND);
-    OSD_fillRowBackground(ROW_2, _27, OSD_BACKGROUND);
-    OSD_fillRowBackground(ROW_3, _27, OSD_BACKGROUND);
+    OSD_fillRowBackground(ROW_1, 28, OSD_BACKGROUND);
+    OSD_fillRowBackground(ROW_2, 28, OSD_BACKGROUND);
+    OSD_fillRowBackground(ROW_3, 28, OSD_BACKGROUND);
 }
 
 // ====================================================================================
 // Digit Character Lookup Table
 // ====================================================================================
 
-// Maps digit 0-9 to OSD character codes (n0-n9)
-static const uint8_t digitChars[10] = {n0, n1, n2, n3, n4, n5, n6, n7, n8, n9};
+// Maps digit 0-9 to OSD character codes (ASCII '0'-'9')
+static const uint8_t digitChars[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
 // ====================================================================================
 // Display 3-Digit Decimal Number (0-255)

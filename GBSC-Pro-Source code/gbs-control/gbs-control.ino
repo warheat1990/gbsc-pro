@@ -24,13 +24,12 @@
 #include "images.h"
 
 // GBSC-Pro extensions (IR remote, OSD, audio control, etc.)
-#include "gbs-control-pro.h"
+#include "pro/gbs-control-pro.h"
 #include <IRremoteESP8266.h>
 #include <IRutils.h>
-#include "OSD_TV/remote.h"
-#include "OSD_TV/OSD_stv9426.h"
-#include "OSD_TV/profile_name.h"
-#include "OSD_TV/PT2257.h"
+#include "pro/drivers/ir_remote.h"
+#include "pro/drivers/stv9426.h"
+#include "pro/drivers/pt2257.h"
 
 #define HAVE_BUTTONS 0
 #define USE_NEW_OLED_MENU 1
@@ -7291,8 +7290,8 @@ void setup()
     irrecv.enableIRIn();
     OSD_clearAll();
     OSD_init();
-    PT_MUTE(0x78);
-    PT_2257(12); // -12 dB (display shows 38/50)
+    PT2257_mute(false);
+    PT2257_setAttenuation(12); // -12 dB (display shows 38/50)
 
     pinMode(pin_clk, INPUT_PULLUP);
     pinMode(pin_data, INPUT_PULLUP);
@@ -7958,7 +7957,7 @@ void loop()
     if ((millis() - lastSystemTime) >= 400) {
         static uint8_t lastVolume = 0xFF;
         if (volume != lastVolume) {
-            PT_2257(volume);
+            PT2257_setAttenuation(volume);
             lastVolume = volume;
         }
         lastSystemTime = millis();

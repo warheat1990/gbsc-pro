@@ -20,21 +20,20 @@
 #include "gbs-control-pro.h"
 #include "oled-menu-pro.h"
 #include "osd-render-pro.h"
-#include "tv5725.h"
-#include "osd.h"
-#include "SSD1306Wire.h"
-#include "options.h"
-#include "OLEDMenuImplementation.h"
-#include "ntsc_720x480.h"
-#include "src/WebSocketsServer.h"
+#include "../tv5725.h"
+#include "../osd.h"
+#include "../options.h"
+#include "../OLEDMenuImplementation.h"
+#include "../ntsc_720x480.h"
+#include "../src/WebSocketsServer.h"
 
 #include <IRremoteESP8266.h>
 #include <IRutils.h>
+#include <SSD1306Wire.h>
 
-#include "OSD_TV/remote.h"
-#include "OSD_TV/OSD_stv9426.h"
-#include "OSD_TV/profile_name.h"
-#include "OSD_TV/PT2257.h"
+#include "drivers/ir_remote.h"
+#include "drivers/stv9426.h"
+#include "drivers/pt2257.h"
 
 // ====================================================================================
 // External References - gbs-control.ino
