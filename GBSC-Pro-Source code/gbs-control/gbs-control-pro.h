@@ -385,12 +385,16 @@ extern int selectedMenuLine;
 // External Variables - TV OSD State
 // ====================================================================================
 
+// Maximum menu rows supported (can expand 3→6 in future)
+// Note: Also defined in OSD_stv9426.h for the OSD library
+#ifndef OSD_MAX_MENU_ROWS
+#define OSD_MAX_MENU_ROWS 3
+#endif
+
 extern char osdDisplayValue;
 extern OsdCommand lastOsdCommand;
 extern boolean irEnabled;
-extern int menuLine1Color;
-extern int menuLine2Color;
-extern int menuLine3Color;
+extern uint8_t menuLineColors[OSD_MAX_MENU_ROWS];  // Index 0-2 = rows 1-3
 extern uint8_t isInfoDisplayActive;
 extern uint16_t horizontalBlankStart;
 extern uint16_t horizontalBlankStop;

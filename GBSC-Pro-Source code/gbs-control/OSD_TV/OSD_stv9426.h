@@ -78,16 +78,6 @@
 #define H3_parameters 0x81
 
 // ====================================================================================
-// Global State Variables
-// ====================================================================================
-
-extern uint8_t currentColor;   // Current character color (was: colour1)
-extern uint8_t currentRow;     // Current OSD row 0x00/0x02/0x03 (was: number_stroca)
-extern uint8_t digitPos1;      // Position for ones digit (was: sequence_number1)
-extern uint8_t digitPos2;      // Position for tens digit (was: sequence_number2)
-extern uint8_t digitPos3;      // Position for hundreds digit (was: sequence_number3)
-
-// ====================================================================================
 // OSD Font Character Codes (ASCII mapping for STV9426)
 // ====================================================================================
 
@@ -213,6 +203,11 @@ static const uint8_t ROW_1 = 0x00;
 static const uint8_t ROW_2 = 0x02;
 static const uint8_t ROW_3 = 0x03;
 
+// Maximum menu rows supported (can expand 3→6 in future)
+#ifndef OSD_MAX_MENU_ROWS
+#define OSD_MAX_MENU_ROWS 3
+#endif
+
 // ====================================================================================
 // Profile Name Characters (9 character positions)
 // ====================================================================================
@@ -281,137 +276,132 @@ inline void OSD_clearRowColors(uint8_t row)
     }
 }
 
-// Legacy wrappers for backwards compatibility
-inline void OSD_clearRow1Symbols() { OSD_clearRowSymbols(ROW_1); }
-inline void OSD_clearRow2Symbols() { OSD_clearRowSymbols(ROW_2); }
-inline void OSD_clearRow3Symbols() { OSD_clearRowSymbols(ROW_3); }
-inline void OSD_clearRow1Colors()  { OSD_clearRowColors(ROW_1); }
-inline void OSD_clearRow2Colors()  { OSD_clearRowColors(ROW_2); }
-inline void OSD_clearRow3Colors()  { OSD_clearRowColors(ROW_3); }
-
 // ====================================================================================
 // Character Write Functions (write char + color at position)
 // ====================================================================================
 
-// Write character with color on row 1
+// Map row number (1-3) to hardware bank (0x00, 0x02, 0x03)
+inline uint8_t OSD_rowToBank(uint8_t row) {
+    if (row == 1) return 0x00;
+    if (row == 2) return 0x02;
+    return 0x03;
+}
+
+// Map hardware bank (0x00, 0x02, 0x03) to row number (1-3)
+inline uint8_t OSD_bankToRow(uint8_t bank) {
+    if (bank == 0x00) return 1;
+    if (bank == 0x02) return 2;
+    return 3;
+}
+
+// Write character with color on specified row
+// row: 1, 2, or 3
 // charCode: ASCII character code (n0-n9, A-Z, a-z, etc.)
 // pos: horizontal position (P0-P27)
 // color: color code (OSD_TEXT_NORMAL, OSD_TEXT_SELECTED, etc.)
-inline void OSD_writeCharRow1(uint8_t charCode, uint8_t pos, uint8_t color)
+inline void OSD_writeCharAtRow(uint8_t row, uint8_t charCode, uint8_t pos, uint8_t color)
 {
-    OSD_sendCommand(pos, 0x00, charCode);      // Write character
-    OSD_sendCommand(pos - 1, 0x00, color);     // Write color
+    uint8_t bank = OSD_rowToBank(row);
+    OSD_sendCommand(pos, bank, charCode);
+    OSD_sendCommand(pos - 1, bank, color);
 }
 
-// Write character with color on row 2
-inline void OSD_writeCharRow2(uint8_t charCode, uint8_t pos, uint8_t color)
+// Write character at logical position (0-27) on specified row with color
+// row: 1, 2, or 3
+// charCode: ASCII character code
+// logicalPos: logical position (0-27, auto-converted to hardware P0-P27)
+// color: color code
+inline void OSD_writeCharAtRowLogical(uint8_t row, uint8_t charCode,
+                                       uint8_t logicalPos, uint8_t color)
 {
-    OSD_sendCommand(pos, 0x02, charCode);
-    OSD_sendCommand(pos - 1, 0x02, color);
-}
-
-// Write character with color on row 3
-inline void OSD_writeCharRow3(uint8_t charCode, uint8_t pos, uint8_t color)
-{
-    OSD_sendCommand(pos, 0x03, charCode);
-    OSD_sendCommand(pos - 1, 0x03, color);
-}
-
-// ====================================================================================
-// Dynamic Row Character Write
-// ====================================================================================
-
-// Write character at position using currentRow and currentColor globals
-// symbol: ASCII character code
-// pos: horizontal position (P0-P27 or _0-_27)
-inline void OSD_writeCharAt(uint8_t symbol, uint8_t pos)
-{
-    OSD_sendCommand(pos, currentRow, symbol);
-    OSD_sendCommand(pos - 1, currentRow, currentColor);
+    uint8_t hwPos = (logicalPos * 2) + 1;  // Convert logical to hardware pos
+    OSD_writeCharAtRow(row, charCode, hwPos, color);
 }
 
 // ====================================================================================
 // String Write Functions
 // ====================================================================================
 
-// Write character at logical position (0-27) using currentRow and currentColor
-// charCode: ASCII character code
-// pos: logical position (0-27, converted to P0-P27 internally)
-inline void OSD_writeChar(uint8_t charCode, uint8_t pos)
-{
-    OSD_writeCharAt(charCode, (pos * 2) + 1);  // Convert logical pos to hardware pos
-}
-
-// Write null-terminated string starting at logical position
-// Uses currentRow and currentColor globals
-// start: logical starting position (0-27), or 0xFF to continue from last position
-// str: null-terminated ASCII string
-// Note: spaces are skipped (not written), special chars are converted
-static uint8_t _osd_string_last_pos = 0;
-
-inline void OSD_writeString(uint8_t start, const char* str)
-{
-    if (str == NULL) return;
-
-    if (start == 0xFF)
-        start = _osd_string_last_pos;
-    else
-        _osd_string_last_pos = start;
-
-    for (uint8_t i = 0; str[i] != '\0'; i++) {
-        _osd_string_last_pos = i + start + 1;
-
-        if (str[i] == ' ')
-            continue;  // Skip spaces
-        else if (str[i] == '=')
-            OSD_writeChar(0x3D, i + start);
-        else if (str[i] == '.')
-            OSD_writeChar(0x2E, i + start);
-        else if (str[i] == '\'')
-            OSD_writeChar(0x27, i + start);
-        else if (str[i] == '-')
-            OSD_writeChar(0x3E, i + start);
-        else if (str[i] == '/')
-            OSD_writeChar(0x2F, i + start);
-        else if (str[i] == ':')
-            OSD_writeChar(0x3A, i + start);
-        else
-            OSD_writeChar(str[i], i + start);
-    }
-}
-
-// Write null-terminated string on specific row at logical position
+// Write null-terminated string on specific row at logical position with color
 // row: 1, 2, or 3
 // startPos: logical starting position (0-27)
 // str: null-terminated ASCII string
+// color: color for non-space characters (default OSD_TEXT_NORMAL)
 // Note: spaces are written with OSD_BACKGROUND color
-inline void OSD_writeStringAtLine(uint8_t row, uint8_t startPos, const char* str)
+inline void OSD_writeStringAtRow(uint8_t row, uint8_t startPos, const char* str,
+                                  uint8_t color = OSD_TEXT_NORMAL)
 {
-    void (*rowFunc)(uint8_t, uint8_t, uint8_t);
-    if (row == 1) rowFunc = OSD_writeCharRow1;
-    else if (row == 2) rowFunc = OSD_writeCharRow2;
-    else rowFunc = OSD_writeCharRow3;
-
     uint8_t pos = startPos;
     while (*str != '\0') {
         uint8_t hwPos = 1 + pos * 2;  // Convert to hardware position
 
         if (*str == ' ')
-            rowFunc(*str, hwPos, OSD_BACKGROUND);
+            OSD_writeCharAtRow(row, *str, hwPos, OSD_BACKGROUND);
         else if (*str == '=')
-            rowFunc(0x3D, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x3D, hwPos, color);
         else if (*str == '.')
-            rowFunc(0x2E, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x2E, hwPos, color);
         else if (*str == '\'')
-            rowFunc(0x27, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x27, hwPos, color);
         else if (*str == '-')
-            rowFunc(0x3E, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x3E, hwPos, color);
         else if (*str == '/')
-            rowFunc(0x2F, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x2F, hwPos, color);
         else if (*str == ':')
-            rowFunc(0x3A, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, 0x3A, hwPos, color);
         else
-            rowFunc(*str, hwPos, OSD_TEXT_NORMAL);
+            OSD_writeCharAtRow(row, *str, hwPos, color);
+
+        pos++;
+        str++;
+    }
+}
+
+// Legacy alias for backward compatibility
+inline void OSD_writeStringAtLine(uint8_t row, uint8_t startPos, const char* str)
+{
+    OSD_writeStringAtRow(row, startPos, str);
+}
+
+// Static variable for string continuation position (per-row tracking)
+static uint8_t _osd_string_row_continue_pos = 0;
+
+// Write string with continuation support (0xFF = continue from last position)
+// row: 1, 2, or 3
+// startPos: logical starting position (0-27), or 0xFF to continue from last position
+// str: null-terminated ASCII string
+// color: color for characters
+inline void OSD_writeStringAtRowContinue(uint8_t row, uint8_t startPos,
+                                          const char* str, uint8_t color)
+{
+    if (str == NULL) return;
+
+    if (startPos == 0xFF)
+        startPos = _osd_string_row_continue_pos;
+    else
+        _osd_string_row_continue_pos = startPos;
+
+    uint8_t pos = startPos;
+    while (*str != '\0') {
+        _osd_string_row_continue_pos = pos + 1;
+
+        if (*str == ' ') {
+            // Skip spaces (don't write anything, just advance position)
+        } else if (*str == '=') {
+            OSD_writeCharAtRowLogical(row, 0x3D, pos, color);
+        } else if (*str == '.') {
+            OSD_writeCharAtRowLogical(row, 0x2E, pos, color);
+        } else if (*str == '\'') {
+            OSD_writeCharAtRowLogical(row, 0x27, pos, color);
+        } else if (*str == '-') {
+            OSD_writeCharAtRowLogical(row, 0x3E, pos, color);
+        } else if (*str == '/') {
+            OSD_writeCharAtRowLogical(row, 0x2F, pos, color);
+        } else if (*str == ':') {
+            OSD_writeCharAtRowLogical(row, 0x3A, pos, color);
+        } else {
+            OSD_writeCharAtRowLogical(row, *str, pos, color);
+        }
 
         pos++;
         str++;
@@ -424,13 +414,8 @@ inline void OSD_writeStringAtLine(uint8_t row, uint8_t startPos, const char* str
 // endPos: ending logical position (inclusive)
 inline void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos)
 {
-    void (*rowFunc)(uint8_t, uint8_t, uint8_t);
-    if (row == 1) rowFunc = OSD_writeCharRow1;
-    else if (row == 2) rowFunc = OSD_writeCharRow2;
-    else rowFunc = OSD_writeCharRow3;
-
     for (uint8_t p = startPos; p <= endPos; p++) {
-        rowFunc(0x3E, 0x01 + p * 2, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, 0x3E, 0x01 + p * 2, OSD_TEXT_NORMAL);
     }
 }
 
@@ -439,18 +424,13 @@ inline void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos)
 // isOn: true = "ON", false = "OFF"
 inline void OSD_writeOnOff(uint8_t row, bool isOn)
 {
-    void (*rowFunc)(uint8_t, uint8_t, uint8_t);
-    if (row == 1) rowFunc = OSD_writeCharRow1;
-    else if (row == 2) rowFunc = OSD_writeCharRow2;
-    else rowFunc = OSD_writeCharRow3;
-
-    rowFunc(O, P23, OSD_TEXT_NORMAL);
+    OSD_writeCharAtRow(row, O, P23, OSD_TEXT_NORMAL);
     if (isOn) {
-        rowFunc(N, P24, OSD_TEXT_NORMAL);
-        rowFunc(F, P25, OSD_BACKGROUND);  // Hide 'F' for "ON"
+        OSD_writeCharAtRow(row, N, P24, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, F, P25, OSD_BACKGROUND);  // Hide 'F' for "ON"
     } else {
-        rowFunc(F, P24, OSD_TEXT_NORMAL);
-        rowFunc(F, P25, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, F, P24, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, F, P25, OSD_TEXT_NORMAL);
     }
 }
 
@@ -460,12 +440,12 @@ inline void OSD_writeOnOff(uint8_t row, bool isOn)
 
 inline void OSD_clearAll()
 {
-    OSD_clearRow1Symbols();
-    OSD_clearRow2Symbols();
-    OSD_clearRow3Symbols();
-    OSD_clearRow1Colors();
-    OSD_clearRow2Colors();
-    OSD_clearRow3Colors();
+    OSD_clearRowSymbols(ROW_1);
+    OSD_clearRowSymbols(ROW_2);
+    OSD_clearRowSymbols(ROW_3);
+    OSD_clearRowColors(ROW_1);
+    OSD_clearRowColors(ROW_2);
+    OSD_clearRowColors(ROW_3);
 }
 
 // ====================================================================================
@@ -473,19 +453,18 @@ inline void OSD_clearAll()
 // ====================================================================================
 
 // Clear row content from startPos to endPos (1-28 range)
-// row: ROW_1/ROW_2/ROW_3
+// row: ROW_1/ROW_2/ROW_3 (hardware bank)
 // endPos: clear up to this position (exclusive)
 // startPos: start from this position (1-28)
 inline void OSD_clearRowContent(char row, char endPos, char startPos)
 {
-    currentRow = row;
-    currentColor = OSD_BACKGROUND;
     // Position mapping: case N writes to position _(N-1)
     // i.e., case 1 -> _0, case 2 -> _1, etc.
     for (byte pos = startPos; pos < endPos; ++pos) {
         // Calculate position: _N = 0x01 + N*2, so for case N we need _(N-1) = 0x01 + (N-1)*2
         uint8_t osdPos = 0x01 + (pos - 1) * 2;
-        OSD_writeCharAt(o, osdPos);
+        OSD_sendCommand(osdPos, row, o);
+        OSD_sendCommand(osdPos - 1, row, OSD_BACKGROUND);
     }
 }
 
@@ -499,9 +478,8 @@ inline void OSD_clearRowContent(char row, char endPos, char startPos)
 // color: fill color
 inline void OSD_fillRowBackground(char row, char length, char color)
 {
-    currentRow = row;
     for (byte addr = 0x00; addr < length; ++addr) {
-        OSD_sendCommand(addr, currentRow, color);
+        OSD_sendCommand(addr, row, color);
     }
 }
 
@@ -524,16 +502,19 @@ static const uint8_t digitChars[10] = {n0, n1, n2, n3, n4, n5, n6, n7, n8, n9};
 // Display 3-Digit Decimal Number (0-255)
 // ====================================================================================
 
-// Display a byte value (0-255) as 3 decimal digits at positions digitPos1/2/3
-// Uses currentRow and currentColor globals
-// Example: displayNumber3Digit(123) displays "1" "2" "3" at digitPos3, digitPos2, digitPos1
-inline void OSD_displayNumber3Digit(byte value)
+// Display a byte value (0-255) as 3 decimal digits at specified positions
+// row: 1, 2, or 3
+// value: byte to display (0-255)
+// pos1, pos2, pos3: hardware positions for units, tens, hundreds
+// color: text color
+inline void OSD_displayNumber3DigitAtRow(uint8_t row, byte value,
+                                          uint8_t pos1, uint8_t pos2, uint8_t pos3,
+                                          uint8_t color)
 {
-    OSD_writeCharAt(digitChars[value % 10], digitPos1);         // units
-    OSD_writeCharAt(digitChars[(value / 10) % 10], digitPos2);  // tens
-    OSD_writeCharAt(digitChars[value / 100], digitPos3);        // hundreds
+    OSD_writeCharAtRow(row, digitChars[value % 10], pos1, color);         // units
+    OSD_writeCharAtRow(row, digitChars[(value / 10) % 10], pos2, color);  // tens
+    OSD_writeCharAtRow(row, digitChars[value / 100], pos3, color);        // hundreds
 }
-
 
 // ====================================================================================
 // Display Inverted 3-Digit Number (255-value) on Row 1
@@ -545,9 +526,9 @@ inline void OSD_displayNumber3Digit(byte value)
 inline void OSD_displayNumber3DigitInverted(byte value)
 {
     byte inverted = 255 - value;
-    OSD_writeCharRow1(digitChars[inverted % 10], P21, OSD_TEXT_NORMAL);         // units
-    OSD_writeCharRow1(digitChars[(inverted / 10) % 10], P20, OSD_TEXT_NORMAL);  // tens
-    OSD_writeCharRow1(digitChars[inverted / 100], P19, OSD_TEXT_NORMAL);        // hundreds
+    OSD_writeCharAtRow(1, digitChars[inverted % 10], P21, OSD_TEXT_NORMAL);         // units
+    OSD_writeCharAtRow(1, digitChars[(inverted / 10) % 10], P20, OSD_TEXT_NORMAL);  // tens
+    OSD_writeCharAtRow(1, digitChars[inverted / 100], P19, OSD_TEXT_NORMAL);        // hundreds
 }
 
 // ====================================================================================

@@ -34,45 +34,54 @@ extern void applyPresets(uint8_t videoMode);
 // ====================================================================================
 
 // Display 9-character profile name at positions P15-P23
-static void displayProfileName()
+// row: 1, 2, or 3
+// color: text color
+static void displayProfileName(uint8_t row, uint8_t color)
 {
     for (uint8_t i = 0; i < 9; ++i) {
-        OSD_writeCharAt(profileChars[i], 0x1F + i * 2);  // _15=0x1F, _16=0x21, ...
+        OSD_writeCharAtRow(row, profileChars[i], 0x1F + i * 2, color);  // _15=0x1F, _16=0x21, ...
     }
 }
 
-// Set menu line colors based on selection (replaces ~15 lines per handler)
+// Get color for menu row (1-based)
+static inline uint8_t OSD_getMenuLineColor(uint8_t row) {
+    if (row < 1 || row > OSD_MAX_MENU_ROWS) return OSD_TEXT_NORMAL;
+    return menuLineColors[row - 1];
+}
+
+// Set menu line colors based on selection (scalable to OSD_MAX_MENU_ROWS)
+// selectedLine: 1-based row number (1 = first row)
 static void OSD_setMenuLineColors(uint8_t selectedLine) {
-    if (selectedLine == 1) {
-        menuLine1Color = OSD_TEXT_SELECTED;
-        menuLine2Color = OSD_TEXT_NORMAL;
-        menuLine3Color = OSD_TEXT_NORMAL;
-    } else if (selectedLine == 2) {
-        menuLine1Color = OSD_TEXT_NORMAL;
-        menuLine2Color = OSD_TEXT_SELECTED;
-        menuLine3Color = OSD_TEXT_NORMAL;
-    } else {
-        menuLine1Color = OSD_TEXT_NORMAL;
-        menuLine2Color = OSD_TEXT_NORMAL;
-        menuLine3Color = OSD_TEXT_SELECTED;
+    for (uint8_t i = 0; i < OSD_MAX_MENU_ROWS; i++) {
+        menuLineColors[i] = (i + 1 == selectedLine) ? OSD_TEXT_SELECTED : OSD_TEXT_NORMAL;
     }
 }
 
-// Set menu line colors with custom color for line 2 (for disabled items)
-static void OSD_setMenuLineColorsWithLine2(uint8_t selectedLine, uint8_t line2Color) {
-    if (selectedLine == 1) {
-        menuLine1Color = OSD_TEXT_SELECTED;
-        menuLine2Color = line2Color;
-        menuLine3Color = OSD_TEXT_NORMAL;
-    } else if (selectedLine == 2) {
-        menuLine1Color = OSD_TEXT_NORMAL;
-        menuLine2Color = (line2Color == OSD_TEXT_DISABLED) ? OSD_TEXT_DISABLED : OSD_TEXT_SELECTED;
-        menuLine3Color = OSD_TEXT_NORMAL;
-    } else {
-        menuLine1Color = OSD_TEXT_NORMAL;
-        menuLine2Color = line2Color;
-        menuLine3Color = OSD_TEXT_SELECTED;
+// Set menu line colors with custom color for a specific line
+// customRow: 1-based row number for custom color
+// customColor: color to apply (e.g., OSD_TEXT_DISABLED)
+static void OSD_setMenuLineColorsCustom(uint8_t selectedLine, uint8_t customRow, uint8_t customColor) {
+    OSD_setMenuLineColors(selectedLine);  // Set base colors
+    if (customRow >= 1 && customRow <= OSD_MAX_MENU_ROWS) {
+        // If custom row is selected, keep SELECTED unless it's DISABLED
+        if (customRow == selectedLine && customColor != OSD_TEXT_DISABLED) {
+            return;  // Keep SELECTED
+        }
+        menuLineColors[customRow - 1] = customColor;
     }
+}
+
+// Write page navigation icons at position P27 (column 27)
+// showUp: true = show up arrow (icon5) on row 1
+// pageChar: character to show on row 2 (e.g., '1', '2', 'I')
+// showDown: true = show down arrow (icon6) on row 3
+static void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
+{
+    if (showUp)
+        OSD_writeCharAtRow(1, icon5, _27, OSD_ICON_PAGE);
+    OSD_writeCharAtRow(2, pageChar, _27, OSD_ICON_PAGE);
+    if (showDown)
+        OSD_writeCharAtRow(3, icon6, _27, OSD_ICON_PAGE);
 }
 
 // ====================================================================================
@@ -181,304 +190,159 @@ void handle_MainMenu_Page1(void)
     // OSD_writeCharRow3(0x15, P18, OSD_BACKGROUND);
 
     OSD_fillBackground();
-    currentColor = OSD_CURSOR_INACTIVE;
-    currentRow = ROW_2;
-    OSD_writeCharAt(icon4, _0);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon4, _0);
-    currentColor = OSD_CURSOR_ACTIVE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon4, _0);
+    OSD_writeCharAtRow(2, icon4, _0, OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, icon4, _0, OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, icon4, _0, OSD_CURSOR_ACTIVE);
 
-    currentColor = OSD_ICON_PAGE;
+    OSD_writePageIcons(false, '1', true);
 
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "1 Input");
-    OSD_writeCharRow1(0x15, P8, OSD_TEXT_SELECTED);
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "2 Output Resolution");
-
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "3 Screen Settings");
+    OSD_writeStringAtRow(1, 1, "1 Input", OSD_getMenuLineColor(1));
+    OSD_writeCharAtRow(1, 0x15, P8, OSD_TEXT_SELECTED);
+    OSD_writeStringAtRow(2, 1, "2 Output Resolution", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "3 Screen Settings", OSD_getMenuLineColor(3));
 };
 void handle_MainMenu_Page1_Update(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writeCharRow1(0x15, P8, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharRow2(0x15, P20, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharRow3(0x15, P18, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 0x15, P8, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 0x15, P20, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, 0x15, P18, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(false, '1', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "1 Input");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "2 Output Resolution"); //__(0X15, _9);
-
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "3 Screen Settings"); //__(0X15, _18);
+    OSD_writeStringAtRow(1, 1, "1 Input", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "2 Output Resolution", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "3 Screen Settings", OSD_getMenuLineColor(3));
 };
 void handle_MainMenu_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writeCharRow1(0x15, P18, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharRow2(0x15, P19, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 0x15, P18, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 0x15, P19, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '2', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "4 System Settings");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    // OSD_writeString(1, "5 Color Settings");
-    OSD_writeString(1, "5 Picture Settings");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "6 Reset Settings");
+    OSD_writeStringAtRow(1, 1, "4 System Settings", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "5 Picture Settings", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "6 Reset Settings", OSD_getMenuLineColor(3));
 };
 void handle_OutputRes_1080_1024_960(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(false, '1', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "1920x1080");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "1280x1024");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "1280x960");
+    OSD_writeStringAtRow(1, 1, "1920x1080", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "1280x1024", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "1280x960", OSD_getMenuLineColor(3));
 };
 void handle_OutputRes_720_480(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
+    OSD_writePageIcons(true, '2', false);
 
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "1280x720");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "480p/576p");
-    // currentColor = menuLine3Color;
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(D, _1), __(o, _2), __(w, _3), __(n, _4), __(s, _5), __(c, _6), __(a, _7), __(l, _8), __(e, _9), __(n1, _11), __(n5, _12), __(K, _13), __(H, _14), __(z, _15);
+    OSD_writeStringAtRow(1, 1, "1280x720", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "480p/576p", OSD_getMenuLineColor(2));
 };
 void handle_OutputRes_PassThrough(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt(I, _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, I, true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Pass through");
+    OSD_writeStringAtRow(1, 1, "Pass through", OSD_getMenuLineColor(1));
 };
 void handle_ScreenSettings(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
+    OSD_writePageIcons(false, '1', true);
 
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Move");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Scale");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Borders");
+    OSD_writeStringAtRow(1, 1, "Move", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Scale", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Borders", OSD_getMenuLineColor(3));
 };
 void handle_HighlightRow1(void)
 {
     OSD_fillBackground();
-    OSD_writeCharRow1(icon4, P0, OSD_CURSOR_ACTIVE);
-    OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
-    OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(1, icon4, P0, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(3, icon4, P0, OSD_BACKGROUND);
     selectedMenuLine = 1;
 };
 void handle_HighlightRow2(void)
 {
     OSD_fillBackground();
-    OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
-    OSD_writeCharRow2(icon4, P0, OSD_CURSOR_ACTIVE);
-    OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(1, icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(2, icon4, P0, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(3, icon4, P0, OSD_BACKGROUND);
     selectedMenuLine = 2;
 };
 void handle_HighlightRow3(void)
 {
     OSD_fillBackground();
-    OSD_writeCharRow1(icon4, P0, OSD_BACKGROUND);
-    OSD_writeCharRow2(icon4, P0, OSD_BACKGROUND);
-    OSD_writeCharRow3(icon4, P0, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(2, icon4, P0, OSD_BACKGROUND);
+    OSD_writeCharAtRow(3, icon4, P0, OSD_CURSOR_ACTIVE);
     selectedMenuLine = 3;
 };
 void handle_ColorSettings_Page1(void)
 {
     // Line 2 (Scanlines) disabled when not allowed
     uint8_t line2Color = areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
-    OSD_setMenuLineColorsWithLine2(selectedMenuLine, line2Color);
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
 
-    currentColor = OSD_ICON_PAGE;
+    OSD_writePageIcons(true, '2', true);
 
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "ADC gain");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Scanlines");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Line filter");
+    OSD_writeStringAtRow(1, 1, "ADC gain", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Scanlines", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Line filter", OSD_getMenuLineColor(3));
 };
 void handle_ColorSettings_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('3', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '3', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Sharpness");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Peaking");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Step response");
+    OSD_writeStringAtRow(1, 1, "Sharpness", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Peaking", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Step response", OSD_getMenuLineColor(3));
 };
 void handle_ColorSettings_Page3(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('4', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '4', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Default Color");
-    // OSD_writeString(1, "Y gain");
-    // currentColor = menuLine2Color;
-    // currentRow = ROW_2;
-    // OSD_writeString(1, "Color");
-    // currentColor = menuLine3Color;
-    // currentRow = ROW_3;
+    OSD_writeStringAtRow(1, 1, "Default Color", OSD_getMenuLineColor(1));
 };
 void handle_ColorSettings_RGB_Labels(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(false, '1', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "R");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "G");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "B");
+    OSD_writeStringAtRow(1, 1, "R", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "G", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "B", OSD_getMenuLineColor(3));
 };
 void handle_ColorSettings_Page1_Values(void)
 {
     OSD_drawDashRange(1, 9, 18);   // Row 1: P9-P18
-    OSD_writeCharRow1(0x3E, P22, OSD_TEXT_NORMAL);
+    OSD_writeCharAtRow(1, 0x3E, P22, OSD_TEXT_NORMAL);
 
     // Only show dashes for scanlines if they are available
     if (areScanLinesAllowed()) {
         OSD_drawDashRange(2, 10, 19);  // Row 2: P10-P19
-        OSD_writeCharRow2(0x3E, P22, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 0x3E, P22, OSD_TEXT_NORMAL);
 
         OSD_writeOnOff(2, uopt->wantScanlines);
 
         // Display scanline strength (0x00-0x50 → 00-05)
         osdDisplayValue = uopt->scanlineStrength;
-        OSD_writeCharRow2(n0, P21, OSD_TEXT_NORMAL);
-        OSD_writeCharRow2(n0 + (osdDisplayValue >> 4), P20, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, n0, P21, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, n0 + (osdDisplayValue >> 4), P20, OSD_TEXT_NORMAL);
     }
 
     OSD_drawDashRange(3, 12, 22);  // Row 3: P12-P22
@@ -514,141 +378,50 @@ void handle_ColorSettings_RGB_Values(void)
     OSD_drawDashRange(2, 5, 22);  // Row 2: P5-P22
     OSD_drawDashRange(3, 5, 22);  // Row 3: P5-P22
 
-    // osdDisplayValue = (128 + GBS::VDS_Y_OFST::read());  //R
-    // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 1.402 * ((signed char)GBS::VDS_V_OFST::read()-128));  //R
-    // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 1.5 * ((signed char)GBS::VDS_V_OFST::read()));  //R
-    // osdDisplayValue= (signed char)GBS::VDS_Y_OFST::read()+1.402*((signed char)GBS::VDS_V_OFST::read()-128);
-    // osdDisplayValue = R_VAL;
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    // OSD_displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.402     * (signed char)((signed char)GBS::VDS_V_OFST::read()) )) + 128);
-    OSD_displayNumber3Digit(R_VAL);
-    // osdDisplayValue = (128 + GBS::VDS_U_OFST::read());  //G
-    // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() - 0.88 * ((signed char)GBS::VDS_U_OFST::read()) - 0.764 * ((signed char)GBS::VDS_V_OFST::read()));  //G
-    // osdDisplayValue = (signed char)GBS::VDS_Y_OFST::read()-0.344136*((signed char)GBS::VDS_U_OFST::read()-128)-0.714136*((signed char)GBS::VDS_V_OFST::read()-128);
-    // osdDisplayValue = G_VAL;
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_2;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    // OSD_displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) -(float)( 0.344136  * (signed char)((signed char)GBS::VDS_U_OFST::read()) )- 0.714136 * (signed char)((signed char)GBS::VDS_V_OFST::read()) ) + 128);
-    OSD_displayNumber3Digit(G_VAL);
-
-    // osdDisplayValue = (128 + GBS::VDS_V_OFST::read());  //B
-    // osdDisplayValue = ((signed char)GBS::VDS_Y_OFST::read() + 2 * ((signed char)GBS::VDS_U_OFST::read()));  //B
-    // osdDisplayValue = (signed char)GBS::VDS_Y_OFST::read()+1.772*((signed char)GBS::VDS_U_OFST::read()-128);
-    // osdDisplayValue = B_VAL;
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_3;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    // OSD_displayNumber3Digit(((signed char)((signed char)GBS::VDS_Y_OFST::read()) +(float)( 1.772     * (signed char)((signed char)GBS::VDS_U_OFST::read()) )) + 128);
-    OSD_displayNumber3Digit(B_VAL);
+    // Display R, G, B values at P23-P25 on each row
+    OSD_displayNumber3DigitAtRow(1, R_VAL, _25, _24, _23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(2, G_VAL, _25, _24, _23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(3, B_VAL, _25, _24, _23, OSD_TEXT_NORMAL);
 };
 void handle_SysSettings_SVInput_Values(void)
 {
     OSD_drawDashRange(1, 7, 22);  // Row 1: P7-P22
     OSD_drawDashRange(2, 6, 22);  // Row 2: P6-P22
 
-    osdDisplayValue = GBS::VDS_Y_GAIN::read();
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(osdDisplayValue);
-    osdDisplayValue = GBS::VDS_VCOS_GAIN::read();
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_2;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(osdDisplayValue);
+    OSD_displayNumber3DigitAtRow(1, GBS::VDS_Y_GAIN::read(), _25, _24, _23, OSD_TEXT_NORMAL);
+    OSD_displayNumber3DigitAtRow(2, GBS::VDS_VCOS_GAIN::read(), _25, _24, _23, OSD_TEXT_NORMAL);
 };
 void handle_SysSettings_Page1(void)
 {
     // Line 1 (SV/AV Input Settings) disabled when not SV/AV input
     bool isSvAvInput = (inputType == InputTypeSV) || (inputType == InputTypeAV);
-    OSD_setMenuLineColors(selectedMenuLine);
-    if (!isSvAvInput) menuLine1Color = OSD_TEXT_DISABLED;  // Override line 1 color if disabled
-    OSD_writeCharRow1(0x15, P21, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    uint8_t line1Color = isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 1, line1Color);
+    OSD_writeCharAtRow(1, 0x15, P21, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(false, '1', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "SV/AV Input Settings");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Compatibility Mode");
-
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    // OSD_writeString(1, "Lowres:use upscaling");
-    OSD_writeString(1, "Matched presets");
+    OSD_writeStringAtRow(1, 1, "SV/AV Input Settings", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Compatibility Mode", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Matched presets", OSD_getMenuLineColor(3));
 };
 void handle_SysSettings_Page1_Values(void)
 {
-    // OSD_writeCharRow2(0x3E, P16, OSD_TEXT_NORMAL);
-    // OSD_writeCharRow2(0x3E, P17, OSD_TEXT_NORMAL);
-    // OSD_writeCharRow2(0x3E, P18, OSD_TEXT_NORMAL);
     OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
     OSD_writeOnOff(2, rgbComponentMode == 1);
 
     OSD_drawDashRange(3, 16, 22);  // Row 3: P16-P22
     OSD_writeOnOff(3, uopt->matchPresetSource);
-    /*
-    upscaling
-        // OSD_writeCharRow3(0x3E, P21, OSD_TEXT_NORMAL);
-        // OSD_writeCharRow3(0x3E, P22, OSD_TEXT_NORMAL);
-        // if (uopt->preferScalingRgbhv)
-        // {
-        //   OSD_writeCharRow3(O, P23, OSD_TEXT_NORMAL);
-        //   OSD_writeCharRow3(N, P24, OSD_TEXT_NORMAL);
-        //   OSD_writeCharRow3(F, P25, OSD_BACKGROUND);
-        // }
-        // else
-        // {
-        //   OSD_writeCharRow3(O, P23, OSD_TEXT_NORMAL);
-        //   OSD_writeCharRow3(F, P24, OSD_TEXT_NORMAL);
-        //   OSD_writeCharRow3(F, P25, OSD_TEXT_NORMAL);
-        // }
-    */
 };
 void handle_SysSettings_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '2', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Deinterlace");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Force:50Hz to 60Hz");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    // OSD_writeString(1, "Clock generator");
-    OSD_writeString(1, "Lock method");
+    OSD_writeStringAtRow(1, 1, "Deinterlace", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Force:50Hz to 60Hz", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Lock method", OSD_getMenuLineColor(3));
 };
 void handle_SysSettings_Page2_Values(void)
 {
@@ -662,34 +435,7 @@ void handle_SysSettings_Page2_Values(void)
 
     OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
     OSD_drawDashRange(3, 12, 13);  // Row 3: P12-P13
-
-    // if (uopt->wantOutputComponent)
-    // {
-    //     OSD_writeCharRow1(O, P23, OSD_TEXT_NORMAL);
-    //     OSD_writeCharRow1(N, P24, OSD_TEXT_NORMAL);
-    //     OSD_writeCharRow1(F, P25, OSD_BACKGROUND);
-    // }
-    // else
-    // {
-    //     OSD_writeCharRow1(O, P23, OSD_TEXT_NORMAL);
-    //     OSD_writeCharRow1(F, P24, OSD_TEXT_NORMAL);
-    //     OSD_writeCharRow1(F, P25, OSD_TEXT_NORMAL);
-    // }
-
     OSD_writeOnOff(2, uopt->PalForce60);
-
-    // if (uopt->disableExternalClockGenerator)
-    // {
-    //   OSD_writeCharRow3(O, P23, OSD_TEXT_NORMAL);
-    //   OSD_writeCharRow3(F, P24, OSD_TEXT_NORMAL);
-    //   OSD_writeCharRow3(F, P25, OSD_TEXT_NORMAL);
-    // }
-    // else
-    // {
-    //   OSD_writeCharRow3(O, P23, OSD_TEXT_NORMAL);
-    //   OSD_writeCharRow3(N, P24, OSD_TEXT_NORMAL);
-    //   OSD_writeCharRow3(F, P25, OSD_BACKGROUND);
-    // }
 
     if (uopt->frameTimeLockMethod == 0) {
         OSD_writeStringAtLine(3, 14, "0Vtotal<VSST");
@@ -701,23 +447,11 @@ void handle_SysSettings_Page4(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('3', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '3', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "ADC calibration");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Frame Time lock");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "EnableFrameTimeLock");
+    OSD_writeStringAtRow(1, 1, "ADC calibration", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Frame Time lock", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "EnableFrameTimeLock", OSD_getMenuLineColor(3));
 };
 void handle_SysSettings_Page4_Values(void)
 {
@@ -733,21 +467,9 @@ void handle_ScreenSettings_FullHeight(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '2', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Full height");
-
-    // currentColor = menuLine2Color;
-    // currentRow = ROW_2;
-    // OSD_writeCharAt(M, _1), __(a, _2), __(t, _3), __(c, _4), __(h, _5), __(e, _6), __(d, _7), __(p, _9), __(r, _10), __(e, _11), __(s, _12), __(e, _13), __(t, _14), __(s, _15);
+    OSD_writeStringAtRow(1, 1, "Full height", OSD_getMenuLineColor(1));
 };
 void handle_ScreenFullHeight_Values(void)
 {
@@ -758,70 +480,38 @@ void handle_Developer_Memory(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt(I, _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, I, true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "MEM left/right");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "HS left/right");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "HTotal");
+    OSD_writeStringAtRow(1, 1, "MEM left/right", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "HS left/right", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "HTotal", OSD_getMenuLineColor(3));
 };
 void handle_Developer_Memory_Values(void)
 {
     OSD_drawDashRange(1, 15, 22);  // Row 1: P15-P22
-    OSD_writeCharRow1(0x03, P23, OSD_CURSOR_ACTIVE);
-    OSD_writeCharRow1(0x13, P24, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 0x03, P23, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 0x13, P24, OSD_CURSOR_ACTIVE);
     OSD_drawDashRange(2, 14, 22);  // Row 2: P14-P22
-    OSD_writeCharRow2(0x03, P23, OSD_CURSOR_ACTIVE);
-    OSD_writeCharRow2(0x13, P24, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 0x03, P23, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 0x13, P24, OSD_CURSOR_ACTIVE);
     OSD_drawDashRange(3, 7, 22);   // Row 3: P7-P22
-    osdDisplayValue = GBS::VDS_HSYNC_RST::read();
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_3;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(osdDisplayValue);
+    OSD_displayNumber3DigitAtRow(3, GBS::VDS_HSYNC_RST::read(), _25, _24, _23, OSD_TEXT_NORMAL);
 };
 void handle_Developer_Debug(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt(I, _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, I, true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Debug view");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "ADC filter");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Freeze capture");
+    OSD_writeStringAtRow(1, 1, "Debug view", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "ADC filter", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Freeze capture", OSD_getMenuLineColor(3));
 };
 void handle_Developer_Debug_Values(void)
 {
     OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
     OSD_drawDashRange(2, 11, 22);  // Row 2: P11-P22
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_3;
-    OSD_writeCharAt(0x3E, _15), OSD_writeCharAt(0x3E, _16), OSD_writeCharAt(0x3E, _17), OSD_writeCharAt(0x3E, _18), OSD_writeCharAt(0x3E, _19), OSD_writeCharAt(0x3E, _20), OSD_writeCharAt(0x3E, _21), OSD_writeCharAt(0x3E, _22);
+    OSD_drawDashRange(3, 15, 22);  // Row 3: P15-P22
 
     OSD_writeOnOff(1, GBS::ADC_UNUSED_62::read() != 0x00);
     OSD_writeOnOff(2, GBS::ADC_FLTR::read() > 0);
@@ -831,23 +521,11 @@ void handle_SysSettings_Page5(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt(I, _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, I, true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Enable OTA");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Restart");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Reset defaults");
+    OSD_writeStringAtRow(1, 1, "Enable OTA", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Restart", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Reset defaults", OSD_getMenuLineColor(3));
 };
 void handle_SysSettings_Page5_Values(void)
 {
@@ -857,17 +535,9 @@ void handle_SysSettings_Page5_Values(void)
 void handle_Profile_SaveLoad(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Loadprofile:");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Saveprofile:");
-
-    currentColor = OSD_TEXT_SELECTED;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Active save:");
+    OSD_writeStringAtRow(1, 1, "Loadprofile:", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Saveprofile:", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Active save:", OSD_TEXT_SELECTED);
 };
 // Helper: call name_N() by index (1-20)
 static void callProfileName(uint8_t index) {
@@ -887,27 +557,21 @@ void handle_Profile_SlotDisplay(void)
     // Row 1: Load profile display (Load1-Load20 → index 1-20)
     int loadIdx = oled_menuItem - OLED_Profile_Load1;
     if (loadIdx >= 0 && loadIdx < 20) {
-        currentColor = OSD_TEXT_NORMAL;
-        currentRow = ROW_1;
         callProfileName(loadIdx + 1);
-        displayProfileName();
+        displayProfileName(1, OSD_TEXT_NORMAL);
     }
 
     // Row 3: Active save slot (presetSlot 'A'-'T' → index 1-20)
     if (uopt->presetSlot >= 'A' && uopt->presetSlot <= 'T') {
-        currentColor = OSD_TEXT_SELECTED;
-        currentRow = ROW_3;
         callProfileName(uopt->presetSlot - 'A' + 1);
-        displayProfileName();
+        displayProfileName(3, OSD_TEXT_SELECTED);
     }
 
     // Row 2: Save profile display (Save1-Save20 → index 1-20)
     int saveIdx = oled_menuItem - OLED_Profile_Save1;
     if (saveIdx >= 0 && saveIdx < 20) {
-        currentColor = OSD_TEXT_NORMAL;
-        currentRow = ROW_2;
         callProfileName(saveIdx + 1);
-        displayProfileName();
+        displayProfileName(2, OSD_TEXT_NORMAL);
     }
 };
 void handle_Profile_SlotRow1(void)
@@ -926,41 +590,18 @@ void handle_Profile_SlotRow1(void)
 void handle_Profile_SlotRow2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Contrast");
-    // OSD_writeString(1, "Saturation");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Saturation");
-
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Default");
+    OSD_writeStringAtRow(1, 1, "Contrast", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Saturation", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Default", OSD_getMenuLineColor(3));
 }
 
 void handle_Profile_SlotRow3(void)
 {
     OSD_drawDashRange(1, 13, 18);  // Row 1: P13-P18
-
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(contrast);
+    OSD_displayNumber3DigitAtRow(1, contrast, _25, _24, _23, OSD_TEXT_NORMAL);
 
     OSD_drawDashRange(2, 13, 18);  // Row 2: P13-P18
-
-
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_2;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(saturation);
+    OSD_displayNumber3DigitAtRow(2, saturation, _25, _24, _23, OSD_TEXT_NORMAL);
 };
 
 
@@ -968,7 +609,7 @@ void handle_ADCCalib_Running(void)
 {
     // Line 2 (Smooth) disabled when lineOption is false
     uint8_t line2Color = lineOption ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
-    OSD_setMenuLineColorsWithLine2(selectedMenuLine, line2Color);
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
 
     // currentColor = OSD_ICON_PAGE;
     // currentRow = ROW_1;
@@ -978,82 +619,41 @@ void handle_ADCCalib_Running(void)
     // currentRow = ROW_3;
     // OSD_writeCharAt(icon6, _27);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "DoubleLine");
-    // OSD_writeString(1, "Smooth");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "Smooth");
-    // OSD_writeString(1, "Bright");
-
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "Bright");
-    // OSD_writeString(1, "Contrast");
+    OSD_writeStringAtRow(1, 1, "DoubleLine", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "Smooth", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "Bright", OSD_getMenuLineColor(3));
 };
 void handle_InputMenu_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('1', _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(false, '1', true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "RGBs");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "RGsB");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "VGA");
+    OSD_writeStringAtRow(1, 1, "RGBs", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "RGsB", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "VGA", OSD_getMenuLineColor(3));
 };
 void handle_InputInfo(void)
 {
-    menuLine1Color = OSD_TEXT_NORMAL;
-    menuLine2Color = OSD_TEXT_NORMAL;
-    menuLine3Color = OSD_TEXT_NORMAL;
+    // All rows normal (no selection highlight in info screen)
+    OSD_setMenuLineColors(0);
 
-    currentColor = OSD_ICON_PAGE;
-    // currentRow = ROW_1;
-    // OSD_writeCharAt(icon5, _27);
-    // currentRow = ROW_2;
-    // OSD_writeCharAt('1', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
-
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(0, "Whether to keep the settings");
-
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(0, "Restore in ");
+    OSD_writeStringAtRow(1, 0, "Whether to keep the settings", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 0, "Restore in ", OSD_getMenuLineColor(2));
 
     if (keepSettings) {
-        currentColor = OSD_TEXT_SELECTED;
-        OSD_writeCharRow3(0x15, P2, OSD_TEXT_SELECTED);
+        OSD_writeCharAtRow(3, 0x15, P2, OSD_TEXT_SELECTED);
     } else {
-        currentColor = menuLine3Color;
-        OSD_writeCharRow3(0x15, P2, OSD_BACKGROUND);
+        OSD_writeCharAtRow(3, 0x15, P2, OSD_BACKGROUND);
     }
-    currentRow = ROW_3;
-    OSD_writeString(3, "Changes");
+    OSD_writeStringAtRowContinue(3, 3, "Changes", OSD_getMenuLineColor(3));
 
     if (!keepSettings) {
-        currentColor = OSD_TEXT_SELECTED;
-        OSD_writeCharRow3(0x15, P13, OSD_TEXT_SELECTED);
+        OSD_writeCharAtRow(3, 0x15, P13, OSD_TEXT_SELECTED);
     } else {
-        currentColor = menuLine3Color;
-        OSD_writeCharRow3(0x15, P13, OSD_BACKGROUND);
+        OSD_writeCharAtRow(3, 0x15, P13, OSD_BACKGROUND);
     }
-    OSD_writeString(0xff, "    Recover");
+    OSD_writeStringAtRowContinue(3, 0xFF, "    Recover", OSD_getMenuLineColor(3));
 
     // OSD_writeCharRow3(0x15, P2, OSD_BACKGROUND);
 };
@@ -1061,23 +661,11 @@ void handle_InputMenu_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('2', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '2', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "YPBPR");
-    currentColor = menuLine2Color;
-    currentRow = ROW_2;
-    OSD_writeString(1, "SV");
-    currentColor = menuLine3Color;
-    currentRow = ROW_3;
-    OSD_writeString(1, "AV");
+    OSD_writeStringAtRow(1, 1, "YPBPR", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 1, "SV", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(3, 1, "AV", OSD_getMenuLineColor(3));
 };
 
 void handle_InfoDisplay(void)
@@ -1114,17 +702,9 @@ void handle_InfoDisplay_Source(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt(I, _27);
-    currentRow = ROW_3;
-    OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, I, true);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Setting");
+    OSD_writeStringAtRow(1, 1, "Setting", OSD_getMenuLineColor(1));
 };
 void handle_ADCCalib_Display(void)
 {
@@ -1140,12 +720,7 @@ void handle_ADCCalib_Display(void)
     }
     OSD_writeOnOff(2, smoothOption);
 
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_3;
-    digitPos1 = _25;
-    digitPos2 = _24;
-    digitPos3 = _23;
-    OSD_displayNumber3Digit(brightness);
+    OSD_displayNumber3DigitAtRow(3, brightness, _25, _24, _23, OSD_TEXT_NORMAL);
 
 
     // currentColor = OSD_TEXT_NORMAL;
@@ -1159,17 +734,7 @@ void handle_Restart(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
 
-    currentColor = OSD_ICON_PAGE;
-    currentRow = ROW_1;
-    OSD_writeCharAt(icon5, _27);
-    currentRow = ROW_2;
-    OSD_writeCharAt('4', _27);
-    // currentRow = ROW_3;
-    // OSD_writeCharAt(icon6, _27);
+    OSD_writePageIcons(true, '4', false);
 
-    currentColor = menuLine1Color;
-    currentRow = ROW_1;
-    OSD_writeString(1, "Matched presets");
-    // currentColor = menuLine2Color;
-    // currentRow = ROW_2;
+    OSD_writeStringAtRow(1, 1, "Matched presets", OSD_getMenuLineColor(1));
 };

@@ -77,9 +77,9 @@ static void showMenuCentered(const char* text, uint8_t x = 8, uint8_t y = 15) {
 
 // Highlight icon at position (1=top, 2=mid, 3=bottom)
 static void highlightIcon(uint8_t pos) {
-    OSD_writeCharRow1(icon4, P0, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharRow2(icon4, P0, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharRow3(icon4, P0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, icon4, P0, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, icon4, P0, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, icon4, P0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
 }
 
 // Display menu with ON/OFF toggle
@@ -123,33 +123,27 @@ static void irResume() {
 }
 
 // Show "limit" feedback on TV OSD row, then clear (blocking)
-// row: ROW_1, ROW_2, or ROW_3
+// row: ROW_1, ROW_2, or ROW_3 (hardware bank values)
 // iterations: number of loop iterations for delay (~400 = visible flash)
 static void showLimitFeedback(uint8_t row, int iterations = 400) {
+    uint8_t logicalRow = OSD_bankToRow(row);
     for (int p = 0; p <= iterations; p++) {
-        currentColor = OSD_TEXT_DISABLED;
-        currentRow = row;
-        OSD_writeString(20, "limit");
-        OSD_writeCharAt(0x0d, _25);
+        OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_TEXT_DISABLED);
+        OSD_writeCharAtRow(logicalRow, 0x0d, _25, OSD_TEXT_DISABLED);
     }
-    currentColor = OSD_BACKGROUND;
-    currentRow = row;
-    OSD_writeString(20, "limit");
-    OSD_writeCharAt(0x0d, _25);
+    OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 0x0d, _25, OSD_BACKGROUND);
 }
 
 // Show "OK" feedback on TV OSD row, then clear (blocking)
 // row: ROW_1, ROW_2, or ROW_3
 // iterations: number of loop iterations for delay (~800 = visible flash)
 static void showOkFeedback(uint8_t row, int iterations = 800) {
+    uint8_t logicalRow = OSD_bankToRow(row);
     for (int p = 0; p <= iterations; p++) {
-        currentColor = OSD_TEXT_DISABLED;
-        currentRow = row;
-        OSD_writeString(25, "OK");
+        OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_TEXT_DISABLED);
     }
-    currentColor = OSD_BACKGROUND;
-    currentRow = row;
-    OSD_writeString(25, "OK");
+    OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_BACKGROUND);
 }
 
 // Show "saving" feedback on TV OSD row, then clear (blocking)
@@ -157,14 +151,11 @@ static void showOkFeedback(uint8_t row, int iterations = 800) {
 // startPos: starting position for "saving" text (default 19)
 // iterations: number of loop iterations for delay (~800 = visible flash)
 static void showSavingFeedback(uint8_t row, uint8_t startPos = 19, int iterations = 800) {
+    uint8_t logicalRow = OSD_bankToRow(row);
     for (int p = 0; p <= iterations; p++) {
-        currentColor = OSD_TEXT_DISABLED;
-        currentRow = row;
-        OSD_writeString(startPos, "saving");
+        OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_TEXT_DISABLED);
     }
-    currentColor = OSD_BACKGROUND;
-    currentRow = row;
-    OSD_writeString(startPos, "saving");
+    OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_BACKGROUND);
 }
 
 // Show 4-direction adjustment arrows on TV OSD row
@@ -173,14 +164,10 @@ static void showSavingFeedback(uint8_t row, uint8_t startPos = 19, int iteration
 // Displays dashes (dashStart-P13) and arrow icons (P14-P17)
 static void showAdjustArrows(uint8_t row, uint8_t dashStart = 8) {
     OSD_drawDashRange(row, dashStart, 13);
-    void (*rowFunc)(uint8_t, uint8_t, uint8_t);
-    if (row == 1) rowFunc = OSD_writeCharRow1;
-    else if (row == 2) rowFunc = OSD_writeCharRow2;
-    else rowFunc = OSD_writeCharRow3;
-    rowFunc(0x03, P14, OSD_CURSOR_ACTIVE);  // ↑
-    rowFunc(0x08, P15, OSD_CURSOR_ACTIVE);  // ←
-    rowFunc(0x18, P16, OSD_CURSOR_ACTIVE);  // →
-    rowFunc(0x13, P17, OSD_CURSOR_ACTIVE);  // ↓
+    OSD_writeCharAtRow(row, 0x03, P14, OSD_CURSOR_ACTIVE);  // ↑
+    OSD_writeCharAtRow(row, 0x08, P15, OSD_CURSOR_ACTIVE);  // ←
+    OSD_writeCharAtRow(row, 0x18, P16, OSD_CURSOR_ACTIVE);  // →
+    OSD_writeCharAtRow(row, 0x13, P17, OSD_CURSOR_ACTIVE);  // ↓
 }
 
 // ====================================================================================
@@ -229,9 +216,9 @@ static bool handleProfileRow(bool isLoadRow) {
 
     // Visual feedback for up/down navigation
     if (results.value == IRKeyUp || results.value == IRKeyDown) {
-        OSD_writeCharRow1(icon4, P0, isLoadRow ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
-        OSD_writeCharRow2(icon4, P0, isLoadRow ? OSD_BACKGROUND : OSD_CURSOR_ACTIVE);
-        OSD_writeCharRow3(icon4, P0, OSD_BACKGROUND);
+        OSD_writeCharAtRow(1, icon4, P0, isLoadRow ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, icon4, P0, isLoadRow ? OSD_BACKGROUND : OSD_CURSOR_ACTIVE);
+        OSD_writeCharAtRow(3, icon4, P0, OSD_BACKGROUND);
         if (isLoadRow) OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
     }
 
@@ -3064,14 +3051,10 @@ static bool IR_handleMiscSettings()
 
         // TV OSD display
         osdDisplayValue = 50 - volume;
-        currentColor = OSD_TEXT_SELECTED;
-        currentRow = ROW_1;
-        OSD_writeString(1, "Line input volume");
+        OSD_writeStringAtRow(1, 1, "Line input volume", OSD_TEXT_SELECTED);
         // Display 2-digit volume value at positions 20-21 (0-50 range)
-        currentColor = OSD_TEXT_NORMAL;
-        currentRow = ROW_1;
-        OSD_writeChar(digitChars[osdDisplayValue / 10], 20);  // tens
-        OSD_writeChar(digitChars[osdDisplayValue % 10], 21);  // units
+        OSD_writeCharAtRowLogical(1, digitChars[osdDisplayValue / 10], 20, OSD_TEXT_NORMAL);  // tens
+        OSD_writeCharAtRowLogical(1, digitChars[osdDisplayValue % 10], 21, OSD_TEXT_NORMAL);  // units
 
         if (irDecode()) {
             switch (results.value) {
@@ -3148,68 +3131,53 @@ static bool IR_handleInfoDisplay()
     rto->presetID = GBS::GBS_PRESET_ID::read();
 
     // Row 1: Info header
-    currentColor = OSD_CURSOR_ACTIVE;
-    currentRow = ROW_1;
-    OSD_writeString(0, "Info:");
-    currentColor = OSD_TEXT_NORMAL;
-    OSD_writeString(26, "Hz");
+    OSD_writeStringAtRow(1, 0, "Info:", OSD_CURSOR_ACTIVE);
+    OSD_writeStringAtRow(1, 26, "Hz", OSD_TEXT_NORMAL);
 
     // Row 1: Output resolution (positions 6-14) - clear then write
     OSD_clearRowContent(ROW_1, 15, 6);
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    OSD_writeString(6, getOutputResolutionName(rto->presetID));
+    OSD_writeStringAtRow(1, 6, getOutputResolutionName(rto->presetID), OSD_TEXT_NORMAL);
 
     // Row 1: Input type (positions 17-22) - clear then write
     OSD_clearRowContent(ROW_1, 23, 17);
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    OSD_writeString(18, getInputTypeName(inputType));
+    OSD_writeStringAtRow(1, 18, getInputTypeName(inputType), OSD_TEXT_NORMAL);
 
     // Row 1: Frame rate
     // Display frame rate (2 digits, 0-99 Hz range)
     osdDisplayValue = ofr;
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_1;
-    OSD_writeChar(digitChars[osdDisplayValue / 10], 24);  // tens
-    OSD_writeChar(digitChars[osdDisplayValue % 10], 25);  // units
+    OSD_writeCharAtRowLogical(1, digitChars[osdDisplayValue / 10], 24, OSD_TEXT_NORMAL);  // tens
+    OSD_writeCharAtRowLogical(1, digitChars[osdDisplayValue % 10], 25, OSD_TEXT_NORMAL);  // units
 
     OSD_clearRowContent(ROW_2, 28, 0);
 
-    currentColor = OSD_CURSOR_ACTIVE;
-    currentRow = ROW_2;
+    OSD_writeStringAtRowContinue(2, 0, "Current:", OSD_CURSOR_ACTIVE);
+    OSD_writeStringAtRowContinue(2, 0xFF, " ", OSD_TEXT_NORMAL);
 
-    OSD_writeString(0, "Current:");
-
-    currentColor = OSD_TEXT_NORMAL;
-    currentRow = ROW_2;
-
-    OSD_writeString(0xFF, " ");
     if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
-        OSD_writeString(0xFF, "No Input");
+        OSD_writeStringAtRowContinue(2, 0xFF, "No Input", OSD_TEXT_NORMAL);
     } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
-        OSD_writeCharRow2(B, P16, OSD_BACKGROUND);
-        OSD_writeString(0xFF, "RGB ");
+        OSD_writeCharAtRow(2, B, P16, OSD_BACKGROUND);
+        OSD_writeStringAtRowContinue(2, 0xFF, "RGB ", OSD_TEXT_NORMAL);
         vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         if (vsyncActive) {
             hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
             if (hsyncActive) {
-                OSD_writeString(0xFF, "HV   ");
+                OSD_writeStringAtRowContinue(2, 0xFF, "HV   ", OSD_TEXT_NORMAL);
             }
         } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
-            OSD_writeCharRow2(B, P11, OSD_BACKGROUND);
-            OSD_writeString(0x09, "No Input");
+            OSD_writeCharAtRow(2, B, P11, OSD_BACKGROUND);
+            OSD_writeStringAtRow(2, 0x09, "No Input", OSD_TEXT_NORMAL);
         }
     } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
-        OSD_writeCharRow2(B, P16, OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, B, P16, OSD_BACKGROUND);
         if (inputType == InputTypeYUV)
-            OSD_writeString(0xFF, "  YPBPR  ");
+            OSD_writeStringAtRowContinue(2, 0xFF, "  YPBPR  ", OSD_TEXT_NORMAL);
         else if (inputType == InputTypeSV)
-            OSD_writeString(0xFF, "   SV    ");
+            OSD_writeStringAtRowContinue(2, 0xFF, "   SV    ", OSD_TEXT_NORMAL);
         else if (inputType == InputTypeAV)
-            OSD_writeString(0xFF, "   AV    ");
+            OSD_writeStringAtRowContinue(2, 0xFF, "   AV    ", OSD_TEXT_NORMAL);
     } else {
-        OSD_writeString(0xFF, "No Input");
+        OSD_writeStringAtRowContinue(2, 0xFF, "No Input", OSD_TEXT_NORMAL);
     }
 
     // Show resolution only if input is connected
@@ -3223,24 +3191,24 @@ static bool IR_handleInfoDisplay()
 
         if (S0_Read_Resolution & 0x80) {
             if (S0_Read_Resolution & 0x40) {
-                OSD_writeString(0xFF, "   576p");
+                OSD_writeStringAtRowContinue(2, 0xFF, "   576p", OSD_TEXT_NORMAL);
             } else if (S0_Read_Resolution & 0x20) {
                 if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 312) <= 10)
-                    OSD_writeString(0xFF, "   288p");
+                    OSD_writeStringAtRowContinue(2, 0xFF, "   288p", OSD_TEXT_NORMAL);
                 else
-                    OSD_writeString(0xFF, "   576i");
+                    OSD_writeStringAtRowContinue(2, 0xFF, "   576i", OSD_TEXT_NORMAL);
             } else if (S0_Read_Resolution & 0x10) {
-                OSD_writeString(0xFF, "   480p");
+                OSD_writeStringAtRowContinue(2, 0xFF, "   480p", OSD_TEXT_NORMAL);
             } else if (S0_Read_Resolution & 0x08) {
                 if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 262) <= 10)
-                    OSD_writeString(0xFF, "   240p");
+                    OSD_writeStringAtRowContinue(2, 0xFF, "   240p", OSD_TEXT_NORMAL);
                 else
-                    OSD_writeString(0xFF, "   480i");
+                    OSD_writeStringAtRowContinue(2, 0xFF, "   480i", OSD_TEXT_NORMAL);
             } else {
-                OSD_writeString(0xFF, "   Err");
+                OSD_writeStringAtRowContinue(2, 0xFF, "   Err", OSD_TEXT_NORMAL);
             }
         } else {
-            OSD_writeString(0xFF, "   Err");
+            OSD_writeStringAtRowContinue(2, 0xFF, "   Err", OSD_TEXT_NORMAL);
         }
     }
 
@@ -3313,17 +3281,16 @@ static void IR_updateResolutionCountdown(void)
 
     uint8_t secondsRemaining = OSD_RESOLUTION_CLOSE_TIME / 1000 -
                                ((lastResolutionTime - resolutionStartTime) / 1000);
-    currentRow = ROW_2;
 
     // Display countdown timer
     if (secondsRemaining >= 10) {
-        OSD_writeCharRow2((secondsRemaining / 10) + '0', P11, OSD_TEXT_NORMAL);
-        OSD_writeCharRow2((secondsRemaining % 10) + '0', P12, OSD_TEXT_NORMAL);
-        OSD_writeString(14, " s ");
+        OSD_writeCharAtRow(2, (secondsRemaining / 10) + '0', P11, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, (secondsRemaining % 10) + '0', P12, OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 14, " s ", OSD_TEXT_NORMAL);
     } else {
-        OSD_writeCharRow2('0', P12, OSD_BACKGROUND);
-        OSD_writeCharRow2(secondsRemaining + '0', P11, OSD_TEXT_NORMAL);
-        OSD_writeString(13, " s ");
+        OSD_writeCharAtRow(2, '0', P12, OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, secondsRemaining + '0', P11, OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 13, " s ", OSD_TEXT_NORMAL);
     }
 
     // Countdown expired - apply resolution
@@ -3406,14 +3373,11 @@ static void IR_displayMuteStatus(bool muted)
 
     // Display on OSD
     for (int i = 0; i <= 800; i++) {
-        currentColor = OSD_TEXT_SELECTED;
-        currentRow = ROW_1;
-        OSD_writeCharAt(M, _1), OSD_writeCharAt(U, _2), OSD_writeCharAt(T, _3), OSD_writeCharAt(E, _4);
-        currentColor = OSD_TEXT_NORMAL;
+        OSD_writeStringAtRow(1, 1, "MUTE", OSD_TEXT_SELECTED);
         if (muted) {
-            OSD_writeCharAt(O, _6), OSD_writeCharAt(N, _7);
+            OSD_writeStringAtRow(1, 6, "ON ", OSD_TEXT_NORMAL);  // Extra space to clear "OFF"
         } else {
-            OSD_writeCharAt(O, _6), OSD_writeCharAt(F, _7), OSD_writeCharAt(F, _8);
+            OSD_writeStringAtRow(1, 6, "OFF", OSD_TEXT_NORMAL);
         }
 
         // Display on OLED
@@ -3429,7 +3393,7 @@ static void IR_displayMuteStatus(bool muted)
 
     oled_menuItem = OLED_None;
     OSD_fillRowBackground(ROW_1, _9, OSD_BACKGROUND);
-    OSD_clearRow1Colors();
+    OSD_clearRowColors(ROW_1);
     OSD_init();
 }
 

@@ -59,17 +59,6 @@ extern float getOutputFrameRate();
 // Global Variables - OSD TV System (used by OSD_stv9426.h)
 // ====================================================================================
 
-// Current color for OSD character rendering
-uint8_t currentColor;
-
-// Current OSD row (ROW_1=0x00, ROW_2=0x02, ROW_3=0x03)
-uint8_t currentRow;
-
-// Digit display positions for 3-digit numbers (ones, tens, hundreds)
-uint8_t digitPos1;  // Ones position
-uint8_t digitPos2;  // Tens position
-uint8_t digitPos3;  // Hundreds position
-
 // Profile name characters (9 chars, default '.' = 0x2E)
 char profileChars[9] = {0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E};
 
@@ -118,9 +107,7 @@ int selectedMenuLine = 0;
 char osdDisplayValue = 0;
 OsdCommand lastOsdCommand = OSD_CMD_NONE;
 boolean irEnabled = true;
-int menuLine1Color = 0;
-int menuLine2Color = 0;
-int menuLine3Color = 0;
+uint8_t menuLineColors[OSD_MAX_MENU_ROWS] = {OSD_TEXT_NORMAL, OSD_TEXT_NORMAL, OSD_TEXT_NORMAL};
 uint8_t isInfoDisplayActive = 0;
 uint16_t horizontalBlankStart = 0;
 uint16_t horizontalBlankStop = 0;
