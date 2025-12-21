@@ -997,33 +997,6 @@ void handle_Profile_SaveLoad(void)
     currentRow = ROW_3;
     OSD_writeString(1, "Active save:");
 };
-// Profile state → name index mapping for Row 1 (Load profile display)
-typedef struct {
-    OLED_MenuState state;
-    uint8_t nameIndex;  // 1-20
-} ProfileStateMapping;
-
-static const ProfileStateMapping profileRow1Mappings[] = {
-    {OLED_Profile, 1}, {OLED_Profile_SaveConfirm, 2}, {OLED_Profile_Save, 3},
-    {OLED_Profile_Load, 4}, {OLED_Profile_Operation1, 5}, {OLED_Profile_Operation2, 6},
-    {OLED_Profile_Operation3, 7}, {OLED_Profile_Slot7, 8}, {OLED_Profile_Slot8, 9},
-    {OLED_Profile_Slot9, 10}, {OLED_Profile_Slot10, 11}, {OLED_Profile_Slot11, 12},
-    {OLED_Profile_Slot12, 13}, {OLED_Profile_Slot13, 14}, {OLED_Profile_Slot14, 15},
-    {OLED_Profile_Slot15, 16}, {OLED_Profile_Slot16, 17}, {OLED_Profile_Slot17, 18},
-    {OLED_Profile_Slot18, 19}, {OLED_Profile_Slot19, 20},
-};
-
-// Profile state → name index mapping for Row 2 (Save profile display)
-static const ProfileStateMapping profileRow2Mappings[] = {
-    {OLED_Profile_SelectSlot, 1}, {OLED_Profile_Slot1, 2}, {OLED_Profile_Slot2, 3},
-    {OLED_Profile_Slot3, 4}, {OLED_Profile_Slot4, 5}, {OLED_Profile_Slot5, 6},
-    {OLED_Profile_Slot6, 7}, {OLED_Profile_SelectPreset, 8}, {OLED_Profile_Preset1, 9},
-    {OLED_Profile_Preset2, 10}, {OLED_Profile_Preset3, 11}, {OLED_Profile_Preset4, 12},
-    {OLED_Profile_Preset5, 13}, {OLED_Profile_Preset6, 14}, {OLED_Profile_Preset7, 15},
-    {OLED_Profile_Preset8, 16}, {OLED_Profile_Preset9, 17}, {OLED_Profile_Preset10, 18},
-    {OLED_Profile_Preset11, 19}, {OLED_Profile_Preset12, 20},
-};
-
 // Helper: call name_N() by index (1-20)
 static void callProfileName(uint8_t index) {
     switch (index) {
@@ -1039,15 +1012,13 @@ static void callProfileName(uint8_t index) {
 
 void handle_Profile_SlotDisplay(void)
 {
-    // Row 1: Load profile display (lookup by oled_menuItem)
-    for (size_t i = 0; i < sizeof(profileRow1Mappings) / sizeof(profileRow1Mappings[0]); i++) {
-        if (oled_menuItem == profileRow1Mappings[i].state) {
-            currentColor = OSD_TEXT_NORMAL;
-            currentRow = ROW_1;
-            callProfileName(profileRow1Mappings[i].nameIndex);
-            displayProfileName();
-            break;
-        }
+    // Row 1: Load profile display (Load1-Load20 → index 1-20)
+    int loadIdx = oled_menuItem - OLED_Profile_Load1;
+    if (loadIdx >= 0 && loadIdx < 20) {
+        currentColor = OSD_TEXT_NORMAL;
+        currentRow = ROW_1;
+        callProfileName(loadIdx + 1);
+        displayProfileName();
     }
 
     // Row 3: Active save slot (presetSlot 'A'-'T' → index 1-20)
@@ -1058,15 +1029,13 @@ void handle_Profile_SlotDisplay(void)
         displayProfileName();
     }
 
-    // Row 2: Save profile display (lookup by oled_menuItem)
-    for (size_t i = 0; i < sizeof(profileRow2Mappings) / sizeof(profileRow2Mappings[0]); i++) {
-        if (oled_menuItem == profileRow2Mappings[i].state) {
-            currentColor = OSD_TEXT_NORMAL;
-            currentRow = ROW_2;
-            callProfileName(profileRow2Mappings[i].nameIndex);
-            displayProfileName();
-            break;
-        }
+    // Row 2: Save profile display (Save1-Save20 → index 1-20)
+    int saveIdx = oled_menuItem - OLED_Profile_Save1;
+    if (saveIdx >= 0 && saveIdx < 20) {
+        currentColor = OSD_TEXT_NORMAL;
+        currentRow = ROW_2;
+        callProfileName(saveIdx + 1);
+        displayProfileName();
     }
 };
 void handle_Profile_SlotRow1(void)
