@@ -30,8 +30,8 @@ extern void applyPresets(uint8_t videoMode);
 // Helper Function Declarations
 // ====================================================================================
 
-// Display 9-character profile name at positions P15-P23
-void displayProfileName(uint8_t row, uint8_t color);
+// Display "profile-N" at positions P15-P23 (9 characters)
+void displayProfileName(uint8_t row, uint8_t index, uint8_t color);
 
 // Get color for menu row (1-based)
 uint8_t OSD_getMenuLineColor(uint8_t row);
@@ -47,9 +47,6 @@ void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown);
 
 // Unified row highlight function
 void highlightRow(uint8_t row);
-
-// Generate profile name into profileChars[]
-void setProfileName(uint8_t index);
 
 // Draw dashes on a row from startPos to endPos (logical positions 0-27)
 void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos);
@@ -79,15 +76,15 @@ void handle_HighlightRow3(void);
 
 void handle_OutputRes_1080_1024_960(void);
 void handle_OutputRes_720_480(void);
-void handle_OutputRes_PassThrough(void);
+// void handle_OutputRes_PassThrough(void);
 
 // ====================================================================================
 // Handler Function Declarations - Screen Settings
 // ====================================================================================
 
-void handle_ScreenSettings(void);
-void handle_ScreenSettings_FullHeight(void);
-void handle_ScreenFullHeight_Values(void);
+void handle_ScreenSettings_Page1(void);
+void handle_ScreenSettings_Page2(void);
+void handle_ScreenSettings_Page2_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Color Settings
@@ -138,8 +135,8 @@ void handle_Profile_SlotRow1(void);
 
 void handle_InputMenu_Page1(void);
 void handle_InputMenu_Page2(void);
+void handle_InputMenu_Page2_Values(void);
 void handle_InputInfo(void);
-void handle_InfoDisplay(void);
 void handle_InfoDisplay_Source(void);
 
 // ====================================================================================

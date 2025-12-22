@@ -45,17 +45,17 @@ void handle_ColorSettings_Page2(void)
 void handle_ColorSettings_Page2_Values(void)
 {
     OSD_drawDashRange(1, 9, 18);   // Row 1: pos 9-18
-    OSD_writeCharAtRow(1, 0x3E, 22, OSD_TEXT_NORMAL);
+    OSD_writeCharAtRow(1, 22, '-', OSD_TEXT_NORMAL);
 
     // Only show dashes for scanlines if they are available
     if (areScanLinesAllowed()) {
         OSD_drawDashRange(2, 10, 19);  // Row 2: pos 10-19
-        OSD_writeCharAtRow(2, 0x3E, 22, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 22, '-', OSD_TEXT_NORMAL);
         OSD_writeOnOff(2, uopt->wantScanlines);
         // Display scanline strength (0x00-0x50 → 00-05)
         osdDisplayValue = uopt->scanlineStrength;
-        OSD_writeCharAtRow(2, '0', 21, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(2, '0' + (osdDisplayValue >> 4), 20, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 21, '0', OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 20, '0' + (osdDisplayValue >> 4), OSD_TEXT_NORMAL);
     }
 
     OSD_drawDashRange(3, 12, 22);  // Row 3: pos 12-22

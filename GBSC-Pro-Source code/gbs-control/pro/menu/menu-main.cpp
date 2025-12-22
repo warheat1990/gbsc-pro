@@ -120,7 +120,7 @@ bool IR_handleMainMenu()
                 case IR_KEY_OK:
                     oled_menuItem = OLED_ScreenSettings_Move;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     break;
                 case IR_KEY_EXIT:
                     exitMenu();

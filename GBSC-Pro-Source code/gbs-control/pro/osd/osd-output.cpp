@@ -26,9 +26,9 @@ void handle_OutputRes_720_480(void)
     OSD_writeStringAtRow(2, 1, "480p/576p", OSD_getMenuLineColor(2));
 }
 
-void handle_OutputRes_PassThrough(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, 'I', true);
-    OSD_writeStringAtRow(1, 1, "Pass through", OSD_getMenuLineColor(1));
-}
+// void handle_OutputRes_PassThrough(void)
+// {
+//     OSD_setMenuLineColors(selectedMenuLine);
+//     OSD_writePageIcons(true, 'I', true);
+//     OSD_writeStringAtRow(1, 1, "Pass through", OSD_getMenuLineColor(1));
+// }

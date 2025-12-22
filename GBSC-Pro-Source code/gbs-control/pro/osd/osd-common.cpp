@@ -9,11 +9,16 @@
 // Helper Functions
 // ====================================================================================
 
-// Display 9-character profile name at positions P15-P23
-void displayProfileName(uint8_t row, uint8_t color)
+// Display "profile-N" at positions P15-P23 (9 characters)
+void displayProfileName(uint8_t row, uint8_t index, uint8_t color)
 {
-    for (uint8_t i = 0; i < 9; ++i) {
-        OSD_writeCharAtRow(row, profileChars[i], 15 + i, color);
+    OSD_writeStringAtRow(row, 15, "profile", color);
+    if (index < 10) {
+        OSD_writeCharAtRow(row, 22, '-', color);
+        OSD_writeCharAtRow(row, 23, '0' + index, color);
+    } else {
+        OSD_writeCharAtRow(row, 22, '0' + (index / 10), color);
+        OSD_writeCharAtRow(row, 23, '0' + (index % 10), color);
     }
 }
 
@@ -45,10 +50,10 @@ void OSD_setMenuLineColorsCustom(uint8_t selectedLine, uint8_t customRow, uint8_
 void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
 {
     if (showUp)
-        OSD_writeCharAtRow(1, icon5, 27, OSD_ICON_PAGE);
-    OSD_writeCharAtRow(2, pageChar, 27, OSD_ICON_PAGE);
+        OSD_writeCharAtRow(1, 27, arrow_up_icon, OSD_ICON_PAGE);
+    OSD_writeCharAtRow(2, 27, pageChar, OSD_ICON_PAGE);
     if (showDown)
-        OSD_writeCharAtRow(3, icon6, 27, OSD_ICON_PAGE);
+        OSD_writeCharAtRow(3, 27, arrow_down_icon, OSD_ICON_PAGE);
 }
 
 // Unified row highlight function
@@ -56,25 +61,7 @@ void highlightRow(uint8_t row)
 {
     OSD_fillBackground();
     for (uint8_t r = 1; r <= 3; r++) {
-        OSD_writeCharAtRow(r, icon4, 0, (r == row) ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
+        OSD_writeCharAtRow(r, 0, arrow_right_icon, (r == row) ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
     }
     selectedMenuLine = row;
-}
-
-// Generate "profile-N" name directly into profileChars[]
-void setProfileName(uint8_t index) {
-    profileChars[0] = 'p';
-    profileChars[1] = 'r';
-    profileChars[2] = 'o';
-    profileChars[3] = 'f';
-    profileChars[4] = 'i';
-    profileChars[5] = 'l';
-    profileChars[6] = 'e';
-    if (index < 10) {
-        profileChars[7] = 0x3E;  // '-'
-        profileChars[8] = '0' + index;
-    } else {
-        profileChars[7] = '0' + (index / 10);
-        profileChars[8] = '0' + (index % 10);
-    }
 }

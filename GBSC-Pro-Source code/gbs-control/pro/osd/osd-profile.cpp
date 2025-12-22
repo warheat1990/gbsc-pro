@@ -22,21 +22,18 @@ void handle_Profile_SlotDisplay(void)
     // Row 1: Load profile display (Load1-Load20 → index 1-20)
     int loadIdx = oled_menuItem - OLED_Profile_Load1;
     if (loadIdx >= 0 && loadIdx < 20) {
-        setProfileName(loadIdx + 1);
-        displayProfileName(1, OSD_TEXT_NORMAL);
+        displayProfileName(1, loadIdx + 1, OSD_TEXT_NORMAL);
     }
 
     // Row 3: Active save slot (presetSlot 'A'-'T' → index 1-20)
     if (uopt->presetSlot >= 'A' && uopt->presetSlot <= 'T') {
-        setProfileName(uopt->presetSlot - 'A' + 1);
-        displayProfileName(3, OSD_TEXT_SELECTED);
+        displayProfileName(3, uopt->presetSlot - 'A' + 1, OSD_TEXT_SELECTED);
     }
 
     // Row 2: Save profile display (Save1-Save20 → index 1-20)
     int saveIdx = oled_menuItem - OLED_Profile_Save1;
     if (saveIdx >= 0 && saveIdx < 20) {
-        setProfileName(saveIdx + 1);
-        displayProfileName(2, OSD_TEXT_NORMAL);
+        displayProfileName(2, saveIdx + 1, OSD_TEXT_NORMAL);
     }
 }
 

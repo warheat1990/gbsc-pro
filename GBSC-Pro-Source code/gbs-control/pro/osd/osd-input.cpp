@@ -27,21 +27,7 @@ void handle_InputMenu_Page2(void)
     OSD_writeStringAtRow(3, 1, "AV", OSD_getMenuLineColor(3));
 }
 
-void handle_InputInfo(void)
-{
-    // All rows normal (no selection highlight in info screen)
-    OSD_setMenuLineColors(0);
-    OSD_writeStringAtRow(1, 0, "Whether to keep the settings", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 0, "Restore in ", OSD_getMenuLineColor(2));
-
-    // Show checkmark on selected option (Changes or Recover)
-    OSD_writeCharAtRow(3, 0x15, 2, keepSettings ? OSD_TEXT_SELECTED : OSD_BACKGROUND);
-    OSD_writeStringAtRow(3, 3, "Changes", OSD_getMenuLineColor(3));
-    OSD_writeCharAtRow(3, 0x15, 13, keepSettings ? OSD_BACKGROUND : OSD_TEXT_SELECTED);
-    OSD_writeStringAtRow(3, 0xFF, "    Recover", OSD_getMenuLineColor(3));
-}
-
-void handle_InfoDisplay(void)
+void handle_InputMenu_Page2_Values(void)
 {
     bool isSV = (oled_menuItem == OLED_Input_SV);
     bool isAV = (oled_menuItem == OLED_Input_AV);
@@ -69,6 +55,20 @@ void handle_InfoDisplay(void)
         snprintf(padded, sizeof(padded), "%-15s", getVideoFormatName(AVModeOption));
         OSD_writeStringAtRow(3, 11, padded);
     }
+}
+
+void handle_InputInfo(void)
+{
+    // All rows normal (no selection highlight in info screen)
+    OSD_setMenuLineColors(0);
+    OSD_writeStringAtRow(1, 0, "Whether to keep the settings", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(2, 0, "Restore in ", OSD_getMenuLineColor(2));
+
+    // Show checkmark on selected option (Changes or Recover)
+    OSD_writeCharAtRow(3, 2, arrow_right_icon, keepSettings ? OSD_TEXT_SELECTED : OSD_BACKGROUND);
+    OSD_writeStringAtRow(3, 3, "Changes", OSD_getMenuLineColor(3));
+    OSD_writeCharAtRow(3, 13, arrow_right_icon, keepSettings ? OSD_BACKGROUND : OSD_TEXT_SELECTED);
+    OSD_writeStringAtRow(3, 0xFF, "    Recover", OSD_getMenuLineColor(3));
 }
 
 void handle_InfoDisplay_Source(void)

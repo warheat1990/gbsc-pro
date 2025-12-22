@@ -9,7 +9,7 @@
 // Screen Settings Handlers
 // ====================================================================================
 
-void handle_ScreenSettings(void)
+void handle_ScreenSettings_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
@@ -18,14 +18,14 @@ void handle_ScreenSettings(void)
     OSD_writeStringAtRow(3, 1, "Borders", OSD_getMenuLineColor(3));
 }
 
-void handle_ScreenSettings_FullHeight(void)
+void handle_ScreenSettings_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', false);
     OSD_writeStringAtRow(1, 1, "Full height", OSD_getMenuLineColor(1));
 }
 
-void handle_ScreenFullHeight_Values(void)
+void handle_ScreenSettings_Page2_Values(void)
 {
     OSD_writeOnOff(1, uopt->wantFullHeight);
 }

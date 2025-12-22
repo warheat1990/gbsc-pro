@@ -155,9 +155,9 @@ bool handleProfileRow(bool isLoadRow) {
 
     // Visual feedback for up/down navigation
     if (results.value == IR_KEY_UP || results.value == IR_KEY_DOWN) {
-        OSD_writeCharAtRow(1, icon4, 0, isLoadRow ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
-        OSD_writeCharAtRow(2, icon4, 0, isLoadRow ? OSD_BACKGROUND : OSD_CURSOR_ACTIVE);
-        OSD_writeCharAtRow(3, icon4, 0, OSD_BACKGROUND);
+        OSD_writeCharAtRow(1, 0, arrow_right_icon, isLoadRow ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, 0, arrow_right_icon, isLoadRow ? OSD_BACKGROUND : OSD_CURSOR_ACTIVE);
+        OSD_writeCharAtRow(3, 0, arrow_right_icon, OSD_BACKGROUND);
         if (isLoadRow) OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
     }
 

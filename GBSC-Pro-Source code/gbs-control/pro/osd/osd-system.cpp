@@ -59,7 +59,7 @@ void handle_SysSettings_Page1(void)
     bool isSvAvInput = (inputType == InputTypeSV) || (inputType == InputTypeAV);
     uint8_t line1Color = isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
     OSD_setMenuLineColorsCustom(selectedMenuLine, 1, line1Color);
-    OSD_writeCharAtRow(1, 0x15, 21, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 21, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "AV/SV Input Settings", OSD_getMenuLineColor(1));
     OSD_writeStringAtRow(2, 1, "Compatibility Mode", OSD_getMenuLineColor(2));
@@ -155,11 +155,11 @@ void handle_Developer_Memory(void)
 void handle_Developer_Memory_Values(void)
 {
     OSD_drawDashRange(1, 15, 22);  // Row 1: pos 15-22
-    OSD_writeCharAtRow(1, 0x03, 23, OSD_CURSOR_ACTIVE);
-    OSD_writeCharAtRow(1, 0x13, 24, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
     OSD_drawDashRange(2, 14, 22);  // Row 2: pos 14-22
-    OSD_writeCharAtRow(2, 0x03, 23, OSD_CURSOR_ACTIVE);
-    OSD_writeCharAtRow(2, 0x13, 24, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
     OSD_drawDashRange(3, 7, 22);   // Row 3: pos 7-22
     OSD_displayNumber3DigitAtRow(3, GBS::VDS_HSYNC_RST::read(), 25, 24, 23, OSD_TEXT_NORMAL);
 }

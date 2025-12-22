@@ -141,7 +141,7 @@ bool IR_handleInputSelection()
             OSD_highlightIcon(1);
             OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_INPUT_FORMAT);
+        OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
@@ -182,7 +182,7 @@ bool IR_handleInputSelection()
             OSD_highlightIcon(2);
             OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_INPUT_FORMAT);
+        OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
@@ -234,7 +234,7 @@ bool IR_handleInputSelection()
             OSD_highlightIcon(3);
             OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_INPUT_FORMAT);
+        OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:

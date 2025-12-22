@@ -55,13 +55,6 @@ extern void resetSyncProcessor();
 extern float getOutputFrameRate();
 
 // ====================================================================================
-// Global Variables - OSD TV System (used by OSD_stv9426.h)
-// ====================================================================================
-
-// Profile name characters (9 chars, default '.' = 0x2E)
-char profileChars[9] = {0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E};
-
-// ====================================================================================
 // Global Variables - IR Remote
 // ====================================================================================
 

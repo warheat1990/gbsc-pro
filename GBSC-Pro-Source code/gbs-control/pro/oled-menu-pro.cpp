@@ -125,12 +125,12 @@ static void IR_updateResolutionCountdown(void)
 
     // Display countdown timer
     if (secondsRemaining >= 10) {
-        OSD_writeCharAtRow(2, (secondsRemaining / 10) + '0', 11, OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(2, (secondsRemaining % 10) + '0', 12, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 11, (secondsRemaining / 10) + '0', OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 12, (secondsRemaining % 10) + '0', OSD_TEXT_NORMAL);
         OSD_writeStringAtRow(2, 14, " s ", OSD_TEXT_NORMAL);
     } else {
-        OSD_writeCharAtRow(2, '0', 12, OSD_BACKGROUND);
-        OSD_writeCharAtRow(2, secondsRemaining + '0', 11, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 12, '0', OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, 11, secondsRemaining + '0', OSD_TEXT_NORMAL);
         OSD_writeStringAtRow(2, 13, " s ", OSD_TEXT_NORMAL);
     }
 
@@ -287,6 +287,7 @@ static void IR_handleMenuKeyPress(void)
         // Open main input menu
         selectedMenuLine = 1;
         OSD_handleCommand(OSD_CMD_INIT);
+        OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
         OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
         oled_menuItem = OLED_Input;
         display.clear();

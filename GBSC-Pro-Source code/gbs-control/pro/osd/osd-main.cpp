@@ -27,9 +27,9 @@ void handle_MainMenu_Page1(void)
     OSD_writeStringAtRow(2, 1, "2 Output Resolution", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "3 Screen Settings", OSD_getMenuLineColor(3));
     // Selection arrows at end of each menu item (indicates submenu)
-    OSD_writeCharAtRow(1, 0x15, 8, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, 0x15, 20, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, 0x15, 18, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 8, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 20, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, 18, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
 void handle_MainMenu_Page2(void)
@@ -40,9 +40,9 @@ void handle_MainMenu_Page2(void)
     OSD_writeStringAtRow(2, 1, "5 Picture Settings", OSD_getMenuLineColor(2));
     OSD_writeStringAtRow(3, 1, "6 Reset Settings", OSD_getMenuLineColor(3));
     // Selection arrows at end of each menu item (indicates submenu)
-    OSD_writeCharAtRow(1, 0x15, 18, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, 0x15, 19, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, 0x15, 17, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 18, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 19, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, 17, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
 // ====================================================================================

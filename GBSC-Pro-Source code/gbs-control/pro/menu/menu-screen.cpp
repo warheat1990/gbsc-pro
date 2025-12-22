@@ -40,12 +40,12 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Scale;
                     break;
                 case IR_KEY_OK:
                     oled_menuItem = OLED_ScreenSettings_MoveAdjust;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     OSD_showAdjustArrows(1, 5);
                     break;
                 case IR_KEY_EXIT:
@@ -73,17 +73,17 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Move;
                     break;
                 case IR_KEY_DOWN:
                     selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Borders;
                     break;
                 case IR_KEY_OK:
                     oled_menuItem = OLED_ScreenSettings_ScaleAdjust;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     OSD_showAdjustArrows(2, 6);
                     break;
                 case IR_KEY_EXIT:
@@ -111,17 +111,17 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_UP:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Scale;
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_ScreenSettings_FullHeight;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SCREEN_FULLHEIGHT);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE2);
                     break;
                 case IR_KEY_OK:
                     oled_menuItem = OLED_ScreenSettings_BordersAdjust;
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     OSD_showAdjustArrows(3);
                     break;
                 case IR_KEY_EXIT:
@@ -137,7 +137,7 @@ bool IR_handleScreenSettings(void)
 
     if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
         if (results.value == IR_KEY_OK) {
-            OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+            OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
             OSD_showAdjustArrows(1, 5);
         }
 
@@ -148,7 +148,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_OK:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Move;
                     break;
                 case IR_KEY_RIGHT:
@@ -175,7 +175,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Move;
                     break;
             }
@@ -186,7 +186,7 @@ bool IR_handleScreenSettings(void)
 
     if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
         if (results.value == IR_KEY_OK) {
-            OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+            OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
             OSD_showAdjustArrows(2, 6);
         }
 
@@ -197,7 +197,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_OK:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Scale;
                     break;
                 case IR_KEY_RIGHT:
@@ -230,7 +230,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Scale;
                     break;
             }
@@ -241,7 +241,7 @@ bool IR_handleScreenSettings(void)
 
     if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
         if (results.value == IR_KEY_OK) {
-            OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+            OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
             OSD_showAdjustArrows(3);
         }
 
@@ -252,7 +252,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_OK:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Borders;
                     break;
                 case IR_KEY_RIGHT:
@@ -281,7 +281,7 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_EXIT:
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     oled_menuItem = OLED_ScreenSettings_Borders;
                     break;
             }
@@ -295,9 +295,9 @@ bool IR_handleScreenSettings(void)
 
         if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
             OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_SCREEN_FULLHEIGHT);
+            OSD_handleCommand(OSD_CMD_SCREEN_PAGE2);
         }
-        OSD_handleCommand(OSD_CMD_SCREEN_FULLHEIGHT_VALUES);
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE2_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -307,7 +307,7 @@ bool IR_handleScreenSettings(void)
                 case IR_KEY_UP:
                     oled_menuItem = OLED_ScreenSettings_Borders;
                     OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
-                    OSD_handleCommand(OSD_CMD_SCREEN_SETTINGS);
+                    OSD_handleCommand(OSD_CMD_SCREEN_PAGE1);
                     break;
                 case IR_KEY_OK: {
                     uopt->wantFullHeight = !uopt->wantFullHeight;

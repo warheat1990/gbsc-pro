@@ -61,8 +61,8 @@ bool IR_handleMiscSettings()
         osdDisplayValue = 50 - volume;
         OSD_writeStringAtRow(1, 1, "Line input volume", OSD_TEXT_SELECTED);
         // Display 2-digit volume value at positions 20-21 (0-50 range)
-        OSD_writeCharAtRow(1, digitChars[osdDisplayValue / 10], 20, OSD_TEXT_NORMAL);  // tens
-        OSD_writeCharAtRow(1, digitChars[osdDisplayValue % 10], 21, OSD_TEXT_NORMAL);  // units
+        OSD_writeCharAtRow(1, 20, '0' + (osdDisplayValue / 10), OSD_TEXT_NORMAL);  // tens
+        OSD_writeCharAtRow(1, 21, '0' + (osdDisplayValue % 10), OSD_TEXT_NORMAL);  // units
 
         if (irDecode()) {
             switch (results.value) {
@@ -128,8 +128,8 @@ bool IR_handleInfoDisplay()
     // Row 1: Frame rate
     // Display frame rate (2 digits, 0-99 Hz range)
     osdDisplayValue = ofr;
-    OSD_writeCharAtRow(1, digitChars[osdDisplayValue / 10], 24, OSD_TEXT_NORMAL);  // tens
-    OSD_writeCharAtRow(1, digitChars[osdDisplayValue % 10], 25, OSD_TEXT_NORMAL);  // units
+    OSD_writeCharAtRow(1, 24, '0' + (osdDisplayValue / 10), OSD_TEXT_NORMAL);  // tens
+    OSD_writeCharAtRow(1, 25, '0' + (osdDisplayValue % 10), OSD_TEXT_NORMAL);  // units
 
     OSD_writeStringAtRow(2, 0, "Current:", OSD_CURSOR_ACTIVE);
     OSD_writeStringAtRow(2, 0xFF, " ", OSD_TEXT_NORMAL);
@@ -137,7 +137,7 @@ bool IR_handleInfoDisplay()
     if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
         OSD_writeStringAtRow(2, 0xFF, "No Input", OSD_TEXT_NORMAL);
     } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
-        OSD_writeCharAtRow(2, 'B', 16, OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, 16, 'B', OSD_BACKGROUND);
         OSD_writeStringAtRow(2, 0xFF, "RGB ", OSD_TEXT_NORMAL);
         vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         if (vsyncActive) {
@@ -146,11 +146,11 @@ bool IR_handleInfoDisplay()
                 OSD_writeStringAtRow(2, 0xFF, "HV   ", OSD_TEXT_NORMAL);
             }
         } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
-            OSD_writeCharAtRow(2, 'B', 11, OSD_BACKGROUND);
+            OSD_writeCharAtRow(2, 11, 'B', OSD_BACKGROUND);
             OSD_writeStringAtRow(2, 0x09, "No Input", OSD_TEXT_NORMAL);
         }
     } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
-        OSD_writeCharAtRow(2, 'B', 16, OSD_BACKGROUND);
+        OSD_writeCharAtRow(2, 16, 'B', OSD_BACKGROUND);
         if (inputType == InputTypeYUV)
             OSD_writeStringAtRow(2, 0xFF, "  YPBPR  ", OSD_TEXT_NORMAL);
         else if (inputType == InputTypeSV)

@@ -28,10 +28,10 @@ void OSD_showLimitFeedback(uint8_t row, int iterations) {
     uint8_t logicalRow = OSD_bankToRow(row);
     for (int p = 0; p <= iterations; p++) {
         OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_TEXT_DISABLED);
-        OSD_writeCharAtRow(logicalRow, 0x0d, 25, OSD_TEXT_DISABLED);
+        OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_TEXT_DISABLED);
     }
     OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_BACKGROUND);
-    OSD_writeCharAtRow(logicalRow, 0x0d, 25, OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_BACKGROUND);
 }
 
 // Show "OK" feedback on TV OSD row, then clear (blocking)
@@ -55,23 +55,23 @@ void OSD_showSavingFeedback(uint8_t row, uint8_t startPos, int iterations) {
 // Show 4-direction adjustment arrows on TV OSD row
 void OSD_showAdjustArrows(uint8_t row, uint8_t dashStart) {
     OSD_drawDashRange(row, dashStart, 13);
-    OSD_writeCharAtRow(row, 0x03, 14, OSD_CURSOR_ACTIVE);  // up arrow
-    OSD_writeCharAtRow(row, 0x08, 15, OSD_CURSOR_ACTIVE);  // left arrow
-    OSD_writeCharAtRow(row, 0x18, 16, OSD_CURSOR_ACTIVE);  // right arrow
-    OSD_writeCharAtRow(row, 0x13, 17, OSD_CURSOR_ACTIVE);  // down arrow
+    OSD_writeCharAtRow(row, 14, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);  // up arrow
+    OSD_writeCharAtRow(row, 15, vertical_scale_part1_icon, OSD_CURSOR_ACTIVE);  // left arrow
+    OSD_writeCharAtRow(row, 16, vertical_scale_part2_icon, OSD_CURSOR_ACTIVE);  // right arrow
+    OSD_writeCharAtRow(row, 17, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);  // down arrow
 }
 
 // Highlight menu icon at position (1=top, 2=mid, 3=bottom)
 void OSD_highlightIcon(uint8_t pos) {
-    OSD_writeCharAtRow(1, icon4, 0, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, icon4, 0, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, icon4, 0, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(1, 0, arrow_right_icon, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 0, arrow_right_icon, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, 0, arrow_right_icon, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
 }
 
 // Draw dashes on a row from startPos to endPos (logical positions 0-27)
 void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos) {
     for (uint8_t p = startPos; p <= endPos; p++) {
-        OSD_writeCharAtRow(row, 0x3E, p, OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(row, p, '-', OSD_TEXT_NORMAL);
     }
 }
 
@@ -100,12 +100,12 @@ const MenuEntry menuTable[] = {
     // Output Resolution (not saveable)
     {OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960, false},
     {OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480,       false},
-    {OSD_CMD_OUTPUT_PASSTHROUGH,   handle_OutputRes_PassThrough,   false},
+    // {OSD_CMD_OUTPUT_PASSTHROUGH,   handle_OutputRes_PassThrough,   false},
 
     // Screen Settings
-    {OSD_CMD_SCREEN_SETTINGS,        handle_ScreenSettings,          false},
-    {OSD_CMD_SCREEN_FULLHEIGHT,      handle_ScreenSettings_FullHeight, true},  // saveable
-    {OSD_CMD_SCREEN_FULLHEIGHT_VALUES, handle_ScreenFullHeight_Values, false},
+    {OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1,        false},
+    {OSD_CMD_SCREEN_PAGE2,        handle_ScreenSettings_Page2,        true},   // saveable
+    {OSD_CMD_SCREEN_PAGE2_VALUES, handle_ScreenSettings_Page2_Values, false},
 
     // Color Settings (Picture Settings menu)
     {OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1,        true},   // R, G, B
@@ -146,11 +146,11 @@ const MenuEntry menuTable[] = {
     {OSD_CMD_SVAVINPUT_PAGE2_VALUES, handle_SVAVInput_Page2_Values, false},
 
     // Input Menu
-    {OSD_CMD_INPUT_PAGE1,   handle_InputMenu_Page1,     true},   // saveable
-    {OSD_CMD_INPUT_PAGE2,   handle_InputMenu_Page2,     true},   // saveable
-    {OSD_CMD_INPUT_INFO,    handle_InputInfo,           false},
-    {OSD_CMD_INPUT_FORMAT,  handle_InfoDisplay,         false},
-    {OSD_CMD_INPUT_SOURCE,  handle_InfoDisplay_Source,  false},
+    {OSD_CMD_INPUT_PAGE1,        handle_InputMenu_Page1,        true},   // saveable
+    {OSD_CMD_INPUT_PAGE2,        handle_InputMenu_Page2,        true},   // saveable
+    {OSD_CMD_INPUT_PAGE2_VALUES, handle_InputMenu_Page2_Values, false},
+    {OSD_CMD_INPUT_INFO,         handle_InputInfo,              false},
+    {OSD_CMD_INPUT_SOURCE,       handle_InfoDisplay_Source,     false},
 
     // SV/AV Input Settings - Page 1
     {OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1,        true},   // saveable

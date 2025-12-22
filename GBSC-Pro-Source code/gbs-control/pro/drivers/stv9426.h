@@ -4,8 +4,6 @@
    Original by: Karabanov Aleksandr (2024-02-16)
    https://www.youtube.com/channel/UCkNk5gQMIu8k9xW-uENsBzw
 
-   Refactored: Variable names translated from Russian for readability
-
 */
 
 #ifndef OSD_STV9426_H_
@@ -82,10 +80,26 @@
 // ====================================================================================
 
 // Special icon characters
-static const uint8_t icon1 = 0x09, icon2 = 0x19, icon3 = 0x05,
-                     icon4 = 0x15, icon5 = 0x06, icon6 = 0x16;
-
-// Special characters: = 0x3D, - 0x3E, . 0x2E, / 0x2F, : 0x3A, ' 0x27
+static const uint8_t horizontal_scale_part1_icon = 0x03; // Horizontal scale part 1 icon
+static const uint8_t horizontal_scale_part2_icon = 0x13; // Horizontal scale part 2 icon
+static const uint8_t horizontal_move_part1_icon = 0x04; // Horizontal move part 1 icon
+static const uint8_t horizontal_move_part2_icon = 0x14; // Horizontal move part 2 icon
+static const uint8_t arrow_left_icon = 0x05; // Arrow left icon
+static const uint8_t arrow_right_icon = 0x15; // Arrow right icon
+static const uint8_t arrow_up_icon = 0x06; // Arrow up icon
+static const uint8_t arrow_down_icon = 0x16; // Arrow down icon
+static const uint8_t vertical_move_part1_icon = 0x07; // Vertical move part 1 icon
+static const uint8_t vertical_move_part2_icon = 0x17; // Vertical move part 2 icon
+static const uint8_t vertical_scale_part1_icon = 0x08; // Vertical scale part 1 icon
+static const uint8_t vertical_scale_part2_icon = 0x18; // Vertical scale part 2 icon
+static const uint8_t borders_part1_icon = 0x09; // Borders part 1 icon
+static const uint8_t borders_part2_icon = 0x19; // Borders part 2 icon
+static const uint8_t contrast_part1_icon = 0x0A; // Contrast part 1 icon
+static const uint8_t contrast_part2_icon = 0x1A; // Contrast part 2 icon
+static const uint8_t brightness_part1_icon = 0x0B; // Brightness part 1 icon
+static const uint8_t brightness_part2_icon = 0x1B; // Brightness part 2 icon
+static const uint8_t enable_icon = 0x0C; // Enable icon
+static const uint8_t disable_icon = 0x1C; // Disable icon
 
 // ====================================================================================
 // OSD Colors - Attribute Byte Format (LSB of character code pair)
@@ -164,12 +178,6 @@ static const uint8_t ROW_3 = 0x03;
 #ifndef OSD_MAX_MENU_ROWS
 #define OSD_MAX_MENU_ROWS 3
 #endif
-
-// ====================================================================================
-// Profile Name Characters (9 character positions)
-// ====================================================================================
-
-extern char profileChars[9];  // 9-character profile name array
 
 // ====================================================================================
 // Low-Level I2C Communication
@@ -253,22 +261,23 @@ inline uint8_t OSD_bankToRow(uint8_t bank) {
 
 // Write character with color on specified row
 // row: 1, 2, or 3
-// charCode: ASCII character code (n0-n9, A-Z, a-z, etc.)
 // pos: logical position (0-27), auto-converted to hardware position
+// charCode: ASCII character code (n0-n9, A-Z, a-z, etc.)
 // color: color code (OSD_TEXT_NORMAL, OSD_TEXT_SELECTED, etc.)
-inline void OSD_writeCharAtRow(uint8_t row, uint8_t charCode, uint8_t pos, uint8_t color)
+inline void OSD_writeCharAtRow(uint8_t row, uint8_t pos, uint8_t charCode, uint8_t color)
 {
     uint8_t bank = OSD_rowToBank(row);
     uint8_t hwPos = (pos * 2) + 1;  // Convert logical to hardware pos
-    // Character mapping for OSD font
+    // Character mapping for OSD font (sorted by output byte value)
     switch (charCode) {
         case ' ':  color = OSD_BACKGROUND; break;
-        case '=':  charCode = 0x3D; break;
-        case '.':  charCode = 0x2E; break;
         case '\'': charCode = 0x27; break;
-        case '-':  charCode = 0x3E; break;
+        case '.':  charCode = 0x2E; break;
         case '/':  charCode = 0x2F; break;
         case ':':  charCode = 0x3A; break;
+        case '+':  charCode = 0x3C; break;
+        case '=':  charCode = 0x3D; break;
+        case '-':  charCode = 0x3E; break;
     }
     OSD_sendCommand(hwPos, bank, charCode);
     OSD_sendCommand(hwPos - 1, bank, color);
@@ -301,7 +310,7 @@ inline void OSD_writeStringAtRow(uint8_t row, uint8_t startPos, const char* str,
     uint8_t pos = startPos;
     while (*str != '\0') {
         _osd_string_continue_pos = pos + 1;
-        OSD_writeCharAtRow(row, *str, pos, color);
+        OSD_writeCharAtRow(row, pos, *str, color);
         pos++;
         str++;
     }
@@ -365,13 +374,6 @@ inline void OSD_fillBackground()
 }
 
 // ====================================================================================
-// Digit Character Lookup Table
-// ====================================================================================
-
-// Maps digit 0-9 to OSD character codes (ASCII '0'-'9')
-static const uint8_t digitChars[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-
-// ====================================================================================
 // Display 3-Digit Decimal Number (0-255)
 // ====================================================================================
 
@@ -384,9 +386,9 @@ inline void OSD_displayNumber3DigitAtRow(uint8_t row, byte value,
                                           uint8_t pos1, uint8_t pos2, uint8_t pos3,
                                           uint8_t color)
 {
-    OSD_writeCharAtRow(row, digitChars[value % 10], pos1, color);         // units
-    OSD_writeCharAtRow(row, digitChars[(value / 10) % 10], pos2, color);  // tens
-    OSD_writeCharAtRow(row, digitChars[value / 100], pos3, color);        // hundreds
+    OSD_writeCharAtRow(row, pos1, '0' + (value % 10), color);         // units
+    OSD_writeCharAtRow(row, pos2, '0' + ((value / 10) % 10), color);  // tens
+    OSD_writeCharAtRow(row, pos3, '0' + (value / 100), color);        // hundreds
 }
 
 // ====================================================================================
