@@ -171,14 +171,14 @@ bool handleProfileRow(bool isLoadRow) {
             case IR_KEY_UP:
                 if (!isLoadRow) {
                     oled_menuItem = OLED_Profile_Load1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
                 }
                 break;
             case IR_KEY_DOWN:
                 if (isLoadRow) {
                     oled_menuItem = OLED_Profile_Save1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
                 }
                 break;

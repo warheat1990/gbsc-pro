@@ -23,8 +23,152 @@ extern boolean areScanLinesAllowed();
 
 bool IR_handleColorSettings()
 {
+        // OLED_ColorSettings_RGB_R
+    if (oled_menuItem == OLED_ColorSettings_RGB_R) {
+        showMenu("Menu->Color", "R ");
+
+        if (results.value == IR_KEY_UP) {
+            OSD_highlightIcon(1);
+            OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+        }
+
+        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_DOWN:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+                    oled_menuItem = OLED_ColorSettings_RGB_G;
+                    break;
+                case IR_KEY_RIGHT:
+                    R_VAL = MIN(R_VAL + STEP, 255);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_LEFT:
+                    R_VAL = MAX(0, R_VAL - STEP);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_OK:
+                    saveUserPrefs();
+                    break;
+                case IR_KEY_EXIT:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_ColorSettings_RGB_G
+    else if (oled_menuItem == OLED_ColorSettings_RGB_G) {
+        if (uopt->enableAutoGain == 1) {
+            uopt->enableAutoGain = 0;
+            saveUserPrefs();
+        } else {
+            uopt->enableAutoGain = 0;
+        }
+        showMenu("Menu->Color", "G ");
+
+        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
+            OSD_highlightIcon(2);
+        }
+        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+                    oled_menuItem = OLED_ColorSettings_RGB_R;
+                    break;
+                case IR_KEY_DOWN:
+                    selectedMenuLine = 3;
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+                    oled_menuItem = OLED_ColorSettings_RGB_B;
+                    break;
+                case IR_KEY_RIGHT:
+                    G_VAL = MIN(G_VAL + STEP, 255);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_LEFT:
+                    G_VAL = MAX(0, G_VAL - STEP);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_OK:
+                    saveUserPrefs();
+                    break;
+                case IR_KEY_EXIT:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_ColorSettings_RGB_B
+    else if (oled_menuItem == OLED_ColorSettings_RGB_B) {
+        showMenu("Menu->Color", "B");
+
+        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
+            OSD_highlightIcon(3);
+            OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+        }
+        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
+                    oled_menuItem = OLED_ColorSettings_RGB_G;
+                    break;
+                case IR_KEY_DOWN:
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
+                    OSD_handleCommand(OSD_CMD_COLOR_PAGE2);
+                    oled_menuItem = OLED_ColorSettings_ADCGain;
+                    break;
+                case IR_KEY_RIGHT:
+                    B_VAL = MIN(B_VAL + STEP, 255);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_LEFT:
+                    B_VAL = MAX(0, B_VAL - STEP);
+                    applyRGBtoYUVConversion();
+                    break;
+                case IR_KEY_OK:
+                    saveUserPrefs();
+                    break;
+                case IR_KEY_EXIT:
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    oled_menuItem = OLED_ColorSettings;
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
     // OLED_ColorSettings_ADCGain
-    if (oled_menuItem == OLED_ColorSettings_ADCGain) {
+    else if (oled_menuItem == OLED_ColorSettings_ADCGain) {
         showMenuToggle("Menu->Color", "ADC gain", uopt->enableAutoGain);
 
         if (results.value == IR_KEY_UP) {
@@ -40,7 +184,8 @@ bool IR_handleColorSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    selectedMenuLine = 3;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
                     oled_menuItem = OLED_ColorSettings_RGB_B;
                     break;
@@ -59,7 +204,8 @@ bool IR_handleColorSettings()
                     serialCommand = 'T';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -111,7 +257,8 @@ bool IR_handleColorSettings()
                     }
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -144,14 +291,16 @@ bool IR_handleColorSettings()
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_ColorSettings_Sharpness;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_COLOR_PAGE3);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'm';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -179,7 +328,8 @@ bool IR_handleColorSettings()
                     break;
                 case IR_KEY_UP:
                     oled_menuItem = OLED_ColorSettings_LineFilter;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    selectedMenuLine = 3;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_COLOR_PAGE2);
                     break;
                 case IR_KEY_DOWN:
@@ -191,7 +341,8 @@ bool IR_handleColorSettings()
                     userCommand = 'W';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -236,7 +387,8 @@ bool IR_handleColorSettings()
                     }
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -269,153 +421,16 @@ bool IR_handleColorSettings()
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_ColorSettings_Y_Gain;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    selectedMenuLine = 1;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_COLOR_PAGE4);
                     break;
                 case IR_KEY_OK:
                     serialCommand = 'V';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_ColorSettings_RGB_R
-    else if (oled_menuItem == OLED_ColorSettings_RGB_R) {
-        showMenu("Menu->Color", "R ");
-
-        if (results.value == IR_KEY_UP) {
-            OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-        }
-        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_DOWN:
                     selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-                    oled_menuItem = OLED_ColorSettings_RGB_G;
-                    break;
-                case IR_KEY_RIGHT:
-                    R_VAL = MIN(R_VAL + STEP, 255);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_LEFT:
-                    R_VAL = MAX(0, R_VAL - STEP);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_OK:
-                    saveUserPrefs();
-                    break;
-                case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_ColorSettings_RGB_G
-    else if (oled_menuItem == OLED_ColorSettings_RGB_G) {
-        if (uopt->enableAutoGain == 1) {
-            uopt->enableAutoGain = 0;
-            saveUserPrefs();
-        } else {
-            uopt->enableAutoGain = 0;
-        }
-        showMenu("Menu->Color", "G ");
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(2);
-        }
-        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-                    oled_menuItem = OLED_ColorSettings_RGB_R;
-                    break;
-                case IR_KEY_DOWN:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-                    oled_menuItem = OLED_ColorSettings_RGB_B;
-                    break;
-                case IR_KEY_RIGHT:
-                    G_VAL = MIN(G_VAL + STEP, 255);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_LEFT:
-                    G_VAL = MAX(0, G_VAL - STEP);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_OK:
-                    saveUserPrefs();
-                    break;
-                case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
-                    oled_menuItem = OLED_ColorSettings;
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_ColorSettings_RGB_B
-    else if (oled_menuItem == OLED_ColorSettings_RGB_B) {
-        showMenu("Menu->Color", "B");
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(3);
-            OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-        }
-        OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_COLOR_PAGE1);
-                    oled_menuItem = OLED_ColorSettings_RGB_G;
-                    break;
-                case IR_KEY_DOWN:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
-                    OSD_handleCommand(OSD_CMD_COLOR_PAGE2);
-                    oled_menuItem = OLED_ColorSettings_ADCGain;
-                    break;
-                case IR_KEY_RIGHT:
-                    B_VAL = MIN(B_VAL + STEP, 255);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_LEFT:
-                    B_VAL = MAX(0, B_VAL - STEP);
-                    applyRGBtoYUVConversion();
-                    break;
-                case IR_KEY_OK:
-                    saveUserPrefs();
-                    break;
-                case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -443,7 +458,8 @@ bool IR_handleColorSettings()
                     break;
                 case IR_KEY_UP:
                     oled_menuItem = OLED_ColorSettings_StepResponse;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    selectedMenuLine = 3;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_COLOR_PAGE3);
                     break;
                 case IR_KEY_DOWN:
@@ -460,7 +476,8 @@ bool IR_handleColorSettings()
                     GBS::VDS_Y_GAIN::write(cur);
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -502,7 +519,8 @@ bool IR_handleColorSettings()
                     userCommand = 'R';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;
@@ -535,7 +553,8 @@ bool IR_handleColorSettings()
                     userCommand = 'U';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    selectedMenuLine = 2;
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_ColorSettings;
                     break;

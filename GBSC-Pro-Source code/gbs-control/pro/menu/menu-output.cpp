@@ -39,7 +39,7 @@ bool IR_handleOutputResolution(void)
                     userCommand = 's';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -75,7 +75,7 @@ bool IR_handleOutputResolution(void)
                     userCommand = 'p';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -105,14 +105,14 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_OutputResolution_720;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'f';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -137,7 +137,7 @@ bool IR_handleOutputResolution(void)
                     break;
                 case IR_KEY_UP:
                     oled_menuItem = OLED_OutputResolution_960;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_OUTPUT_1080_1024_960);
                     break;
                 case IR_KEY_DOWN:
@@ -149,7 +149,7 @@ bool IR_handleOutputResolution(void)
                     userCommand = 'g';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -180,7 +180,7 @@ bool IR_handleOutputResolution(void)
                     userCommand = 'h';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -209,7 +209,7 @@ bool IR_handleOutputResolution(void)
                 case IR_KEY_OK:
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
                     oled_menuItem = OLED_OutputResolution;
                     break;
@@ -253,12 +253,12 @@ bool IR_handleOutputResolution(void)
                             userCommand = 'g';
                     }
 
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
                     oled_menuItem = OLED_OutputResolution_PassThrough;
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
                     oled_menuItem = OLED_OutputResolution_PassThrough;
                     break;

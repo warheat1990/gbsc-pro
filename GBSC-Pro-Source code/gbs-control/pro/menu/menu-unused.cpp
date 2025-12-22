@@ -31,7 +31,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_OutputResolution;
 //                 break;
@@ -42,7 +42,7 @@
 //                 break;
 //             case IR_KEY_DOWN:
 //                 oled_menuItem = OLED_OutputResolution_PassThrough;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_OUTPUT_PASSTHROUGH);
 //                 break;
 //             case IR_KEY_OK:
@@ -74,13 +74,13 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_SystemSettings;
 //                 break;
 //             case IR_KEY_UP:
 //                 oled_menuItem = OLED_SystemSettings_UseUpscaling;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
 //                 OSD_handleCommand(OSD_CMD_SYS_PAGE1);
 //                 break;
 //             case IR_KEY_DOWN:
@@ -95,7 +95,7 @@
 //                 serialCommand = 'L';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -131,7 +131,7 @@
 //                 break;
 //             case IR_KEY_OK:
 //                 oled_menuItem = OLED_Developer_MemoryAdjust;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_DEV_MEMORY);
 //                 break;
 //             case IR_KEY_EXIT:
@@ -156,7 +156,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
@@ -172,7 +172,7 @@
 //                 serialCommand = '-';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -194,7 +194,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
@@ -215,7 +215,7 @@
 //                 serialCommand = '1';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -238,7 +238,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
@@ -249,7 +249,7 @@
 //                 break;
 //             case IR_KEY_DOWN:
 //                 oled_menuItem = OLED_Developer_DebugView;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_DEV_DEBUG);
 //                 break;
 //             case IR_KEY_RIGHT:
@@ -259,7 +259,7 @@
 //                 serialCommand = 'A';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -282,13 +282,13 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
 //             case IR_KEY_UP:
 //                 oled_menuItem = OLED_Developer_HTotalAdjust;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
 //                 OSD_handleCommand(OSD_CMD_DEV_MEMORY);
 //                 break;
 //             case IR_KEY_DOWN:
@@ -303,7 +303,7 @@
 //                 serialCommand = 'D';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -325,7 +325,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
@@ -346,7 +346,7 @@
 //                 serialCommand = 'F';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -369,7 +369,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_Developer;
 //                 break;
@@ -380,7 +380,7 @@
 //                 break;
 //             case IR_KEY_DOWN:
 //                 oled_menuItem = OLED_Developer_MemoryAdjust;
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_DEV_MEMORY);
 //                 break;
 //             case IR_KEY_RIGHT:
@@ -390,7 +390,7 @@
 //                 userCommand = 'F';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -417,7 +417,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_ResetSettings;
 //                 break;
@@ -433,7 +433,7 @@
 //                 serialCommand = 'c';
 //                 break;
 //             case IR_KEY_EXIT:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
 //                 oled_menuItem = OLED_Input;
 //                 break;
@@ -455,7 +455,7 @@
 //     if (irDecode()) {
 //         switch (results.value) {
 //             case IR_KEY_MENU:
-//                 OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+//                 OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
 //                 OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
 //                 oled_menuItem = OLED_ResetSettings;
 //                 break;

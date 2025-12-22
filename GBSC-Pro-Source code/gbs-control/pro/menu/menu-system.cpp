@@ -49,14 +49,14 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_SystemSettings_Deinterlace;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE2);
                     break;
                 case IR_KEY_OK:
                     serialCommand = 'Z';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -89,11 +89,11 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_SystemSettings_Deinterlace;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE2);
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -138,7 +138,7 @@ bool IR_handleSystemSettings()
                     applyVideoModePreset();
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -172,7 +172,7 @@ bool IR_handleSystemSettings()
                     userCommand = 'X';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -199,7 +199,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     oled_menuItem = OLED_SystemSettings_LockMethod;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE2);
                     break;
                 case IR_KEY_DOWN:
@@ -211,7 +211,7 @@ bool IR_handleSystemSettings()
                     userCommand = 'w';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -250,7 +250,7 @@ bool IR_handleSystemSettings()
                     userCommand = '5';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -284,14 +284,14 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_DOWN:
                     oled_menuItem = OLED_SystemSettings_ADCCalibration;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE4);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'i';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -319,7 +319,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     oled_menuItem = OLED_SystemSettings_MatchedPresets;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     break;
                 case IR_KEY_DOWN:
@@ -342,7 +342,7 @@ bool IR_handleSystemSettings()
                     applyVideoModePreset();
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -367,7 +367,7 @@ bool IR_handleSystemSettings()
                 case IR_KEY_OK:
                     if (inputType == InputTypeSV || inputType == InputTypeAV) {
                         selectedMenuLine = 1;
-                        OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                        OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                         oled_menuItem = OLED_SystemSettings_SVAVInput_DoubleLine;
                     }
@@ -382,7 +382,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;
@@ -413,11 +413,14 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_OK:
                     lineOption = !lineOption;
+                    if(!lineOption) {
+                        smoothOption = false;
+                    }
                     settingLineOptionChanged = 1;
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
@@ -459,7 +462,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
@@ -489,7 +492,7 @@ bool IR_handleSystemSettings()
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Smooth;
                     break;
                 case IR_KEY_DOWN:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Contrast;
                     break;
@@ -506,7 +509,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     saveUserPrefs();
@@ -532,7 +535,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW3);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
                     OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInput_Bright;
                     break;
@@ -554,7 +557,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
@@ -601,7 +604,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
@@ -639,7 +642,7 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_EXIT:
                     selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_SYS_PAGE1);
                     oled_menuItem = OLED_SystemSettings_SVAVInputSettings;
                     break;
@@ -682,7 +685,7 @@ bool IR_handleSystemSettings()
                         applyVideoModePreset();
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
                     oled_menuItem = OLED_SystemSettings;
                     break;

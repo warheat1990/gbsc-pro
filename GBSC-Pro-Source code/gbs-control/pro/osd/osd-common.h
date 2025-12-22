@@ -31,7 +31,7 @@ extern void applyPresets(uint8_t videoMode);
 // ====================================================================================
 
 // Display "profile-N" at positions P15-P23 (9 characters)
-void displayProfileName(uint8_t row, uint8_t index, uint8_t color);
+void displayProfileName(uint8_t row, uint8_t index, uint8_t color = OSD_COLOR_AUTO);
 
 // Get color for menu row (1-based)
 uint8_t OSD_getMenuLineColor(uint8_t row);
@@ -49,10 +49,25 @@ void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown);
 void highlightRow(uint8_t row);
 
 // Draw dashes on a row from startPos to endPos (logical positions 0-27)
-void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos);
+void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos, uint8_t color = OSD_COLOR_AUTO);
 
-// Write ON or OFF indicator at end of row (positions 23-25)
-void OSD_writeOnOff(uint8_t row, bool isOn);
+// Write ON or OFF indicator at end of row (position 25)
+void OSD_writeOnOff(uint8_t row, bool isOn, uint8_t color = OSD_COLOR_AUTO);
+
+// Highlight menu icon at position (1=top, 2=mid, 3=bottom)
+void OSD_highlightIcon(uint8_t pos);
+
+// Show 4-direction adjustment icons on TV OSD row
+void OSD_showAdjustArrows(uint8_t row, uint8_t pos = 22, uint8_t color = OSD_TEXT_SELECTED);
+
+// Show "limit" feedback on TV OSD row, then clear (blocking)
+void OSD_showLimitFeedback(uint8_t row, int iterations = 400);
+
+// Show "OK" feedback on TV OSD row, then clear (blocking)
+void OSD_showOkFeedback(uint8_t row, int iterations = 800);
+
+// Show "saving" feedback on TV OSD row, then clear (blocking)
+void OSD_showSavingFeedback(uint8_t row, uint8_t startPos = 19, int iterations = 800);
 
 // ====================================================================================
 // Handler Function Declarations - Initialization

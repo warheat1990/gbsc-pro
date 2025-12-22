@@ -5,13 +5,7 @@
 
 #pragma once
 
-#include <Arduino.h>
-#include <Wire.h>
-#include "../gbs-control-pro.h"  // For OLED_MenuState, globals
-#include "../osd-render-pro.h"   // For OSD functions
-#include "../options-pro.h"      // For OutputResolution enum
-#include "../../options.h"       // For userOptions, runTimeOptions
-#include "../drivers/stv9426.h"  // For OSD constants
+#include "../osd/osd-common.h"   // For OSD helper functions (includes gbs-control-pro.h, stv9426.h, options.h)
 #include "../drivers/ir_remote.h" // For IR keys
 
 // Forward declarations

@@ -98,8 +98,8 @@ static const uint8_t contrast_part1_icon = 0x0A; // Contrast part 1 icon
 static const uint8_t contrast_part2_icon = 0x1A; // Contrast part 2 icon
 static const uint8_t brightness_part1_icon = 0x0B; // Brightness part 1 icon
 static const uint8_t brightness_part2_icon = 0x1B; // Brightness part 2 icon
-static const uint8_t enable_icon = 0x0C; // Enable icon
-static const uint8_t disable_icon = 0x1C; // Disable icon
+static const uint8_t enable_icon = 0x0D; // Enable icon
+static const uint8_t disable_icon = 0x1D; // Disable icon
 
 // ====================================================================================
 // OSD Colors - Attribute Byte Format (LSB of character code pair)
@@ -157,6 +157,9 @@ static uint8_t OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);   //
 static uint8_t OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLUE);  // 0x16 - Selected/highlighted item
 static uint8_t OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLUE);     // 0x14 - Unavailable option
 
+// Special value: use menu line color (yellow if selected, white otherwise)
+#define OSD_COLOR_AUTO 0xFF
+
 // Navigation elements
 static uint8_t OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLUE);   // 0x12 - Page numbers, nav arrows
 static uint8_t OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW); // 0x60 - Active row cursor
@@ -178,6 +181,17 @@ static const uint8_t ROW_3 = 0x03;
 #ifndef OSD_MAX_MENU_ROWS
 #define OSD_MAX_MENU_ROWS 3
 #endif
+
+// Menu line colors array (defined in gbs-control-pro.cpp)
+extern uint8_t menuLineColors[OSD_MAX_MENU_ROWS];
+
+// Helper to resolve OSD_COLOR_AUTO to actual color
+inline uint8_t OSD_resolveColor(uint8_t row, uint8_t color) {
+    if (color == OSD_COLOR_AUTO && row >= 1 && row <= OSD_MAX_MENU_ROWS) {
+        return menuLineColors[row - 1];
+    }
+    return color;
+}
 
 // ====================================================================================
 // Low-Level I2C Communication
@@ -259,13 +273,24 @@ inline uint8_t OSD_bankToRow(uint8_t bank) {
     return 3;
 }
 
+// Static variable for string/char continuation position
+static uint8_t _osd_string_continue_pos = 0;
+
 // Write character with color on specified row
 // row: 1, 2, or 3
-// pos: logical position (0-27), auto-converted to hardware position
+// pos: logical position (0-27), or 0xFF to continue from last position
 // charCode: ASCII character code (n0-n9, A-Z, a-z, etc.)
-// color: color code (OSD_TEXT_NORMAL, OSD_TEXT_SELECTED, etc.)
-inline void OSD_writeCharAtRow(uint8_t row, uint8_t pos, uint8_t charCode, uint8_t color)
+// color: OSD_COLOR_AUTO (default) uses menu line color, or specify explicit color
+inline void OSD_writeCharAtRow(uint8_t row, uint8_t pos, uint8_t charCode, uint8_t color = OSD_COLOR_AUTO)
 {
+    // Handle 0xFF continuation
+    if (pos == 0xFF)
+        pos = _osd_string_continue_pos;
+    _osd_string_continue_pos = pos + 1;
+
+    // Resolve auto color to menu line color
+    color = OSD_resolveColor(row, color);
+
     uint8_t bank = OSD_rowToBank(row);
     uint8_t hwPos = (pos * 2) + 1;  // Convert logical to hardware pos
     // Character mapping for OSD font (sorted by output byte value)
@@ -287,31 +312,22 @@ inline void OSD_writeCharAtRow(uint8_t row, uint8_t pos, uint8_t charCode, uint8
 // String Write Functions
 // ====================================================================================
 
-// Static variable for string continuation position
-static uint8_t _osd_string_continue_pos = 0;
-
 // Write null-terminated string on specific row at logical position with color
 // row: 1, 2, or 3
 // startPos: logical starting position (0-27), or 0xFF to continue from last position
 // str: null-terminated ASCII string
-// color: color for non-space characters (default OSD_TEXT_NORMAL)
+// color: OSD_COLOR_AUTO (default) uses menu line color, or specify explicit color
 // Note: spaces are written with OSD_BACKGROUND to clear the position
 inline void OSD_writeStringAtRow(uint8_t row, uint8_t startPos, const char* str,
-                                  uint8_t color = OSD_TEXT_NORMAL)
+                                  uint8_t color = OSD_COLOR_AUTO)
 {
     if (str == NULL) return;
 
-    // Handle 0xFF continuation
-    if (startPos == 0xFF)
-        startPos = _osd_string_continue_pos;
-    else
-        _osd_string_continue_pos = startPos;
-
-    uint8_t pos = startPos;
+    // First char uses startPos (handles 0xFF), rest use 0xFF to continue
+    bool first = true;
     while (*str != '\0') {
-        _osd_string_continue_pos = pos + 1;
-        OSD_writeCharAtRow(row, pos, *str, color);
-        pos++;
+        OSD_writeCharAtRow(row, first ? startPos : 0xFF, *str, color);
+        first = false;
         str++;
     }
 }
@@ -381,10 +397,10 @@ inline void OSD_fillBackground()
 // row: 1, 2, or 3
 // value: byte to display (0-255)
 // pos1, pos2, pos3: logical positions (0-27) for units, tens, hundreds
-// color: text color
+// color: OSD_COLOR_AUTO (default) uses menu line color, or specify explicit color
 inline void OSD_displayNumber3DigitAtRow(uint8_t row, byte value,
                                           uint8_t pos1, uint8_t pos2, uint8_t pos3,
-                                          uint8_t color)
+                                          uint8_t color = OSD_COLOR_AUTO)
 {
     OSD_writeCharAtRow(row, pos1, '0' + (value % 10), color);         // units
     OSD_writeCharAtRow(row, pos2, '0' + ((value / 10) % 10), color);  // tens

@@ -61,8 +61,8 @@ bool IR_handleMiscSettings()
         osdDisplayValue = 50 - volume;
         OSD_writeStringAtRow(1, 1, "Line input volume", OSD_TEXT_SELECTED);
         // Display 2-digit volume value at positions 20-21 (0-50 range)
-        OSD_writeCharAtRow(1, 20, '0' + (osdDisplayValue / 10), OSD_TEXT_NORMAL);  // tens
-        OSD_writeCharAtRow(1, 21, '0' + (osdDisplayValue % 10), OSD_TEXT_NORMAL);  // units
+        OSD_writeCharAtRow(1, 20, '0' + (osdDisplayValue / 10));  // tens
+        OSD_writeCharAtRow(1, 21, '0' + (osdDisplayValue % 10));  // units
 
         if (irDecode()) {
             switch (results.value) {
@@ -115,50 +115,50 @@ bool IR_handleInfoDisplay()
 
     // Row 1: Info header
     OSD_writeStringAtRow(1, 0, "Info:", OSD_CURSOR_ACTIVE);
-    OSD_writeStringAtRow(1, 26, "Hz", OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(1, 26, "Hz");
 
     // Row 1: Output resolution (positions 6-14) - clear then write
     OSD_clearRowContent(ROW_1, 15, 6);
-    OSD_writeStringAtRow(1, 6, getOutputResolutionName(rto->presetID), OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(1, 6, getOutputResolutionName(rto->presetID));
 
     // Row 1: Input type (positions 17-22) - clear then write
     OSD_clearRowContent(ROW_1, 23, 17);
-    OSD_writeStringAtRow(1, 18, getInputTypeName(inputType), OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(1, 18, getInputTypeName(inputType));
 
     // Row 1: Frame rate
     // Display frame rate (2 digits, 0-99 Hz range)
     osdDisplayValue = ofr;
-    OSD_writeCharAtRow(1, 24, '0' + (osdDisplayValue / 10), OSD_TEXT_NORMAL);  // tens
-    OSD_writeCharAtRow(1, 25, '0' + (osdDisplayValue % 10), OSD_TEXT_NORMAL);  // units
+    OSD_writeCharAtRow(1, 24, '0' + (osdDisplayValue / 10));  // tens
+    OSD_writeCharAtRow(1, 25, '0' + (osdDisplayValue % 10));  // units
 
     OSD_writeStringAtRow(2, 0, "Current:", OSD_CURSOR_ACTIVE);
-    OSD_writeStringAtRow(2, 0xFF, " ", OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(2, 0xFF, " ");
 
     if ((rto->sourceDisconnected || !rto->boardHasPower || isInfoDisplayActive == 1)) {
-        OSD_writeStringAtRow(2, 0xFF, "No Input", OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 0xFF, "No Input");
     } else if (((currentInput == 1) || (inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA))) {
         OSD_writeCharAtRow(2, 16, 'B', OSD_BACKGROUND);
-        OSD_writeStringAtRow(2, 0xFF, "RGB ", OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 0xFF, "RGB ");
         vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         if (vsyncActive) {
             hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
             if (hsyncActive) {
-                OSD_writeStringAtRow(2, 0xFF, "HV   ", OSD_TEXT_NORMAL);
+                OSD_writeStringAtRow(2, 0xFF, "HV   ");
             }
         } else if ((inputType == InputTypeVGA) && ((!vsyncActive || !hsyncActive))) {
             OSD_writeCharAtRow(2, 11, 'B', OSD_BACKGROUND);
-            OSD_writeStringAtRow(2, 0x09, "No Input", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(2, 0x09, "No Input");
         }
     } else if ((rto->continousStableCounter > 35 || currentInput != 1) || (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV)) {
         OSD_writeCharAtRow(2, 16, 'B', OSD_BACKGROUND);
         if (inputType == InputTypeYUV)
-            OSD_writeStringAtRow(2, 0xFF, "  YPBPR  ", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(2, 0xFF, "  YPBPR  ");
         else if (inputType == InputTypeSV)
-            OSD_writeStringAtRow(2, 0xFF, "   SV    ", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(2, 0xFF, "   SV    ");
         else if (inputType == InputTypeAV)
-            OSD_writeStringAtRow(2, 0xFF, "   AV    ", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(2, 0xFF, "   AV    ");
     } else {
-        OSD_writeStringAtRow(2, 0xFF, "No Input", OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 0xFF, "No Input");
     }
 
     // Show resolution only if input is connected
@@ -172,24 +172,24 @@ bool IR_handleInfoDisplay()
 
         if (S0_Read_Resolution & 0x80) {
             if (S0_Read_Resolution & 0x40) {
-                OSD_writeStringAtRow(2, 0xFF, "   576p", OSD_TEXT_NORMAL);
+                OSD_writeStringAtRow(2, 0xFF, "   576p");
             } else if (S0_Read_Resolution & 0x20) {
                 if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 312) <= 10)
-                    OSD_writeStringAtRow(2, 0xFF, "   288p", OSD_TEXT_NORMAL);
+                    OSD_writeStringAtRow(2, 0xFF, "   288p");
                 else
-                    OSD_writeStringAtRow(2, 0xFF, "   576i", OSD_TEXT_NORMAL);
+                    OSD_writeStringAtRow(2, 0xFF, "   576i");
             } else if (S0_Read_Resolution & 0x10) {
-                OSD_writeStringAtRow(2, 0xFF, "   480p", OSD_TEXT_NORMAL);
+                OSD_writeStringAtRow(2, 0xFF, "   480p");
             } else if (S0_Read_Resolution & 0x08) {
                 if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 262) <= 10)
-                    OSD_writeStringAtRow(2, 0xFF, "   240p", OSD_TEXT_NORMAL);
+                    OSD_writeStringAtRow(2, 0xFF, "   240p");
                 else
-                    OSD_writeStringAtRow(2, 0xFF, "   480i", OSD_TEXT_NORMAL);
+                    OSD_writeStringAtRow(2, 0xFF, "   480i");
             } else {
-                OSD_writeStringAtRow(2, 0xFF, "   Err", OSD_TEXT_NORMAL);
+                OSD_writeStringAtRow(2, 0xFF, "   Err");
             }
         } else {
-            OSD_writeStringAtRow(2, 0xFF, "   Err", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(2, 0xFF, "   Err");
         }
     }
 

@@ -45,10 +45,10 @@ typedef enum : uint8_t {
     // Initialization (fill background once when menu opens)
     OSD_CMD_INIT,
 
-    // Cursor Positioning
-    OSD_CMD_CURSOR_ROW1,
-    OSD_CMD_CURSOR_ROW2,
-    OSD_CMD_CURSOR_ROW3,
+    // Page Change (fill background + select row)
+    OSD_CMD_PAGE_CHANGE_ROW1,
+    OSD_CMD_PAGE_CHANGE_ROW2,
+    OSD_CMD_PAGE_CHANGE_ROW3,
 
     // Main Menu
     OSD_CMD_MAIN_PAGE1,

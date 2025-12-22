@@ -125,19 +125,19 @@ static void IR_updateResolutionCountdown(void)
 
     // Display countdown timer
     if (secondsRemaining >= 10) {
-        OSD_writeCharAtRow(2, 11, (secondsRemaining / 10) + '0', OSD_TEXT_NORMAL);
-        OSD_writeCharAtRow(2, 12, (secondsRemaining % 10) + '0', OSD_TEXT_NORMAL);
-        OSD_writeStringAtRow(2, 14, " s ", OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 11, (secondsRemaining / 10) + '0');
+        OSD_writeCharAtRow(2, 12, (secondsRemaining % 10) + '0');
+        OSD_writeStringAtRow(2, 14, " s ");
     } else {
         OSD_writeCharAtRow(2, 12, '0', OSD_BACKGROUND);
-        OSD_writeCharAtRow(2, 11, secondsRemaining + '0', OSD_TEXT_NORMAL);
-        OSD_writeStringAtRow(2, 13, " s ", OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(2, 11, secondsRemaining + '0');
+        OSD_writeStringAtRow(2, 13, " s ");
     }
 
     // Countdown expired - apply resolution
     if ((lastResolutionTime - resolutionStartTime) >= OSD_RESOLUTION_CLOSE_TIME) {
         userCommand = IR_getResolutionCommand(tentativeResolution);
-        OSD_handleCommand(OSD_CMD_CURSOR_ROW2);
+        OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
         OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
         oled_menuItem = OLED_OutputResolution_PassThrough;
     }
@@ -216,9 +216,9 @@ static void IR_displayMuteStatus(bool muted)
     for (int i = 0; i <= 800; i++) {
         OSD_writeStringAtRow(1, 1, "MUTE", OSD_TEXT_SELECTED);
         if (muted) {
-            OSD_writeStringAtRow(1, 6, "ON ", OSD_TEXT_NORMAL);  // Extra space to clear "OFF"
+            OSD_writeStringAtRow(1, 6, "ON ");  // Extra space to clear "OFF"
         } else {
-            OSD_writeStringAtRow(1, 6, "OFF", OSD_TEXT_NORMAL);
+            OSD_writeStringAtRow(1, 6, "OFF");
         }
 
         // Display on OLED
@@ -287,7 +287,7 @@ static void IR_handleMenuKeyPress(void)
         // Open main input menu
         selectedMenuLine = 1;
         OSD_handleCommand(OSD_CMD_INIT);
-        OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+        OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
         OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
         oled_menuItem = OLED_Input;
         display.clear();
@@ -300,7 +300,7 @@ static void IR_handleSaveKeyPress(void)
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
     OSD_handleCommand(OSD_CMD_INIT);
-    OSD_handleCommand(OSD_CMD_CURSOR_ROW1);
+    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
     oled_menuItem = OLED_Profile_Load1;
 }

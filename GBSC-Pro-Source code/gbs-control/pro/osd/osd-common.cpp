@@ -29,9 +29,14 @@ uint8_t OSD_getMenuLineColor(uint8_t row) {
 }
 
 // Set menu line colors based on selection (scalable to OSD_MAX_MENU_ROWS)
+// Also updates the cursor arrow at position 0 for each row
 void OSD_setMenuLineColors(uint8_t selectedLine) {
     for (uint8_t i = 0; i < OSD_MAX_MENU_ROWS; i++) {
-        menuLineColors[i] = (i + 1 == selectedLine) ? OSD_TEXT_SELECTED : OSD_TEXT_NORMAL;
+        uint8_t row = i + 1;
+        bool isSelected = (row == selectedLine);
+        menuLineColors[i] = isSelected ? OSD_TEXT_SELECTED : OSD_TEXT_NORMAL;
+        // Update cursor arrow at position 0
+        OSD_writeCharAtRow(row, 0, arrow_right_icon, isSelected ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
     }
 }
 
@@ -60,8 +65,62 @@ void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
 void highlightRow(uint8_t row)
 {
     OSD_fillBackground();
-    for (uint8_t r = 1; r <= 3; r++) {
-        OSD_writeCharAtRow(r, 0, arrow_right_icon, (r == row) ? OSD_CURSOR_ACTIVE : OSD_BACKGROUND);
-    }
     selectedMenuLine = row;
+    OSD_setMenuLineColors(row);
+}
+
+// Draw dashes on a row from startPos to endPos (logical positions 0-27)
+void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos, uint8_t color) {
+    for (uint8_t p = startPos; p <= endPos; p++) {
+        OSD_writeCharAtRow(row, p, '-', color);
+    }
+}
+
+// Write ON or OFF indicator at end of row (position 23)
+void OSD_writeOnOff(uint8_t row, bool isOn, uint8_t color) {
+    OSD_writeStringAtRow(row, 23, isOn ? "-ON" : "OFF", color);
+}
+
+// Highlight menu icon at position (1=top, 2=mid, 3=bottom)
+void OSD_highlightIcon(uint8_t pos) {
+    OSD_writeCharAtRow(1, 0, arrow_right_icon, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(2, 0, arrow_right_icon, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+    OSD_writeCharAtRow(3, 0, arrow_right_icon, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
+}
+
+// Show 4-direction adjustment icons on TV OSD row
+void OSD_showAdjustArrows(uint8_t row, uint8_t pos, uint8_t color) {
+    OSD_writeCharAtRow(row, pos,     horizontal_scale_part1_icon, color);
+    OSD_writeCharAtRow(row, pos + 1, vertical_scale_part1_icon, color);
+    OSD_writeCharAtRow(row, pos + 2, vertical_scale_part2_icon, color);
+    OSD_writeCharAtRow(row, pos + 3, horizontal_scale_part2_icon, color);
+}
+
+// Show "limit" feedback on TV OSD row, then clear (blocking)
+void OSD_showLimitFeedback(uint8_t row, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_TEXT_DISABLED);
+        OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_BACKGROUND);
+}
+
+// Show "OK" feedback on TV OSD row, then clear (blocking)
+void OSD_showOkFeedback(uint8_t row, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_BACKGROUND);
+}
+
+// Show "saving" feedback on TV OSD row, then clear (blocking)
+void OSD_showSavingFeedback(uint8_t row, uint8_t startPos, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_BACKGROUND);
 }

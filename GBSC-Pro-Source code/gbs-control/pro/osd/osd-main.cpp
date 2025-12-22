@@ -23,26 +23,24 @@ void handle_MainMenu_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "1 Input", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "2 Output Resolution", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "3 Screen Settings", OSD_getMenuLineColor(3));
-    // Selection arrows at end of each menu item (indicates submenu)
-    OSD_writeCharAtRow(1, 8, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, 20, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, 18, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(1, 1, "Input");
+    OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(2, 1, "Output Resolution");
+    OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(3, 1, "Screen Settings");
+    OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
 void handle_MainMenu_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', false);
-    OSD_writeStringAtRow(1, 1, "4 System Settings", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "5 Picture Settings", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "6 Reset Settings", OSD_getMenuLineColor(3));
-    // Selection arrows at end of each menu item (indicates submenu)
-    OSD_writeCharAtRow(1, 18, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, 19, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, 17, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(1, 1, "System Settings");
+    OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(2, 1, "Picture Settings");
+    OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(3, 1, "Reset Settings");
+    OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
 // ====================================================================================

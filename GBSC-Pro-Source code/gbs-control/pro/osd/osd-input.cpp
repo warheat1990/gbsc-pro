@@ -13,18 +13,18 @@ void handle_InputMenu_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "RGBs", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "RGsB", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "VGA", OSD_getMenuLineColor(3));
+    OSD_writeStringAtRow(1, 1, "RGBs");
+    OSD_writeStringAtRow(2, 1, "RGsB");
+    OSD_writeStringAtRow(3, 1, "VGA");
 }
 
 void handle_InputMenu_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', false);
-    OSD_writeStringAtRow(1, 1, "YPBPR", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 1, "SV", OSD_getMenuLineColor(2));
-    OSD_writeStringAtRow(3, 1, "AV", OSD_getMenuLineColor(3));
+    OSD_writeStringAtRow(1, 1, "YPbPr");
+    OSD_writeStringAtRow(2, 1, "SV");
+    OSD_writeStringAtRow(3, 1, "AV");
 }
 
 void handle_InputMenu_Page2_Values(void)
@@ -61,19 +61,19 @@ void handle_InputInfo(void)
 {
     // All rows normal (no selection highlight in info screen)
     OSD_setMenuLineColors(0);
-    OSD_writeStringAtRow(1, 0, "Whether to keep the settings", OSD_getMenuLineColor(1));
-    OSD_writeStringAtRow(2, 0, "Restore in ", OSD_getMenuLineColor(2));
+    OSD_writeStringAtRow(1, 0, "Whether to keep the settings");
+    OSD_writeStringAtRow(2, 0, "Restore in ");
 
     // Show checkmark on selected option (Changes or Recover)
     OSD_writeCharAtRow(3, 2, arrow_right_icon, keepSettings ? OSD_TEXT_SELECTED : OSD_BACKGROUND);
-    OSD_writeStringAtRow(3, 3, "Changes", OSD_getMenuLineColor(3));
+    OSD_writeStringAtRow(3, 3, "Changes");
     OSD_writeCharAtRow(3, 13, arrow_right_icon, keepSettings ? OSD_BACKGROUND : OSD_TEXT_SELECTED);
-    OSD_writeStringAtRow(3, 0xFF, "    Recover", OSD_getMenuLineColor(3));
+    OSD_writeStringAtRow(3, 0xFF, "    Recover");
 }
 
 void handle_InfoDisplay_Source(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, 'I', true);
-    OSD_writeStringAtRow(1, 1, "Setting", OSD_getMenuLineColor(1));
+    OSD_writeStringAtRow(1, 1, "Setting");
 }
