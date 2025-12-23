@@ -408,6 +408,25 @@ inline void OSD_displayNumber3DigitAtRow(uint8_t row, byte value,
 }
 
 // ====================================================================================
+// Display 4-Digit Decimal Number (0-9999)
+// ====================================================================================
+
+// Display a 16-bit value (0-9999) as 4 decimal digits at specified positions
+// row: 1, 2, or 3
+// value: uint16_t to display (0-9999)
+// pos1, pos2, pos3, pos4: logical positions (0-27) for units, tens, hundreds, thousands
+// color: OSD_COLOR_AUTO (default) uses menu line color, or specify explicit color
+inline void OSD_displayNumber4DigitAtRow(uint8_t row, uint16_t value,
+                                          uint8_t pos1, uint8_t pos2, uint8_t pos3, uint8_t pos4,
+                                          uint8_t color = OSD_COLOR_AUTO)
+{
+    OSD_writeCharAtRow(row, pos1, '0' + (value % 10), color);          // units
+    OSD_writeCharAtRow(row, pos2, '0' + ((value / 10) % 10), color);   // tens
+    OSD_writeCharAtRow(row, pos3, '0' + ((value / 100) % 10), color);  // hundreds
+    OSD_writeCharAtRow(row, pos4, '0' + ((value / 1000) % 10), color); // thousands
+}
+
+// ====================================================================================
 // PWM DAC Control (8-bit PWM outputs for analog voltage control)
 // ====================================================================================
 // STV9425 has 8 PWM outputs (PWM0-PWM7), STV9426 (DIP16) has none

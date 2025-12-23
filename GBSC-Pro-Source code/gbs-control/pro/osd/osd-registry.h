@@ -68,6 +68,7 @@ typedef enum : uint8_t {
 
     // Screen Settings
     OSD_CMD_SCREEN_PAGE1,
+    OSD_CMD_SCREEN_PAGE1_VALUES,
     OSD_CMD_SCREEN_PAGE2,
     OSD_CMD_SCREEN_PAGE2_VALUES,
 
@@ -160,8 +161,10 @@ void handle_OutputRes_720_480(void);
 // ====================================================================================
 
 void handle_ScreenSettings_Page1(void);
+void handle_ScreenSettings_Page1_Values(void);
 void handle_ScreenSettings_Page2(void);
 void handle_ScreenSettings_Page2_Values(void);
+
 
 // ====================================================================================
 // Handler Function Declarations - Color Settings
@@ -239,7 +242,8 @@ void handle_InfoDisplay_Source(void);
     DISPATCH_ENTRY(OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480,       false) \
     \
     /* Screen Settings */ \
-    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1,        false) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1,        true) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1_VALUES, handle_ScreenSettings_Page1_Values, false) \
     DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2,        handle_ScreenSettings_Page2,        true) \
     DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2_VALUES, handle_ScreenSettings_Page2_Values, false) \
     \

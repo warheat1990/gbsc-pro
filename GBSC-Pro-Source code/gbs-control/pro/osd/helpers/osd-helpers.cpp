@@ -135,8 +135,9 @@ void OSD_showLimitFeedback(uint8_t row, int iterations) {
         OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_TEXT_DISABLED);
         OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_TEXT_DISABLED);
     }
-    OSD_writeStringAtRow(logicalRow, 20, "limit", OSD_BACKGROUND);
-    OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 20, ' ', OSD_BACKGROUND);
+    OSD_writeCharAtRow(logicalRow, 21, ' ', OSD_BACKGROUND);
+    OSD_showAdjustArrows(logicalRow);
 }
 
 void OSD_showOkFeedback(uint8_t row, int iterations) {

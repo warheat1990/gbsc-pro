@@ -36,6 +36,7 @@ bool IR_handleScreenSettings(void)
 {
     if (oled_menuItem == OLED_ScreenSettings_Move) {
         showMenu("Menu->Screen", "Move");
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -61,6 +62,7 @@ bool IR_handleScreenSettings(void)
 
     if (oled_menuItem == OLED_ScreenSettings_Scale) {
         showMenu("Menu->Screen", "Scale");
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -89,6 +91,7 @@ bool IR_handleScreenSettings(void)
 
     if (oled_menuItem == OLED_ScreenSettings_Borders) {
         showMenu("Menu->Screen", "Borders");
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -116,6 +119,7 @@ bool IR_handleScreenSettings(void)
     }
 
     if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
             uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
             if (key) {
@@ -165,6 +169,7 @@ bool IR_handleScreenSettings(void)
     }
 
     if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
             uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
             if (key) {
@@ -220,6 +225,7 @@ bool IR_handleScreenSettings(void)
     }
 
     if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
             uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
             if (key) {
