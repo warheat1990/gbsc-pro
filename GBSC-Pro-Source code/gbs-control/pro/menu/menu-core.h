@@ -1,11 +1,19 @@
 // ====================================================================================
-// menu-common.h
-// Shared helper functions for IR menu handlers
+// menu-core.h
+// Menu Core - Helper Functions, Navigation, and Dispatch
+//
+// This file contains:
+// - OLED display helper function declarations
+// - IR receiver helper declarations
+// - Profile navigation helpers
+//
+// Types, enums, and handler declarations are in menu-registry.h
 // ====================================================================================
 
 #pragma once
 
-#include "../osd/osd-common.h"   // For OSD helper functions (includes gbs-control-pro.h, stv9426.h, options.h)
+#include "menu-registry.h"        // Types, enums, handler declarations
+#include "../osd/osd-core.h"      // For OSD helper functions (includes osd-registry.h)
 #include "../drivers/ir_remote.h" // For IR keys
 
 // Forward declarations
@@ -79,20 +87,29 @@ char getSlotChar(int idx);
 bool handleProfileRow(bool isLoadRow);
 
 // ====================================================================================
-// IR Menu Handler Function Declarations
+// IR Key Helpers
 // ====================================================================================
 
-bool IR_handleMainMenu();
-bool IR_handleInputSelection();
-bool IR_handleOutputResolution();
-bool IR_handleScreenSettings();
-bool IR_handleColorSettings();
-bool IR_handleSystemSettings();
-bool IR_handleProfileManagement();
-bool IR_handleMiscSettings();
-bool IR_handleInfoDisplay();
+// Check if IR key is a valid menu navigation key
+bool IR_isValidMenuKey(uint32_t key);
+
+// Get user command character for resolution
+char IR_getResolutionCommand(uint8_t resolution);
 
 // ====================================================================================
-// Main IR/Menu Dispatchers and OLED Handlers
-// (Declared in oled-menu-pro.h, included via gbs-control-pro.h)
+// IR Key Repeat Helper
 // ====================================================================================
+
+// Process IR input with key repeat support for held buttons.
+// Call after irDecode() returns true. Returns key to process, or 0 if:
+// - It's a repeat but no previous key was stored
+// - It's a repeat but throttle interval hasn't passed
+// Updates lastKey and lastRepeatTime automatically.
+// Usage:
+//   if (irDecode()) {
+//       uint32_t key = IR_getKeyWithRepeat(&myLastKey, &myLastTime, 125);
+//       if (key) { /* process key */ }
+//       irResume();
+//   }
+uint32_t IR_getKeyWithRepeat(uint32_t* lastKey, unsigned long* lastRepeatTime, uint16_t intervalMs);
+

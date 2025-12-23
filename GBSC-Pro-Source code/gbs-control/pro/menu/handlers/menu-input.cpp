@@ -3,7 +3,7 @@
 // IR Menu Handler for Input Selection
 // ====================================================================================
 
-#include "menu-common.h"
+#include "../menu-core.h"
 
 // ====================================================================================
 // External References
@@ -21,11 +21,6 @@ bool IR_handleInputSelection()
     if (oled_menuItem == OLED_Input_RGBs) {
         showMenu("Menu->Input", "RGBs");
 
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-        }
-
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
@@ -38,15 +33,10 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_DOWN:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-                    oled_menuItem = OLED_Input_RGsB;
+                    Menu_navigateTo(OLED_Input_RGsB);
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();
@@ -57,11 +47,6 @@ bool IR_handleInputSelection()
     // OLED_Input_RGsB
     else if (oled_menuItem == OLED_Input_RGsB) {
         showMenu("Menu->Input", "RGsB");
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(2);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-        }
 
         if (irDecode()) {
             switch (results.value) {
@@ -74,20 +59,13 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-                    oled_menuItem = OLED_Input_RGBs;
+                    Menu_navigateTo(OLED_Input_RGBs);
                     break;
                 case IR_KEY_DOWN:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-                    oled_menuItem = OLED_Input_VGA;
+                    Menu_navigateTo(OLED_Input_VGA);
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();
@@ -98,11 +76,6 @@ bool IR_handleInputSelection()
     // OLED_Input_VGA
     else if (oled_menuItem == OLED_Input_VGA) {
         showMenu("Menu->Input", "VGA");
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(3);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-        }
 
         if (irDecode()) {
             switch (results.value) {
@@ -115,20 +88,13 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-                    oled_menuItem = OLED_Input_RGsB;
+                    Menu_navigateTo(OLED_Input_RGsB);
                     break;
                 case IR_KEY_DOWN:
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-                    oled_menuItem = OLED_Input_YPBPR;
+                    Menu_navigateTo(OLED_Input_YPBPR);
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();
@@ -138,12 +104,7 @@ bool IR_handleInputSelection()
 
     // OLED_Input_YPBPR
     else if (oled_menuItem == OLED_Input_YPBPR) {
-        showMenu("Menu->Input", "YPBPR");
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(1);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-        }
+        showMenu("Menu->Input", "YPbPr");
 
         OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
@@ -156,21 +117,13 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE1);
-                    oled_menuItem = OLED_Input_VGA;
+                    Menu_navigateTo(OLED_Input_VGA);
                     break;
                 case IR_KEY_DOWN:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-                    oled_menuItem = OLED_Input_SV;
+                    Menu_navigateTo(OLED_Input_SV);
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();
@@ -181,11 +134,6 @@ bool IR_handleInputSelection()
     // OLED_Input_SV
     else if (oled_menuItem == OLED_Input_SV) {
         showMenuValue("Menu->Input", "SV", getVideoFormatName(SVModeOption));
-
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(2);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-        }
 
         OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
@@ -198,14 +146,10 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-                    oled_menuItem = OLED_Input_YPBPR;
+                    Menu_navigateTo(OLED_Input_YPBPR);
                     break;
                 case IR_KEY_DOWN:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-                    oled_menuItem = OLED_Input_AV;
+                    Menu_navigateTo(OLED_Input_AV);
                     break;
                 case IR_KEY_LEFT:
                     if (SVModeOption <= MODEOPTION_MIN)
@@ -220,10 +164,7 @@ bool IR_handleInputSelection()
                     SVModeOptionChanged = 1;
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();
@@ -235,11 +176,6 @@ bool IR_handleInputSelection()
     else if (oled_menuItem == OLED_Input_AV) {
         showMenuValue("Menu->Input", "AV", getVideoFormatName(AVModeOption));
 
-        if (results.value == IR_KEY_DOWN || results.value == IR_KEY_UP) {
-            OSD_highlightIcon(3);
-            OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-        }
-        
         OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
@@ -251,9 +187,7 @@ bool IR_handleInputSelection()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 2;
-                    OSD_handleCommand(OSD_CMD_INPUT_PAGE2);
-                    oled_menuItem = OLED_Input_SV;
+                    Menu_navigateTo(OLED_Input_SV);
                     break;
                 case IR_KEY_LEFT:
                     if (AVModeOption <= MODEOPTION_MIN)
@@ -268,10 +202,7 @@ bool IR_handleInputSelection()
                     AVModeOptionChanged = 1;
                     break;
                 case IR_KEY_EXIT:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE1);
-                    oled_menuItem = OLED_Input;
+                    Menu_navigateTo(OLED_Input);
                     break;
             }
             irResume();

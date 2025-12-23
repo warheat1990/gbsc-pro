@@ -3,9 +3,8 @@
 // IR Menu Handler for Profile Management
 // ====================================================================================
 
-#include "menu-common.h"
-#include "../osd-render-pro.h"
-#include "../drivers/ir_remote.h"
+#include "../menu-core.h"
+#include "../../drivers/ir_remote.h"
 
 // ====================================================================================
 // IR_handleProfileManagement - Profile Management Menu

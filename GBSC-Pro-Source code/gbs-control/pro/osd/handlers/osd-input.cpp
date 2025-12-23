@@ -3,7 +3,7 @@
 // TV OSD Handlers for Input Menu and ADC Calibration
 // ====================================================================================
 
-#include "osd-common.h"
+#include "../osd-core.h"
 
 // ====================================================================================
 // Input Menu Handlers

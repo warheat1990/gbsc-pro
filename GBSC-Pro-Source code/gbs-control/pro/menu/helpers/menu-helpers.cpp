@@ -1,27 +1,28 @@
 // ====================================================================================
-// menu-common.cpp
-// Shared helper functions for IR menu handlers
+// menu-helpers.cpp
+// Menu Helper Functions for OLED Display and IR Remote
+//
+// This file contains utility functions used by menu handlers:
+// - OLED display helpers (showMenu*, oledPrepare, exitMenu)
+// - IR receiver helpers (irDecode, irResume)
+// - OLED menu feedback helpers
+// - Profile navigation helpers
+// - IR key validation and resolution helpers
 // ====================================================================================
 
-#include "menu-common.h"
-#include "../../OLEDMenuManager.h"
-#include "../../OLEDMenuImplementation.h"
+#include "../menu-core.h"
+#include "../../../OLEDMenuManager.h"
+#include "../../../OLEDMenuImplementation.h"
 
-#include <IRremoteESP8266.h>
-#include <IRrecv.h>
 #include <SSD1306Wire.h>
 
-#include "../drivers/pt2257.h"
+#include "../../drivers/ir_remote.h"
 
 // ====================================================================================
 // External References
 // ====================================================================================
 
 extern SSD1306Wire display;
-extern struct userOptions *uopt;
-extern char userCommand;
-extern void saveUserPrefs();
-
 extern OLEDMenuManager oledMenu;
 extern unsigned long oledMenuFreezeStartTime;
 extern unsigned long oledMenuFreezeTimeoutInMS;
@@ -120,22 +121,31 @@ bool checkFreezeTimeout(OLEDMenuManager *manager) {
 // Profile Navigation Helpers
 // ====================================================================================
 
-int getLoadSlotIndex(int state) {
-    int idx = state - OLED_Profile_Load1;
+// Get slot index (0-19) from menu state, or -1 if not a valid slot
+static int getSlotIndex(int state, OLED_MenuState base) {
+    int idx = state - base;
     return (idx >= 0 && idx < 20) ? idx : -1;
+}
+
+int getLoadSlotIndex(int state) {
+    return getSlotIndex(state, OLED_Profile_Load1);
 }
 
 int getSaveSlotIndex(int state) {
-    int idx = state - OLED_Profile_Save1;
-    return (idx >= 0 && idx < 20) ? idx : -1;
+    return getSlotIndex(state, OLED_Profile_Save1);
+}
+
+// Navigate to slot with offset (wraps around 0-19)
+static OLED_MenuState getSlotWithOffset(OLED_MenuState base, int idx, int offset) {
+    return (OLED_MenuState)(base + ((idx + offset + 20) % 20));
 }
 
 OLED_MenuState getNextSlot(OLED_MenuState base, int idx) {
-    return (OLED_MenuState)(base + ((idx + 1) % 20));
+    return getSlotWithOffset(base, idx, 1);
 }
 
 OLED_MenuState getPrevSlot(OLED_MenuState base, int idx) {
-    return (OLED_MenuState)(base + ((idx + 19) % 20));
+    return getSlotWithOffset(base, idx, -1);
 }
 
 char getSlotChar(int idx) {
@@ -143,6 +153,10 @@ char getSlotChar(int idx) {
 }
 
 bool handleProfileRow(bool isLoadRow) {
+    extern struct userOptions *uopt;
+    extern char userCommand;
+    extern void saveUserPrefs();
+
     int idx = isLoadRow ? getLoadSlotIndex(oled_menuItem) : getSaveSlotIndex(oled_menuItem);
     if (idx < 0) return false;
 
@@ -206,4 +220,73 @@ bool handleProfileRow(bool isLoadRow) {
         irResume();
     }
     return true;
+}
+
+// ====================================================================================
+// IR Key Validation Helpers
+// ====================================================================================
+
+// Check if the IR key is a valid menu navigation key
+bool IR_isValidMenuKey(uint32_t key)
+{
+    switch (key) {
+        case IR_KEY_MENU:
+        case IR_KEY_SAVE:
+        case IR_KEY_INFO:
+        case IR_KEY_RIGHT:
+        case IR_KEY_LEFT:
+        case IR_KEY_UP:
+        case IR_KEY_DOWN:
+        case IR_KEY_OK:
+        case IR_KEY_EXIT:
+        case IR_KEY_MUTE:
+        case IR_KEY_VOL_UP:
+        case IR_KEY_VOL_DN:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// Get the user command for a given resolution
+char IR_getResolutionCommand(uint8_t resolution)
+{
+    switch (resolution) {
+        case Output960P:  return 'f';  // 1280x960
+        case Output720P:  return 'g';  // 1280x720
+        case Output480P:  return 'h';  // 480p/576p
+        case Output1024P: return 'p';  // 1280x1024
+        case Output1080P: return 's';  // 1920x1080
+        default:          return 'g';  // Default to 720p
+    }
+}
+
+// ====================================================================================
+// IR Key Repeat Helper
+// ====================================================================================
+
+// Process IR input with key repeat support for held buttons.
+// Returns key to process, or 0 if repeat should be ignored.
+uint32_t IR_getKeyWithRepeat(uint32_t* lastKey, unsigned long* lastRepeatTime, uint16_t intervalMs)
+{
+    uint32_t key = results.value;
+    bool isRepeat = results.repeat || key == 0xFFFFFFFF;
+
+    if (isRepeat) {
+        if (*lastKey == 0) {
+            return 0;  // No previous key stored, ignore
+        }
+        // Throttle repeat rate
+        unsigned long now = millis();
+        if (now - *lastRepeatTime < intervalMs) {
+            return 0;  // Too soon, skip this repeat
+        }
+        *lastRepeatTime = now;
+        return *lastKey;
+    }
+
+    // Normal key press - store it and return
+    *lastKey = key;
+    *lastRepeatTime = millis();
+    return key;
 }

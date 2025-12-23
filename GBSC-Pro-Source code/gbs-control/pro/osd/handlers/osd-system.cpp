@@ -3,7 +3,7 @@
 // TV OSD Handlers for System Settings and Developer Options
 // ====================================================================================
 
-#include "osd-common.h"
+#include "../osd-core.h"
 
 // ====================================================================================
 // System Settings - SV/AV Input
@@ -17,17 +17,19 @@ void handle_SVAVInput_Page1(void)
     uint8_t line2Color = lineOption ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
     OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
     OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
+    OSD_drawDashRange(1, 14, 22);
     OSD_writeStringAtRow(2, 1, "Smooth");
+    OSD_drawDashRange(2, 7, 22);
     OSD_writeStringAtRow(3, 1, "Bright");
-    OSD_writeCharAtRow(3, 21, arrow_left_icon);
-    OSD_writeCharAtRow(3, 25, arrow_right_icon);
+    OSD_drawDashRange(3, 7, 22);
+
 }
 
 void handle_SVAVInput_Page1_Values(void)
 {
     OSD_writeOnOff(1, lineOption);
     OSD_writeOnOff(2, smoothOption);
-    OSD_displayNumber3DigitAtRow(3, brightness, 24, 23, 22);
+    OSD_displayNumber3DigitAtRow(3, brightness, 25, 24, 23);
 }
 
 void handle_SVAVInput_Page2(void)
@@ -35,18 +37,16 @@ void handle_SVAVInput_Page2(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', false);
     OSD_writeStringAtRow(1, 1, "Contrast");
-    OSD_writeCharAtRow(1, 21, arrow_left_icon);
-    OSD_writeCharAtRow(1, 25, arrow_right_icon);
+    OSD_drawDashRange(1, 9, 22);
     OSD_writeStringAtRow(2, 1, "Saturation");
-    OSD_writeCharAtRow(2, 21, arrow_left_icon);
-    OSD_writeCharAtRow(2, 25, arrow_right_icon);
+    OSD_drawDashRange(2, 11, 22);
     OSD_writeStringAtRow(3, 1, "Default");
 }
 
 void handle_SVAVInput_Page2_Values(void)
 {
-    OSD_displayNumber3DigitAtRow(1, contrast, 24, 23, 22);
-    OSD_displayNumber3DigitAtRow(2, saturation, 24, 23, 22);
+    OSD_displayNumber3DigitAtRow(1, contrast, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(2, saturation, 25, 24, 23);
 }
 
 // ====================================================================================
@@ -63,14 +63,14 @@ void handle_SysSettings_Page1(void)
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "AV/SV Input Settings");
     OSD_writeStringAtRow(2, 1, "Compatibility Mode");
+    OSD_drawDashRange(2, 19, 22);
     OSD_writeStringAtRow(3, 1, "Matched presets");
+    OSD_drawDashRange(3, 16, 22);
 }
 
 void handle_SysSettings_Page1_Values(void)
 {
-    OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
     OSD_writeOnOff(2, rgbComponentMode == 1);
-    OSD_drawDashRange(3, 16, 22);  // Row 3: P16-P22
     OSD_writeOnOff(3, uopt->matchPresetSource);
 }
 
@@ -79,23 +79,21 @@ void handle_SysSettings_Page2(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', true);
     OSD_writeStringAtRow(1, 1, "Deinterlace");
+    OSD_drawDashRange(1, 12, 17);
     OSD_writeStringAtRow(2, 1, "Force 50Hz to 60Hz");
+    OSD_drawDashRange(2, 19, 22);
     OSD_writeStringAtRow(3, 1, "Lock method");
+    OSD_drawDashRange(3, 12, 13);
 }
 
 void handle_SysSettings_Page2_Values(void)
 {
-    OSD_drawDashRange(1, 12, 17);  // Row 1: P12-P17
-
     if (uopt->deintMode == 0) {
         OSD_writeStringAtRow(1, 18, "Adaptive");
     } else {
-        OSD_drawDashRange(1, 18, 22);  // Row 1: P18-P22
-        OSD_writeStringAtRow(1, 23, "Bob");
+        OSD_writeStringAtRow(1, 18, "-----Bob");
     }
-
-    OSD_drawDashRange(2, 19, 22);  // Row 2: P19-P22
-    OSD_drawDashRange(3, 12, 13);  // Row 3: P12-P13
+    
     OSD_writeOnOff(2, uopt->PalForce60);
 
     if (uopt->frameTimeLockMethod == 0) {
@@ -110,15 +108,15 @@ void handle_SysSettings_Page4(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '3', false);
     OSD_writeStringAtRow(1, 1, "ADC calibration");
+    OSD_drawDashRange(1, 16, 22);
     OSD_writeStringAtRow(2, 1, "Frame Time lock");
+    OSD_drawDashRange(2, 16, 22);
     OSD_writeStringAtRow(3, 1, "EnableFrameTimeLock");
+    OSD_drawDashRange(3, 20, 22);
 }
 
 void handle_SysSettings_Page4_Values(void)
 {
-    OSD_drawDashRange(1, 16, 22);  // Row 1: P16-P22
-    OSD_drawDashRange(2, 16, 22);  // Row 2: P16-P22
-    OSD_drawDashRange(3, 20, 22);  // Row 3: P20-P22
     OSD_writeOnOff(1, uopt->enableCalibrationADC);
     OSD_writeOnOff(2, uopt->enableFrameTimeLock);
     OSD_writeOnOff(3, !uopt->disableExternalClockGenerator);
@@ -129,13 +127,13 @@ void handle_SysSettings_Page5(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Enable OTA");
+    OSD_drawDashRange(1, 11, 22);
     OSD_writeStringAtRow(2, 1, "Restart");
     OSD_writeStringAtRow(3, 1, "Reset defaults");
 }
 
 void handle_SysSettings_Page5_Values(void)
 {
-    OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
     OSD_writeOnOff(1, rto->allowUpdatesOTA);
 }
 
@@ -148,19 +146,19 @@ void handle_Developer_Memory(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "MEM left/right");
+    OSD_drawDashRange(1, 15, 22);
     OSD_writeStringAtRow(2, 1, "HS left/right");
+    OSD_drawDashRange(2, 14, 22);
     OSD_writeStringAtRow(3, 1, "HTotal");
+    OSD_drawDashRange(3, 7, 22);
 }
 
 void handle_Developer_Memory_Values(void)
 {
-    OSD_drawDashRange(1, 15, 22);  // Row 1: pos 15-22
     OSD_writeCharAtRow(1, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
     OSD_writeCharAtRow(1, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
-    OSD_drawDashRange(2, 14, 22);  // Row 2: pos 14-22
     OSD_writeCharAtRow(2, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
     OSD_writeCharAtRow(2, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
-    OSD_drawDashRange(3, 7, 22);   // Row 3: pos 7-22
     OSD_displayNumber3DigitAtRow(3, GBS::VDS_HSYNC_RST::read(), 25, 24, 23);
 }
 
@@ -169,15 +167,15 @@ void handle_Developer_Debug(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, 'I', true);
     OSD_writeStringAtRow(1, 1, "Debug view");
+    OSD_drawDashRange(1, 11, 22);
     OSD_writeStringAtRow(2, 1, "ADC filter");
+    OSD_drawDashRange(2, 11, 22);
     OSD_writeStringAtRow(3, 1, "Freeze capture");
+    OSD_drawDashRange(3, 15, 22);
 }
 
 void handle_Developer_Debug_Values(void)
 {
-    OSD_drawDashRange(1, 11, 22);  // Row 1: P11-P22
-    OSD_drawDashRange(2, 11, 22);  // Row 2: P11-P22
-    OSD_drawDashRange(3, 15, 22);  // Row 3: P15-P22
     OSD_writeOnOff(1, GBS::ADC_UNUSED_62::read() != 0x00);
     OSD_writeOnOff(2, GBS::ADC_FLTR::read() > 0);
     OSD_writeOnOff(3, GBS::CAPTURE_ENABLE::read() == 0);  // Inverted: ON when frozen

@@ -3,7 +3,7 @@
 // TV OSD Handlers for Color Settings (Picture Settings menu)
 // ====================================================================================
 
-#include "osd-common.h"
+#include "../osd-core.h"
 
 // ====================================================================================
 // Color Settings Handlers

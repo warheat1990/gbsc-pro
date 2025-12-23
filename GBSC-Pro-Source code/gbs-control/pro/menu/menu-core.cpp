@@ -1,113 +1,113 @@
 // ====================================================================================
-// oled-menu-pro.cpp
-// OLED Menu Navigation and IR Remote Handling
+// menu-core.cpp
+// Menu Core - Navigation, Mapping, and IR Dispatch Infrastructure
 //
-// This file contains:
-// - IR_handleMenuSelection(): Main menu state machine for IR remote navigation
-// - IR_handleInput(): IR remote input handler and decoder
-// - IR_handle*(): Sub-handlers for each menu section (Output, Screen, Color, etc.)
-// - OLED_init*Menu(): OLED menu initialization functions
-// - OLED_handle*Selection(): OLED menu selection handlers
+// This file contains ONLY menu infrastructure:
+// - oledToOsdMap[]: OLED state to OSD page mapping (X-macro generated)
+// - Menu_navigateTo(): Navigation function
+// - IR_handleMenuSelection(): Main IR dispatcher
+// - IR_handleInput(): IR input handler entry point
+//
+// Helper functions are in: helpers/menu-helpers.cpp
+// IR handlers are in: handlers/menu-*.cpp
+// OLED handlers are in: handlers/menu-oled.cpp
 // ====================================================================================
 
-// Modular menu handlers (includes all common headers)
-#include "menu/menu-common.h"
+#include "menu-core.h"
+#include "../../tv5725.h"
+#include "../../ntsc_720x480.h"
+#include "../../OLEDMenuManager.h"
+#include "../../OLEDMenuImplementation.h"
 
-// Additional headers not in menu-common.h
-#include "oled-menu-pro.h"
-#include "../OLEDMenuManager.h"
-#include "../OLEDMenuImplementation.h"
-#include "../tv5725.h"
-#include "../ntsc_720x480.h"
-
-#include <IRremoteESP8266.h>
-#include <IRrecv.h>
 #include <SSD1306Wire.h>
 
-#include "drivers/pt2257.h"
+#include "../drivers/pt2257.h"
 
 // ====================================================================================
-// External References - gbs-control.ino
+// External References
 // ====================================================================================
 
 typedef TV5725<GBS_ADDR> GBS;
+
 extern SSD1306Wire display;
 extern struct runTimeOptions *rto;
 extern struct userOptions *uopt;
-extern char serialCommand;
 extern char userCommand;
-
-extern uint8_t getVideoMode();
-extern void applyPresets(uint8_t videoMode);
-extern void shiftVerticalUpIF();
-extern void shiftVerticalDownIF();
 extern void saveUserPrefs();
-extern void disableMotionAdaptDeinterlace();
-extern void disableScanlines();
-extern boolean areScanLinesAllowed();
-extern float getOutputFrameRate();
+
 extern void writeProgramArrayNew(const uint8_t *programArray, boolean skipMDSection);
 extern void doPostPresetLoadSteps();
 extern void freezeVideo();
 
-// ====================================================================================
-// External References - OLEDMenuImplementation.cpp
-// ====================================================================================
-
 extern OLEDMenuManager oledMenu;
-extern unsigned long oledMenuFreezeStartTime;
-extern unsigned long oledMenuFreezeTimeoutInMS;
 
 // ====================================================================================
-// IR Menu Handlers
-// Now in separate files under menu/ directory:
-// - menu/menu-output.cpp: IR_handleOutputResolution()
-// - menu/menu-screen.cpp: IR_handleScreenSettings()
-// - menu/menu-color.cpp: IR_handleColorSettings()
-// - menu/menu-system.cpp: IR_handleSystemSettings()
-// - menu/menu-input.cpp: IR_handleInputSelection()
-// - menu/menu-profile.cpp: IR_handleProfileManagement()
-// - menu/menu-main.cpp: IR_handleMainMenu()
-// - menu/menu-misc.cpp: IR_handleMiscSettings(), IR_handleInfoDisplay()
-// ====================================================================================
-// ====================================================================================
-// IR_handleMenuSelection - Menu State Machine
+// Menu Item to OSD Mapping Table (generated from X-macro)
 // ====================================================================================
 
-// Check if the IR key is a valid menu navigation key
-static bool IR_isValidMenuKey(uint32_t key)
-{
-    switch (key) {
-        case IR_KEY_MENU:
-        case IR_KEY_SAVE:
-        case IR_KEY_INFO:
-        case IR_KEY_RIGHT:
-        case IR_KEY_LEFT:
-        case IR_KEY_UP:
-        case IR_KEY_DOWN:
-        case IR_KEY_OK:
-        case IR_KEY_EXIT:
-        case IR_KEY_MUTE:
-        case IR_KEY_VOL_UP:
-        case IR_KEY_VOL_DN:
-            return true;
-        default:
-            return false;
+// Stores in flash memory (PROGMEM) to save RAM on ESP8266
+// Maps OLED_MenuState -> {OsdCommand pageCmd, uint8_t row}
+const MenuItemMapping oledToOsdMap[] PROGMEM = {
+    #define MENU_ITEM(oled, osd, row) {oled, osd, row},
+    ALL_MAPPED_MENU_ITEMS
+    #undef MENU_ITEM
+};
+
+const size_t oledToOsdMapSize = sizeof(oledToOsdMap) / sizeof(oledToOsdMap[0]);
+
+// ====================================================================================
+// Menu Navigation
+// ====================================================================================
+
+// Find mapping for menu item (returns nullptr if not found)
+static const MenuItemMapping* findOledToOsdMapping(OLED_MenuState item) {
+    for (size_t i = 0; i < oledToOsdMapSize; i++) {
+        // Read from PROGMEM
+        uint16_t mapItem = pgm_read_word(&oledToOsdMap[i].item);
+        if (mapItem == (uint16_t)item) {
+            return &oledToOsdMap[i];
+        }
     }
+    return nullptr;
 }
 
-// Get the user command for a given resolution
-static char IR_getResolutionCommand(uint8_t resolution)
-{
-    switch (resolution) {
-        case Output960P:  return 'f';  // 1280x960
-        case Output720P:  return 'g';  // 1280x720
-        case Output480P:  return 'h';  // 480p/576p
-        case Output1024P: return 'p';  // 1280x1024
-        case Output1080P: return 's';  // 1920x1080
-        default:          return 'g';  // Default to 720p
+void Menu_navigateTo(OLED_MenuState newItem) {
+    OLED_MenuState oldItem = (OLED_MenuState)oled_menuItem;
+
+    const MenuItemMapping* newMap = findOledToOsdMapping(newItem);
+    if (!newMap) {
+        // Item not mapped, just assign state
+        oled_menuItem = newItem;
+        return;
     }
+
+    // Read new mapping from PROGMEM
+    OsdCommand newPageCmd = (OsdCommand)pgm_read_byte(&newMap->pageCmd);
+    uint8_t newRow = pgm_read_byte(&newMap->row);
+
+    const MenuItemMapping* oldMap = findOledToOsdMapping(oldItem);
+    bool pageChanged = true;
+    if (oldMap) {
+        OsdCommand oldPageCmd = (OsdCommand)pgm_read_byte(&oldMap->pageCmd);
+        pageChanged = (oldPageCmd != newPageCmd);
+    }
+
+    if (pageChanged) {
+        // Page change: fill background + render new page
+        OSD_handleCommand((OsdCommand)(OSD_CMD_PAGE_CHANGE_ROW1 + (newRow - 1)));
+        OSD_handleCommand(newPageCmd);
+    } else {
+        // Same page: just update row selection
+        selectedMenuLine = newRow;
+        OSD_handleCommand(newPageCmd);
+    }
+
+    oled_menuItem = newItem;
 }
+
+// ====================================================================================
+// IR Menu Timeout and Countdown Helpers (private)
+// ====================================================================================
 
 // Handle resolution confirmation countdown display
 static void IR_updateResolutionCountdown(void)
@@ -123,16 +123,8 @@ static void IR_updateResolutionCountdown(void)
     uint8_t secondsRemaining = OSD_RESOLUTION_CLOSE_TIME / 1000 -
                                ((lastResolutionTime - resolutionStartTime) / 1000);
 
-    // Display countdown timer
-    if (secondsRemaining >= 10) {
-        OSD_writeCharAtRow(2, 11, (secondsRemaining / 10) + '0');
-        OSD_writeCharAtRow(2, 12, (secondsRemaining % 10) + '0');
-        OSD_writeStringAtRow(2, 14, " s ");
-    } else {
-        OSD_writeCharAtRow(2, 12, '0', OSD_BACKGROUND);
-        OSD_writeCharAtRow(2, 11, secondsRemaining + '0');
-        OSD_writeStringAtRow(2, 13, " s ");
-    }
+    // Display countdown timer (delegated to osd-misc.cpp)
+    OSD_renderResolutionCountdown(secondsRemaining);
 
     // Countdown expired - apply resolution
     if ((lastResolutionTime - resolutionStartTime) >= OSD_RESOLUTION_CLOSE_TIME) {
@@ -152,8 +144,14 @@ static void IR_handleMenuTimeout(void)
         oledClearFlag = 1;
     }
 
-    // Check for menu timeout
-    if ((millis() - lastMenuItemTime) >= OSD_CLOSE_TIME && oled_menuItem != OLED_None) {
+    // Check for menu timeout (use shorter timeout for mute/volume)
+    unsigned long timeout = OSD_CLOSE_TIME;
+    if (oled_menuItem == OLED_Mute_Display) {
+        timeout = OSD_MUTE_CLOSE_TIME;
+    } else if (oled_menuItem == OLED_Volume_Adjust) {
+        timeout = OSD_VOLUME_CLOSE_TIME;
+    }
+    if ((millis() - lastMenuItemTime) >= timeout && oled_menuItem != OLED_None) {
         // Restore display settings if Info Display was active
         if (isInfoDisplayActive) {
             GBS::VDS_DIS_HB_ST::write(horizontalBlankStart);
@@ -161,15 +159,44 @@ static void IR_handleMenuTimeout(void)
             isInfoDisplayActive = 0;
         }
 
-        // Close menu
+        // Close menu - use fillBackground for volume to avoid glitches
+        int lastCmd = oled_menuItem;
         oled_menuItem = OLED_None;
         lastOledMenuItem = OLED_None;
-        OSD_clearAll();
+
+        // Clear OSD using fillRowBackground to avoid glitches (OSD_clearAll causes visual artifacts)
+        if (lastCmd == OLED_Mute_Display) {
+            // Mute uses ROW_1 only (9 chars)
+            OSD_fillRowBackground(ROW_1, 9, OSD_BACKGROUND);
+            OSD_clearRowColors(ROW_1);
+        } else if (lastCmd == OLED_Volume_Adjust) {
+            // Volume uses ROW_1 only (25 chars)
+            OSD_fillRowBackground(ROW_1, 25, OSD_BACKGROUND);
+            OSD_clearRowColors(ROW_1);
+        } else if (lastCmd == OLED_Info_Display) {
+            // Info display uses ROW_1 and ROW_2 (28 chars each)
+            OSD_fillRowBackground(ROW_1, 28, OSD_BACKGROUND);
+            OSD_fillRowBackground(ROW_2, 28, OSD_BACKGROUND);
+            OSD_clearRowColors(ROW_1);
+            OSD_clearRowColors(ROW_2);
+        } else {
+            // Standard menus use all 3 rows (28 chars each)
+            OSD_fillRowBackground(ROW_1, 28, OSD_BACKGROUND);
+            OSD_fillRowBackground(ROW_2, 28, OSD_BACKGROUND);
+            OSD_fillRowBackground(ROW_3, 28, OSD_BACKGROUND);
+            OSD_clearRowColors(ROW_1);
+            OSD_clearRowColors(ROW_2);
+            OSD_clearRowColors(ROW_3);
+        }
         OSD_init();
     }
 
     lastOledMenuItem = oled_menuItem;
 }
+
+// ====================================================================================
+// IR_handleMenuSelection - Menu State Machine
+// ====================================================================================
 
 void IR_handleMenuSelection(void)
 {
@@ -183,6 +210,7 @@ void IR_handleMenuSelection(void)
     IR_handleInputSelection() ||
     IR_handleProfileManagement() ||
     IR_handleMainMenu() ||
+    IR_handleMuteDisplay() ||
     IR_handleMiscSettings() ||
     IR_handleInfoDisplay();
 
@@ -204,54 +232,42 @@ void IR_handleMenuSelection(void)
 // IR_handleInput - IR Remote Input Handler
 // ====================================================================================
 
-// Display mute status on OSD and OLED
-static void IR_displayMuteStatus(bool muted)
+// Display mute status on OLED display only
+static void IR_displayMuteOnOLED(bool muted)
 {
     const char* statusText = muted ? "MUTE ON" : "MUTE OFF";
 
-    NEW_OLED_MENU = false;
-    OSD_fillRowBackground(ROW_1, 9, OSD_BACKGROUND);
-
-    // Display on OSD
-    for (int i = 0; i <= 800; i++) {
-        OSD_writeStringAtRow(1, 1, "MUTE", OSD_TEXT_SELECTED);
-        if (muted) {
-            OSD_writeStringAtRow(1, 6, "ON ");  // Extra space to clear "OFF"
-        } else {
-            OSD_writeStringAtRow(1, 6, "OFF");
-        }
-
-        // Display on OLED
-        display.clear();
-        if (muted) {
-            display.flipScreenVertically();
-        }
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.setFont(ArialMT_Plain_16);
-        display.drawString(8, 15, statusText);
-        display.display();
+    display.clear();
+    if (muted) {
+        display.flipScreenVertically();
     }
-
-    oled_menuItem = OLED_None;
-    OSD_fillRowBackground(ROW_1, 9, OSD_BACKGROUND);
-    OSD_clearRowColors(ROW_1);
-    OSD_init();
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(8, 15, statusText);
+    display.display();
 }
 
 // Handle mute toggle
 static void IR_handleMuteToggle(void)
 {
     lastMenuItemTime = millis();
+    NEW_OLED_MENU = false;
 
+    // Toggle mute state
     if (audioMuted) {
         PT2257_mute(false);  // Unmute
-        IR_displayMuteStatus(false);
         audioMuted = 0;
     } else {
         PT2257_mute(true);  // Mute
-        IR_displayMuteStatus(true);
         audioMuted = 1;
     }
+
+    // Display on OLED
+    IR_displayMuteOnOLED(audioMuted);
+
+    // Set up OSD display with timeout (like volume)
+    OSD_fillRowBackground(ROW_1, 10, OSD_BACKGROUND);
+    oled_menuItem = OLED_Mute_Display;
 }
 
 // Handle Menu key press - opens main menu or info display
@@ -315,13 +331,16 @@ static void IR_handleInfoKeyPress(void)
     oled_menuItem = OLED_Info_Display;
 }
 
-// Handle Volume keys - opens volume adjust menu
-static void IR_handleVolumeKeyPress(void)
+// Handle Volume keys - opens volume adjust menu and applies first change
+static void IR_handleVolumeKeyPress(uint32_t key)
 {
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
-    OSD_fillRowBackground(ROW_1, 25, OSD_BACKGROUND);
+    OSD_fillRowBackground(ROW_1, 23, OSD_BACKGROUND);
     oled_menuItem = OLED_Volume_Adjust;
+
+    // Set initial key and apply first volume change immediately
+    Volume_setInitialKey(key);
 }
 
 void IR_handleInput()
@@ -345,7 +364,7 @@ void IR_handleInput()
             break;
         case IR_KEY_VOL_UP:
         case IR_KEY_VOL_DN:
-            IR_handleVolumeKeyPress();
+            IR_handleVolumeKeyPress(results.value);
             break;
     }
 
@@ -361,7 +380,7 @@ void OLED_initInputMenu(OLEDMenuItem *root) {
     OLEDMenuItem *advMenu = oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_ADVINPUT));
 
     const char *inputLabels[6] = {
-        "RGBs", "RGsB", "VGA", "YPBPR", "SV", "AV"
+        "RGBs", "RGsB", "VGA", "YPbPr", "SV", "AV"
     };
 
     uint8_t inputTags[6] = {

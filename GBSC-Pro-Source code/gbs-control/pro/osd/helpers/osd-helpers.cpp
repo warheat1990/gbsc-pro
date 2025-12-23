@@ -1,12 +1,18 @@
 // ====================================================================================
-// osd-common.cpp
-// Shared helper functions for TV OSD rendering
+// osd-helpers.cpp
+// OSD Helper Functions for TV Display Rendering
+//
+// This file contains utility functions used by OSD handlers:
+// - Menu line color management
+// - Page navigation icons
+// - Value display helpers (ON/OFF, numbers, arrows)
+// - Visual feedback functions
 // ====================================================================================
 
-#include "osd-common.h"
+#include "../osd-core.h"
 
 // ====================================================================================
-// Helper Functions
+// Profile Display
 // ====================================================================================
 
 // Display "profile-N" at positions P15-P23 (9 characters)
@@ -21,6 +27,10 @@ void displayProfileName(uint8_t row, uint8_t index, uint8_t color)
         OSD_writeCharAtRow(row, 23, '0' + (index % 10), color);
     }
 }
+
+// ====================================================================================
+// Menu Line Colors
+// ====================================================================================
 
 // Get color for menu row (1-based)
 uint8_t OSD_getMenuLineColor(uint8_t row) {
@@ -51,6 +61,10 @@ void OSD_setMenuLineColorsCustom(uint8_t selectedLine, uint8_t customRow, uint8_
     }
 }
 
+// ====================================================================================
+// Page Navigation Icons
+// ====================================================================================
+
 // Write page navigation icons at position P27
 void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
 {
@@ -61,6 +75,10 @@ void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown)
         OSD_writeCharAtRow(3, 27, arrow_down_icon, OSD_ICON_PAGE);
 }
 
+// ====================================================================================
+// Row Highlighting
+// ====================================================================================
+
 // Unified row highlight function
 void highlightRow(uint8_t row)
 {
@@ -68,6 +86,10 @@ void highlightRow(uint8_t row)
     selectedMenuLine = row;
     OSD_setMenuLineColors(row);
 }
+
+// ====================================================================================
+// Value Display Helpers
+// ====================================================================================
 
 // Draw dashes on a row from startPos to endPos (logical positions 0-27)
 void OSD_drawDashRange(uint8_t row, uint8_t startPos, uint8_t endPos, uint8_t color) {
@@ -81,13 +103,6 @@ void OSD_writeOnOff(uint8_t row, bool isOn, uint8_t color) {
     OSD_writeStringAtRow(row, 23, isOn ? "-ON" : "OFF", color);
 }
 
-// Highlight menu icon at position (1=top, 2=mid, 3=bottom)
-void OSD_highlightIcon(uint8_t pos) {
-    OSD_writeCharAtRow(1, 0, arrow_right_icon, pos == 1 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(2, 0, arrow_right_icon, pos == 2 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-    OSD_writeCharAtRow(3, 0, arrow_right_icon, pos == 3 ? OSD_CURSOR_ACTIVE : OSD_CURSOR_INACTIVE);
-}
-
 // Show 4-direction adjustment icons on TV OSD row
 void OSD_showAdjustArrows(uint8_t row, uint8_t pos, uint8_t color) {
     OSD_writeCharAtRow(row, pos,     horizontal_scale_part1_icon, color);
@@ -96,7 +111,24 @@ void OSD_showAdjustArrows(uint8_t row, uint8_t pos, uint8_t color) {
     OSD_writeCharAtRow(row, pos + 3, horizontal_scale_part2_icon, color);
 }
 
-// Show "limit" feedback on TV OSD row, then clear (blocking)
+// ====================================================================================
+// Visual Feedback Functions
+// ====================================================================================
+
+// Show text feedback on TV OSD row, then clear (blocking)
+// row: ROW_1/ROW_2/ROW_3 (hardware bank)
+// text: feedback text to display
+// startPos: logical position (0-27)
+// iterations: display duration (higher = longer)
+void OSD_showFeedback(uint8_t row, const char* text, uint8_t startPos, int iterations) {
+    uint8_t logicalRow = OSD_bankToRow(row);
+    for (int p = 0; p <= iterations; p++) {
+        OSD_writeStringAtRow(logicalRow, startPos, text, OSD_TEXT_DISABLED);
+    }
+    OSD_writeStringAtRow(logicalRow, startPos, text, OSD_BACKGROUND);
+}
+
+// Convenience wrappers for common feedback types
 void OSD_showLimitFeedback(uint8_t row, int iterations) {
     uint8_t logicalRow = OSD_bankToRow(row);
     for (int p = 0; p <= iterations; p++) {
@@ -107,20 +139,41 @@ void OSD_showLimitFeedback(uint8_t row, int iterations) {
     OSD_writeCharAtRow(logicalRow, 25, enable_icon, OSD_BACKGROUND);
 }
 
-// Show "OK" feedback on TV OSD row, then clear (blocking)
 void OSD_showOkFeedback(uint8_t row, int iterations) {
-    uint8_t logicalRow = OSD_bankToRow(row);
-    for (int p = 0; p <= iterations; p++) {
-        OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_TEXT_DISABLED);
-    }
-    OSD_writeStringAtRow(logicalRow, 25, "OK", OSD_BACKGROUND);
+    OSD_showFeedback(row, "OK", 25, iterations);
 }
 
-// Show "saving" feedback on TV OSD row, then clear (blocking)
 void OSD_showSavingFeedback(uint8_t row, uint8_t startPos, int iterations) {
-    uint8_t logicalRow = OSD_bankToRow(row);
-    for (int p = 0; p <= iterations; p++) {
-        OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_TEXT_DISABLED);
+    OSD_showFeedback(row, "saving", startPos, iterations);
+}
+
+// ====================================================================================
+// Resolution/Input Name Helpers
+// ====================================================================================
+
+// Get output resolution string by presetID
+const char* getOutputResolutionName(uint8_t presetID) {
+    switch (presetID) {
+        case 0x01: case 0x11: return "1280x960";
+        case 0x02: case 0x12: return "1280x1024";
+        case 0x03: case 0x13: return "1280x720";
+        case 0x05: case 0x15: return "1920x1080";
+        case 0x06: case 0x16: return "Downscale";
+        case 0x04:            return "720x480";
+        case 0x14:            return "768x576";
+        default:              return "Bypass";
     }
-    OSD_writeStringAtRow(logicalRow, startPos, "saving", OSD_BACKGROUND);
+}
+
+// Get input type string
+const char* getInputTypeName(uint8_t type) {
+    switch (type) {
+        case InputTypeRGBs: return "RGBs";
+        case InputTypeRGsB: return "RGsB";
+        case InputTypeVGA:  return "VGA";
+        case InputTypeYUV:  return "YPbPr";
+        case InputTypeSV:   return "SV";
+        case InputTypeAV:   return "AV";
+        default:            return "";
+    }
 }

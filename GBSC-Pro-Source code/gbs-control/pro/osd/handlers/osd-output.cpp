@@ -3,7 +3,7 @@
 // TV OSD Handlers for Output Resolution
 // ====================================================================================
 
-#include "osd-common.h"
+#include "../osd-core.h"
 
 // ====================================================================================
 // Output Resolution Handlers

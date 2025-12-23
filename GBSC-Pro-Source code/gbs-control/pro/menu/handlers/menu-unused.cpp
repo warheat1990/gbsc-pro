@@ -6,7 +6,7 @@
 // for future implementation. They are kept as commented code blocks.
 // ====================================================================================
 
-#include "menu-common.h"
+#include "../menu-core.h"
 
 // ====================================================================================
 // Unused External References (uncomment when enabling handlers)

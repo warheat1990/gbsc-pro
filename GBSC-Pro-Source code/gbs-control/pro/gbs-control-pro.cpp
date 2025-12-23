@@ -12,17 +12,17 @@
 // - OSD TV display helper functions
 //
 // See also:
-// - oled-menu-pro.cpp: OLED menu navigation and IR remote handling
-// - osd-render-pro.cpp: TV OSD menu rendering and handlers
-// - OLEDMenuImplementation-pro.cpp: OLED display menu handlers
+// - menu/menu-core.cpp: Menu navigation, IR dispatch, OLED handlers
+// - osd/osd-core.cpp: OSD dispatch table, command handler
+// - menu/*.cpp: IR menu handlers per section
+// - osd/*.cpp: OSD rendering handlers per section
 // ====================================================================================
 
 #include "gbs-control-pro.h"
-#include "oled-menu-pro.h"
-#include "osd-render-pro.h"
+#include "menu/menu-core.h"
+#include "osd/osd-core.h"
 #include "../tv5725.h"
 #include "../osd.h"
-#include "../options.h"
 #include "../OLEDMenuImplementation.h"
 #include "../ntsc_720x480.h"
 #include "../src/WebSocketsServer.h"
