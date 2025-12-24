@@ -231,24 +231,28 @@ bool IR_handleScreenSettings(void)
                         Menu_navigateTo(OLED_ScreenSettings_Borders);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         userCommand = 'A';
                         if (!((GBS::VDS_DIS_HB_ST::read() > 4) && (GBS::VDS_DIS_HB_SP::read() < (GBS::VDS_HSYNC_RST::read() - 4)))) {
                             OSD_showLimitFeedback(ROW_3);
                         }
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         userCommand = 'B';
                         if (!((GBS::VDS_DIS_HB_ST::read() < (GBS::VDS_HSYNC_RST::read() - 4)) && (GBS::VDS_DIS_HB_SP::read() > 4))) {
                             OSD_showLimitFeedback(ROW_3);
                         }
                         break;
                     case IR_KEY_UP:
+                        lastMenuItemTime = millis();
                         userCommand = 'C';
                         if (!((GBS::VDS_DIS_VB_ST::read() > 6) && (GBS::VDS_DIS_VB_SP::read() < (GBS::VDS_VSYNC_RST::read() - 4)))) {
                             OSD_showLimitFeedback(ROW_3);
                         }
                         break;
                     case IR_KEY_DOWN:
+                        lastMenuItemTime = millis();
                         userCommand = 'D';
                         if (!((GBS::VDS_DIS_VB_ST::read() < (GBS::VDS_VSYNC_RST::read() - 4)) && (GBS::VDS_DIS_VB_SP::read() > 6))) {
                             OSD_showLimitFeedback(ROW_3);

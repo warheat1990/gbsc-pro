@@ -402,10 +402,12 @@ bool IR_handleSystemSettings()
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Contrast);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         brightness = MIN(brightness + STEP, 254);
                         ADV_sendBCSH(0x0a, brightness - 128);
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         brightness = MAX(brightness - STEP, 0);
                         ADV_sendBCSH(0x0a, brightness - 128);
                         break;
@@ -450,10 +452,12 @@ bool IR_handleSystemSettings()
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         contrast = MIN(contrast + STEP, 254);
                         ADV_sendBCSH(0x08, contrast);
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         contrast = MAX(contrast - STEP, 0);
                         ADV_sendBCSH(0x08, contrast);
                         break;
@@ -497,10 +501,12 @@ bool IR_handleSystemSettings()
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         saturation = MIN(saturation + STEP, 254);
                         ADV_sendBCSH(0xe3, saturation);
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         saturation = MAX(saturation - STEP, 0);
                         ADV_sendBCSH(0xe3, saturation);
                         break;

@@ -41,10 +41,12 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_RGB_G);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         R_VAL = MIN(R_VAL + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         R_VAL = MAX(0, R_VAL - STEP);
                         applyRGBtoYUVConversion();
                         break;
@@ -88,10 +90,12 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_RGB_B);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         G_VAL = MIN(G_VAL + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         G_VAL = MAX(0, G_VAL - STEP);
                         applyRGBtoYUVConversion();
                         break;
@@ -135,10 +139,12 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_ADCGain);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         B_VAL = MIN(B_VAL + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         B_VAL = MAX(0, B_VAL - STEP);
                         applyRGBtoYUVConversion();
                         break;
@@ -182,9 +188,11 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_Scanlines);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         userCommand = 'n';
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         userCommand = 'o';
                         break;
                     case IR_KEY_OK:
@@ -387,10 +395,12 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_Color);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         cur = MIN(cur + STEP, 255);
                         GBS::VDS_Y_GAIN::write(cur);
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         cur = MAX(0, cur - STEP);
                         GBS::VDS_Y_GAIN::write(cur);
                         break;
@@ -430,9 +440,11 @@ bool IR_handleColorSettings()
                         Menu_navigateTo(OLED_ColorSettings_DefaultColor);
                         break;
                     case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
                         userCommand = 'V';
                         break;
                     case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
                         userCommand = 'R';
                         break;
                     case IR_KEY_EXIT:

@@ -10,7 +10,6 @@
 //
 // Helper functions are in: helpers/menu-helpers.cpp
 // IR handlers are in: handlers/menu-*.cpp
-// OLED handlers are in: handlers/menu-oled.cpp
 // ====================================================================================
 
 #include "menu-core.h"
