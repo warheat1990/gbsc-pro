@@ -7570,6 +7570,18 @@ void setup()
             if ((saturation > 0xFF - 1) || (saturation == 0))
                 saturation = 0x80;
 
+            R_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if ((R_VAL > 0xFF - 1) || (R_VAL == 0))
+                R_VAL = 0x80;
+
+            G_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if ((G_VAL > 0xFF - 1) || (G_VAL == 0))
+                G_VAL = 0x80;
+
+            B_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if ((B_VAL > 0xFF - 1) || (B_VAL == 0))
+                B_VAL = 0x80;
+
             f.close();
         }
     }
@@ -10702,6 +10714,15 @@ void saveUserPrefs()
     f.write((saturation / 100) + '0');
     f.write((saturation % 100) / 10 + '0');
     f.write(saturation % 10 + '0');
+    f.write((R_VAL / 100) + '0');
+    f.write((R_VAL % 100) / 10 + '0');
+    f.write(R_VAL % 10 + '0');
+    f.write((G_VAL / 100) + '0');
+    f.write((G_VAL % 100) / 10 + '0');
+    f.write(G_VAL % 10 + '0');
+    f.write((B_VAL / 100) + '0');
+    f.write((B_VAL % 100) / 10 + '0');
+    f.write(B_VAL % 10 + '0');
     f.close();
 }
 
