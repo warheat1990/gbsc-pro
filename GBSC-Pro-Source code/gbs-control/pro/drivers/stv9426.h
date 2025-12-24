@@ -182,10 +182,10 @@ static const uint8_t ROW_3 = 0x03;
 #define OSD_MAX_MENU_ROWS 3
 #endif
 
-// Menu line colors array (defined in gbs-control-pro.cpp)
+// Menu line colors - current color for each row (part of theme system)
 extern uint8_t menuLineColors[OSD_MAX_MENU_ROWS];
 
-// Helper to resolve OSD_COLOR_AUTO to actual color
+// Helper to resolve OSD_COLOR_AUTO to actual row color
 inline uint8_t OSD_resolveColor(uint8_t row, uint8_t color) {
     if (color == OSD_COLOR_AUTO && row >= 1 && row <= OSD_MAX_MENU_ROWS) {
         return menuLineColors[row - 1];

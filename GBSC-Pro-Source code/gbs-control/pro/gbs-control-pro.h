@@ -25,6 +25,7 @@
 
 #include <Arduino.h>
 #include "options-pro.h"
+#include "drivers/adv_controller.h"
 
 // ====================================================================================
 // Registry Headers (types and enums)
@@ -95,7 +96,6 @@ extern int selectedMenuLine;
 // ====================================================================================
 
 extern char osdDisplayValue;
-extern OsdCommand lastOsdCommand;
 extern boolean irEnabled;
 extern uint8_t menuLineColors[OSD_MAX_MENU_ROWS];  // Index 0-2 = rows 1-3
 extern uint8_t isInfoDisplayActive;
@@ -140,12 +140,6 @@ extern uint8_t tentativeResolution;
 
 extern uint8_t volume;
 extern boolean audioMuted;
-
-// ====================================================================================
-// External Variables - Video Format Table
-// ====================================================================================
-
-extern const uint8_t ADV_VideoFormats[12];
 
 // ====================================================================================
 // Function Declarations - ADV Communication

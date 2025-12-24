@@ -129,7 +129,6 @@ typedef enum : uint8_t {
 typedef struct {
     OsdCommand cmd;
     void (*handler)(void);
-    bool saveable;  // If true, saved to lastOsdCommand for refresh on signal change
 } MenuEntry;
 
 // ====================================================================================
@@ -221,80 +220,80 @@ void handle_InfoDisplay_Source(void);
 
 // ====================================================================================
 // OSD Dispatch Table X-Macro
-// Format: DISPATCH_ENTRY(command, handler, saveable)
+// Format: DISPATCH_ENTRY(command, handler)
 // ====================================================================================
 
 #define OSD_DISPATCH_ENTRIES \
-    /* Initialization (fill background once when menu opens) */ \
-    DISPATCH_ENTRY(OSD_CMD_INIT, handle_OSD_Init, false) \
+    /* Initialization */ \
+    DISPATCH_ENTRY(OSD_CMD_INIT, handle_OSD_Init) \
     \
-    /* Page Change - fill background + select row (not saveable) */ \
-    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW1, handle_HighlightRow1, false) \
-    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW2, handle_HighlightRow2, false) \
-    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW3, handle_HighlightRow3, false) \
+    /* Page Change - fill background + select row */ \
+    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW1, handle_HighlightRow1) \
+    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW2, handle_HighlightRow2) \
+    DISPATCH_ENTRY(OSD_CMD_PAGE_CHANGE_ROW3, handle_HighlightRow3) \
     \
-    /* Main Menu (not saveable) */ \
-    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE1, handle_MainMenu_Page1, false) \
-    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE2, handle_MainMenu_Page2, false) \
+    /* Main Menu */ \
+    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE1, handle_MainMenu_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE2, handle_MainMenu_Page2) \
     \
-    /* Output Resolution (not saveable) */ \
-    DISPATCH_ENTRY(OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960, false) \
-    DISPATCH_ENTRY(OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480,       false) \
+    /* Output Resolution */ \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960) \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480) \
     \
     /* Screen Settings */ \
-    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1_VALUES, handle_ScreenSettings_Page1_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2,        handle_ScreenSettings_Page2,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2_VALUES, handle_ScreenSettings_Page2_Values, false) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1_VALUES, handle_ScreenSettings_Page1_Values) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2,        handle_ScreenSettings_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE2_VALUES, handle_ScreenSettings_Page2_Values) \
     \
     /* Color Settings (Picture Settings menu) */ \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1,        true) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE1_VALUES, handle_ColorSettings_Page1_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE2,        handle_ColorSettings_Page2,        true) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE2_VALUES, handle_ColorSettings_Page2_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE3,        handle_ColorSettings_Page3,        true) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE3_VALUES, handle_ColorSettings_Page3_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE4,        handle_ColorSettings_Page4,        true) \
-    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE4_VALUES, handle_ColorSettings_Page4_Values, false) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE1,        handle_ColorSettings_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE1_VALUES, handle_ColorSettings_Page1_Values) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE2,        handle_ColorSettings_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE2_VALUES, handle_ColorSettings_Page2_Values) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE3,        handle_ColorSettings_Page3) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE3_VALUES, handle_ColorSettings_Page3_Values) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE4,        handle_ColorSettings_Page4) \
+    DISPATCH_ENTRY(OSD_CMD_COLOR_PAGE4_VALUES, handle_ColorSettings_Page4_Values) \
     \
-    /* System Settings - General */ \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE1,        handle_SysSettings_Page1,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE1_VALUES, handle_SysSettings_Page1_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2,        handle_SysSettings_Page2,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2_VALUES, handle_SysSettings_Page2_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4,        handle_SysSettings_Page4,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4_VALUES, handle_SysSettings_Page4_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values, false) \
+    /* System Settings */ \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE1,        handle_SysSettings_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE1_VALUES, handle_SysSettings_Page1_Values) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2,        handle_SysSettings_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2_VALUES, handle_SysSettings_Page2_Values) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4,        handle_SysSettings_Page4) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4_VALUES, handle_SysSettings_Page4_Values) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values) \
     \
-    /* Developer (not saveable) */ \
-    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY,        handle_Developer_Memory,        true) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG,         handle_Developer_Debug,         true) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG_VALUES,  handle_Developer_Debug_Values,  false) \
+    /* Developer */ \
+    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY,        handle_Developer_Memory) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG,         handle_Developer_Debug) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG_VALUES,  handle_Developer_Debug_Values) \
     \
-    /* Restart (not saveable) */ \
-    DISPATCH_ENTRY(OSD_CMD_RESTART, handle_Restart, false) \
+    /* Restart */ \
+    DISPATCH_ENTRY(OSD_CMD_RESTART, handle_Restart) \
     \
     /* Profile */ \
-    DISPATCH_ENTRY(OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad,    true) \
-    DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTDISPLAY, handle_Profile_SlotDisplay, false) \
-    DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTROW1,    handle_Profile_SlotRow1,    false) \
+    DISPATCH_ENTRY(OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad) \
+    DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTDISPLAY, handle_Profile_SlotDisplay) \
+    DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTROW1,    handle_Profile_SlotRow1) \
     \
     /* SV/AV Input Settings - Page 2 */ \
-    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2,        handle_SVAVInput_Page2,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2_VALUES, handle_SVAVInput_Page2_Values, false) \
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2,        handle_SVAVInput_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2_VALUES, handle_SVAVInput_Page2_Values) \
     \
     /* Input Menu */ \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE1,        handle_InputMenu_Page1,        true) \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2,        handle_InputMenu_Page2,        true) \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2_VALUES, handle_InputMenu_Page2_Values, false) \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_INFO,         handle_InputInfo,              false) \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_SOURCE,       handle_InfoDisplay_Source,     false) \
+    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE1,        handle_InputMenu_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2,        handle_InputMenu_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2_VALUES, handle_InputMenu_Page2_Values) \
+    DISPATCH_ENTRY(OSD_CMD_INPUT_INFO,         handle_InputInfo) \
+    DISPATCH_ENTRY(OSD_CMD_INPUT_SOURCE,       handle_InfoDisplay_Source) \
     \
     /* SV/AV Input Settings - Page 1 */ \
-    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1,        true) \
-    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values, false)
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values)
 
 // ====================================================================================
 // Dispatch Table and Command Handler Declarations

@@ -265,28 +265,35 @@ char IR_getResolutionCommand(uint8_t resolution)
 // IR Key Repeat Helper
 // ====================================================================================
 
-// Process IR input with key repeat support for held buttons.
-// Returns key to process, or 0 if repeat should be ignored.
-uint32_t IR_getKeyWithRepeat(uint32_t* lastKey, unsigned long* lastRepeatTime, uint16_t intervalMs)
-{
+// Shared global state for IR key repeat (only one menu active at a time)
+static uint32_t irRepeatLastKey = 0;
+static unsigned long irRepeatLastTime = 0;
+
+// Clear repeat state (call on menu navigation or exit)
+void IR_clearRepeatKey(void) {
+    irRepeatLastKey = 0;
+}
+
+// Process IR input with key repeat support using shared global state
+uint32_t IR_getKeyRepeat(void) {
     uint32_t key = results.value;
     bool isRepeat = results.repeat || key == 0xFFFFFFFF;
 
     if (isRepeat) {
-        if (*lastKey == 0) {
+        if (irRepeatLastKey == 0) {
             return 0;  // No previous key stored, ignore
         }
         // Throttle repeat rate
         unsigned long now = millis();
-        if (now - *lastRepeatTime < intervalMs) {
+        if (now - irRepeatLastTime < IR_REPEAT_INTERVAL_MS) {
             return 0;  // Too soon, skip this repeat
         }
-        *lastRepeatTime = now;
-        return *lastKey;
+        irRepeatLastTime = now;
+        return irRepeatLastKey;
     }
 
     // Normal key press - store it and return
-    *lastKey = key;
-    *lastRepeatTime = millis();
+    irRepeatLastKey = key;
+    irRepeatLastTime = millis();
     return key;
 }

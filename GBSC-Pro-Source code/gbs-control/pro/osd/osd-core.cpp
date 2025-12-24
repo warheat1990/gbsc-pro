@@ -17,7 +17,7 @@
 // ====================================================================================
 
 const MenuEntry osdDispatchTable[] = {
-    #define DISPATCH_ENTRY(cmd, handler, saveable) {cmd, handler, saveable},
+    #define DISPATCH_ENTRY(cmd, handler) {cmd, handler},
     OSD_DISPATCH_ENTRIES
     #undef DISPATCH_ENTRY
 };
@@ -32,9 +32,6 @@ void OSD_handleCommand(OsdCommand cmd)
 {
     for (size_t i = 0; i < osdDispatchTableSize; i++) {
         if (osdDispatchTable[i].cmd == cmd) {
-            if (osdDispatchTable[i].saveable) {
-                lastOsdCommand = cmd;
-            }
             osdDispatchTable[i].handler();
             return;
         }

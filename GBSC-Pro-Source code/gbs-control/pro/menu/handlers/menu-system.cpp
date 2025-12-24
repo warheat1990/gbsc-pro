@@ -20,14 +20,6 @@ extern void disableMotionAdaptDeinterlace();
 extern void disableScanlines();
 
 // ====================================================================================
-// Key Repeat State for SV/AV Input Settings
-// ====================================================================================
-
-static uint32_t systemLastKey = 0;
-static unsigned long systemLastRepeatTime = 0;
-#define SYSTEM_REPEAT_INTERVAL 125
-
-// ====================================================================================
 // IR_handleSystemSettings - System Settings Menu
 // ====================================================================================
 
@@ -394,19 +386,19 @@ bool IR_handleSystemSettings()
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&systemLastKey, &systemLastRepeatTime, SYSTEM_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
                         break;
                     case IR_KEY_DOWN:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Contrast);
                         break;
                     case IR_KEY_RIGHT:
@@ -418,16 +410,16 @@ bool IR_handleSystemSettings()
                         ADV_sendBCSH(0x0a, brightness - 128);
                         break;
                     case IR_KEY_OK:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
                         saveUserPrefs();
                         break;
                     default:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -442,19 +434,19 @@ bool IR_handleSystemSettings()
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&systemLastKey, &systemLastRepeatTime, SYSTEM_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
                         break;
                     case IR_KEY_DOWN:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
                         break;
                     case IR_KEY_RIGHT:
@@ -466,15 +458,15 @@ bool IR_handleSystemSettings()
                         ADV_sendBCSH(0x08, contrast);
                         break;
                     case IR_KEY_OK:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
                         break;
                     default:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -489,19 +481,19 @@ bool IR_handleSystemSettings()
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE2_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&systemLastKey, &systemLastRepeatTime, SYSTEM_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Contrast);
                         break;
                     case IR_KEY_DOWN:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
                         break;
                     case IR_KEY_RIGHT:
@@ -513,15 +505,15 @@ bool IR_handleSystemSettings()
                         ADV_sendBCSH(0xe3, saturation);
                         break;
                     case IR_KEY_OK:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
                         break;
                     default:
-                        systemLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }

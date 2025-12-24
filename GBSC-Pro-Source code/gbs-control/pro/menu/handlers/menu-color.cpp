@@ -21,11 +21,6 @@ extern boolean areScanLinesAllowed();
 // IR_handleColorSettings - Color Settings Menu
 // ====================================================================================
 
-// Key repeat state for RGB adjustments
-static uint32_t colorLastKey = 0;
-static unsigned long colorLastRepeatTime = 0;
-#define COLOR_REPEAT_INTERVAL 125
-
 bool IR_handleColorSettings()
 {
     // OLED_ColorSettings_RGB_R
@@ -34,15 +29,15 @@ bool IR_handleColorSettings()
         OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_G);
                         break;
                     case IR_KEY_RIGHT:
@@ -54,15 +49,15 @@ bool IR_handleColorSettings()
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -77,19 +72,19 @@ bool IR_handleColorSettings()
         OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_R);
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_B);
                         break;
                     case IR_KEY_RIGHT:
@@ -101,15 +96,15 @@ bool IR_handleColorSettings()
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -124,19 +119,19 @@ bool IR_handleColorSettings()
         OSD_handleCommand(OSD_CMD_COLOR_PAGE1_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_G);
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_ADCGain);
                         break;
                     case IR_KEY_RIGHT:
@@ -148,15 +143,15 @@ bool IR_handleColorSettings()
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         saveUserPrefs();
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -171,19 +166,19 @@ bool IR_handleColorSettings()
         OSD_handleCommand(OSD_CMD_COLOR_PAGE2_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_B);
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_Scanlines);
                         break;
                     case IR_KEY_RIGHT:
@@ -193,15 +188,15 @@ bool IR_handleColorSettings()
                         userCommand = 'o';
                         break;
                     case IR_KEY_OK:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         serialCommand = 'T';
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -376,19 +371,19 @@ bool IR_handleColorSettings()
         uint8_t cur = GBS::VDS_Y_GAIN::read();
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_StepResponse);
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_Color);
                         break;
                     case IR_KEY_RIGHT:
@@ -400,11 +395,11 @@ bool IR_handleColorSettings()
                         GBS::VDS_Y_GAIN::write(cur);
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -419,19 +414,19 @@ bool IR_handleColorSettings()
         OSD_handleCommand(OSD_CMD_COLOR_PAGE4_VALUES);
 
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&colorLastKey, &colorLastRepeatTime, COLOR_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_UP:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_Y_Gain);
                         break;
                     case IR_KEY_DOWN:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_DefaultColor);
                         break;
                     case IR_KEY_RIGHT:
@@ -441,11 +436,11 @@ bool IR_handleColorSettings()
                         userCommand = 'R';
                         break;
                     case IR_KEY_EXIT:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
                         break;
                     default:
-                        colorLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }

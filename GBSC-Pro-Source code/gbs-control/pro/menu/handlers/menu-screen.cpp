@@ -21,14 +21,6 @@ extern uint8_t getVideoMode();
 extern void applyPresets(uint8_t videoMode);
 
 // ====================================================================================
-// Key Repeat State for Screen Adjustments
-// ====================================================================================
-
-static uint32_t screenLastKey = 0;
-static unsigned long screenLastRepeatTime = 0;
-#define SCREEN_REPEAT_INTERVAL 125
-
-// ====================================================================================
 // IR_handleScreenSettings - Screen Settings Menu
 // ====================================================================================
 
@@ -121,15 +113,15 @@ bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_MoveAdjust) {
         OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_OK:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Move);
                         break;
                     case IR_KEY_RIGHT:
@@ -155,11 +147,11 @@ bool IR_handleScreenSettings(void)
                         shiftVerticalDownIF();
                         break;
                     case IR_KEY_EXIT:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Move);
                         break;
                     default:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -171,15 +163,15 @@ bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_ScaleAdjust) {
         OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_OK:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Scale);
                         break;
                     case IR_KEY_RIGHT:
@@ -211,11 +203,11 @@ bool IR_handleScreenSettings(void)
                         }
                         break;
                     case IR_KEY_EXIT:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Scale);
                         break;
                     default:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }
@@ -227,15 +219,15 @@ bool IR_handleScreenSettings(void)
     if (oled_menuItem == OLED_ScreenSettings_BordersAdjust) {
         OSD_handleCommand(OSD_CMD_SCREEN_PAGE1_VALUES);
         if (irDecode()) {
-            uint32_t key = IR_getKeyWithRepeat(&screenLastKey, &screenLastRepeatTime, SCREEN_REPEAT_INTERVAL);
+            uint32_t key = IR_getKeyRepeat();
             if (key) {
                 switch (key) {
                     case IR_KEY_MENU:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         exitMenu();
                         break;
                     case IR_KEY_OK:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Borders);
                         break;
                     case IR_KEY_RIGHT:
@@ -263,11 +255,11 @@ bool IR_handleScreenSettings(void)
                         }
                         break;
                     case IR_KEY_EXIT:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ScreenSettings_Borders);
                         break;
                     default:
-                        screenLastKey = 0;
+                        IR_clearRepeatKey();
                         break;
                 }
             }

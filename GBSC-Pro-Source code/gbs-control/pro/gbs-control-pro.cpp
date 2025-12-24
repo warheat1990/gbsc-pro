@@ -4,7 +4,7 @@
 //
 // This file contains:
 // - Global variable definitions for Pro features
-// - ADV controller communication (ADV_PacketSender)
+// - ADV controller communication (ADVController)
 // - ADV7280/ADV7391 processor control
 // - Input source switching
 // - Color conversion utilities (RGB <-> YUV)
@@ -34,6 +34,7 @@
 #include "drivers/ir_remote.h"
 #include "drivers/stv9426.h"
 #include "drivers/pt2257.h"
+#include "drivers/adv_controller.h"
 
 // ====================================================================================
 // External References - gbs-control.ino
@@ -97,7 +98,6 @@ int selectedMenuLine = 0;
 // ====================================================================================
 
 char osdDisplayValue = 0;
-OsdCommand lastOsdCommand = OSD_CMD_NONE;
 boolean irEnabled = true;
 uint8_t menuLineColors[OSD_MAX_MENU_ROWS] = {OSD_TEXT_NORMAL, OSD_TEXT_NORMAL, OSD_TEXT_NORMAL};
 uint8_t isInfoDisplayActive = 0;
@@ -144,421 +144,205 @@ uint8_t volume = 0;
 boolean audioMuted = true;
 
 // ====================================================================================
-// ADV Communication - Packet Constants
+// ADV Communication - Packet Sender Instance
 // ====================================================================================
 
-static const unsigned char ADV_InputRGBs[7]  = {0x41, 0x44, 'S', 0x40};
-static const unsigned char ADV_InputRGsB[7]  = {0x41, 0x44, 'S', 0x50};
-static const unsigned char ADV_InputVGA[7]   = {0x41, 0x44, 'S', 0x60};
-static const unsigned char ADV_InputYpbpr[7] = {0x41, 0x44, 'S', 0x70};
-static const unsigned char ADV_InputSV[7]    = {0x41, 0x44, 'S', 0x10};
-static const unsigned char ADV_InputAV[7]    = {0x41, 0x44, 'S', 0x20};
-
-static unsigned char ADV_TvMode[7]           = {0x41, 0x44, 'T'};
-static unsigned char ADV_Line2X[7]           = {0x41, 0x44, 'S', 0x30};
-static unsigned char ADV_Line1X[7]           = {0x41, 0x44, 'S', 0x31};
-static unsigned char ADV_SmoothOn[7]         = {0x41, 0x44, 'S', 0x90};
-static unsigned char ADV_SmoothOff[7]        = {0x41, 0x44, 'S', 0x91};
-static unsigned char ADV_CompatibilityOn[7]  = {0x41, 0x44, 'S', 0xA0};
-static unsigned char ADV_CompatibilityOff[7] = {0x41, 0x44, 'S', 0xA1};
-static unsigned char ADV_BCSH[7]             = {0x41, 0x44, 'N'};
-
-// ====================================================================================
-// ADV Communication - Video Format Mapping Table
-// ====================================================================================
-
-const uint8_t ADV_VideoFormats[12] = {
-    0x04,  // 0: Auto
-    0x84,  // 1: Pal
-    0x54,  // 2: Ntsc_M
-    0x64,  // 3: Pal_60
-    0x74,  // 4: Ntsc443
-    0x44,  // 5: Ntsc_J
-    0x94,  // 6: Pal_N_wp
-    0xA4,  // 7: Pal_M_wop
-    0xB4,  // 8: Pal_M
-    0xC4,  // 9: Pal_Cmb_N
-    0xD4,  // 10: Pal_Cmb_N_wp
-    0xE4   // 11: Secam
-};
-
-// ====================================================================================
-// ADV Communication - ADV_PacketSender Class
-// ====================================================================================
-
-/**
- * @class ADV_PacketSender
- * @brief Handles UART communication with the ADV controller (HC32F460)
- *
- * Protocol format: [0x41 0x44] [cmd] [data] [0xFE] [checksum]
- * - 0x41 0x44 ('AD'): Header bytes
- * - cmd: Command byte (e.g., 'S', 'T', 'N', 'C')
- * - data: Command-specific payload
- * - 0xFE: End-of-frame marker
- * - checksum: Sum of all preceding bytes (8-bit wrap)
- */
-class ADV_PacketSender {
-public:
-    explicit ADV_PacketSender(HardwareSerial& serial = Serial) : m_serial(serial) {
-        randomSeed(analogRead(A0));
-    }
-
-    /**
-     * @brief Send a standard 4-byte command packet
-     * @param buff 4-byte command buffer [header, header, cmd, data]
-     *
-     * Packet: [buff[0]] [buff[1]] [buff[2]] [buff[3]] [random] [0xFE] [checksum]
-     */
-    void send(const unsigned char* buff) {
-        unsigned char buff_lin[7];
-        buff_lin[0] = buff[0];
-        buff_lin[1] = buff[1];
-        buff_lin[2] = buff[2];
-        buff_lin[3] = buff[3];
-        buff_lin[4] = random(254);
-        buff_lin[5] = 0xfe;
-        buff_lin[6] = buff_lin[0] + buff_lin[1] + buff_lin[2] + buff_lin[3] + buff_lin[4] + buff_lin[5];
-        m_serial.write(buff_lin, sizeof(buff_lin));
-    }
-
-    /**
-     * @brief Send command with video mode appended to data byte
-     * @param buff Base 4-byte command
-     * @param mode Video mode (lower 4 bits merged into buff[3])
-     */
-    void sendWithMode(const unsigned char* buff, uint8_t mode) {
-        unsigned char packet[4];
-        memcpy(packet, buff, 4);
-        packet[3] |= (mode & 0x0f);
-        send(packet);
-    }
-
-    /**
-     * @brief Send register write command (for BCSH adjustments)
-     * @param buff Base command header
-     * @param reg I2C register address
-     * @param val Value to write
-     */
-    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
-        unsigned char buff_lin[7];
-        for (int i = 0; i < 4; ++i) buff_lin[i] = buff[i];
-        buff_lin[3] = reg;
-        buff_lin[4] = val;
-        buff_lin[5] = 0xFE;
-        unsigned char sum = 0;
-        for (int i = 0; i < 6; ++i) sum += buff_lin[i];
-        buff_lin[6] = sum;
-        m_serial.write(buff_lin, sizeof(buff_lin));
-    }
-
-    /**
-     * @brief Send custom I2C batch command
-     * @param data Array of I2C triplets [addr, reg, val, ...]
-     * @param size Total bytes (must be multiple of 3)
-     *
-     * Packet: [0x41 0x44] ['C'] [count] [triplets...] [0xFE] [checksum]
-     * Each triplet: [I2C_addr, register, value]
-     */
-    void sendCustomI2C(const unsigned char* data, size_t size) {
-        if (size == 0 || size % 3 != 0) return;
-
-        uint8_t count = size / 3;
-
-        m_serial.write((uint8_t)0x41);
-        m_serial.write((uint8_t)0x44);
-        m_serial.write((uint8_t)'C');
-        m_serial.write(count);
-
-        unsigned char sum = 0x41 + 0x44 + 'C' + count;
-
-        for (size_t i = 0; i < size; ++i) {
-            m_serial.write(data[i]);
-            sum += data[i];
-        }
-
-        m_serial.write((uint8_t)0xFE);
-        sum += 0xFE;
-
-        m_serial.write(sum);
-    }
-
-private:
-    HardwareSerial& m_serial;
-};
-
-static ADV_PacketSender advPacketSender;
+static ADVController advController;
 
 // ====================================================================================
 // ADV Packet Wrappers
 // ====================================================================================
 
-void ADV_sendLine1X() { advPacketSender.send(ADV_Line1X); saveUserPrefs(); }
-void ADV_sendLine2X() { advPacketSender.send(ADV_Line2X); saveUserPrefs(); }
-void ADV_sendSmoothOff() { advPacketSender.send(ADV_SmoothOff); saveUserPrefs(); }
-void ADV_sendSmoothOn() { advPacketSender.send(ADV_SmoothOn); saveUserPrefs(); }
+// Send packet and save preferences (common pattern)
+static void ADV_sendAndSave(const unsigned char* packet) {
+    advController.send(packet);
+    saveUserPrefs();
+}
+
+// Public wrappers for line doubling and smoothing
+void ADV_sendLine1X()    { ADV_sendAndSave(ADV_Line1X); }
+void ADV_sendLine2X()    { ADV_sendAndSave(ADV_Line2X); }
+void ADV_sendSmoothOff() { ADV_sendAndSave(ADV_SmoothOff); }
+void ADV_sendSmoothOn()  { ADV_sendAndSave(ADV_SmoothOn); }
+
 void ADV_sendCompatibility(bool mode) {
-    if (!mode)
-        advPacketSender.send(ADV_CompatibilityOn);
-    else
-        advPacketSender.send(ADV_CompatibilityOff);
-    saveUserPrefs();
+    ADV_sendAndSave(mode ? ADV_CompatibilityOff : ADV_CompatibilityOn);
 }
-void ADV_sendVideoFormat(uint8_t mode) {
-    ADV_TvMode[3] = mode;
-    advPacketSender.send(ADV_TvMode);
-    saveUserPrefs();
+
+void ADV_sendVideoFormat(uint8_t format) {
+    unsigned char packet[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_TVMODE, format};
+    ADV_sendAndSave(packet);
 }
+
 void ADV_sendBCSH(unsigned char reg, unsigned char val) {
-    advPacketSender.writeReg(ADV_BCSH, reg, val);
+    advController.writeReg(ADV_BCSH, reg, val);
 }
+
 void ADV_sendCustomI2C(const unsigned char* data, size_t size) {
-    advPacketSender.sendCustomI2C(data, size);
+    advController.sendCustomI2C(data, size);
+}
+
+// Apply video format option with bounds checking
+static void ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
+    static const uint8_t max_index = sizeof(ADV_VideoFormats) / sizeof(ADV_VideoFormats[0]) - 1;
+    if (*changed) {
+        *changed = 0;
+        uint8_t idx = (option <= max_index) ? option : 1;  // Default to PAL if invalid
+        ADV_sendVideoFormat(ADV_VideoFormats[idx]);
+    }
 }
 
 void ADV_applyPendingOptions(void)
 {
-    static char max_index = sizeof(ADV_VideoFormats) / sizeof(ADV_VideoFormats[0]) - 1;
-    if (SVModeOptionChanged) {
-        SVModeOptionChanged = 0;
-        if (SVModeOption >= 0 && SVModeOption <= max_index) {
-            ADV_sendVideoFormat(ADV_VideoFormats[SVModeOption]);
-        } else {
-            ADV_sendVideoFormat(ADV_VideoFormats[1]);
-        }
-    }
-    if (AVModeOptionChanged) {
-        AVModeOptionChanged = 0;
-        if (AVModeOption >= 0 && AVModeOption <= max_index) {
-            ADV_sendVideoFormat(ADV_VideoFormats[AVModeOption]);
-        } else {
-            ADV_sendVideoFormat(ADV_VideoFormats[1]);
-        }
-    }
+    ADV_applyVideoFormatOption(&SVModeOptionChanged, SVModeOption);
+    ADV_applyVideoFormatOption(&AVModeOptionChanged, AVModeOption);
+
     if (settingLineOptionChanged) {
         settingLineOptionChanged = 0;
-        if (lineOption) ADV_sendLine2X(); else ADV_sendLine1X();
+        ADV_sendAndSave(lineOption ? ADV_Line2X : ADV_Line1X);
     }
     if (settingSmoothOptionChanged) {
         settingSmoothOptionChanged = 0;
-        if (smoothOption) ADV_sendSmoothOn(); else ADV_sendSmoothOff();
+        ADV_sendAndSave(smoothOption ? ADV_SmoothOn : ADV_SmoothOff);
     }
 }
 
 // ====================================================================================
-// Input Source Switching - Basic Functions
+// Input Source Switching - Configuration Table
 // ====================================================================================
 
-void InputRGBs(void) {
-    advPacketSender.send(ADV_InputRGBs);
-    inputSource = InputSourceRGBs;
-    inputType = InputTypeRGBs;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
+// Flags for InputConfig
+#define INPUT_FLAG_NONE         0x00
+#define INPUT_FLAG_CONFIG_ADC   0x01  // Configure ADC registers
+#define INPUT_FLAG_HV_ENABLE    0x02  // Use HV_Enable instead of HV_Disable
+#define INPUT_FLAG_LOW_POWER    0x04  // Clear isInLowPowerMode
 
-void InputRGsB(void) {
-    advPacketSender.send(ADV_InputRGsB);
-    inputSource = InputSourceRGBs;
-    inputType = InputTypeRGsB;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
+struct InputConfig {
+    const unsigned char* packet;
+    uint8_t source;
+    uint8_t type;
+    uint8_t brightness;     // brightnessOrContrastOption value
+    uint8_t adcValue;       // ADC_SOGEN/ADC_INPUT_SEL value (RGB1 or YUV0)
+    uint8_t flags;
+};
 
-void InputVGA(void) {
-    advPacketSender.sendWithMode(ADV_InputVGA, 1);
-    inputSource = InputSourceVGA;
-    inputType = InputTypeVGA;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
+// Input configuration lookup table (indexed by InputType - 1)
+static const InputConfig inputConfigs[] = {
+    // packet,         source,          type,          brightness, adc,  flags
+    {ADV_InputRGBs,  InputSourceRGBs, InputTypeRGBs, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 0: RGBs
+    {ADV_InputRGsB,  InputSourceRGBs, InputTypeRGsB, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 1: RGsB
+    {ADV_InputVGA,   InputSourceVGA,  InputTypeVGA,  0, RGB1, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_HV_ENABLE},       // 2: VGA
+    {ADV_InputYpbpr, InputSourceYUV,  InputTypeYUV,  1, 0,    INPUT_FLAG_NONE},                                    // 3: YPbPr
+    {ADV_InputSV,    InputSourceYUV,  InputTypeSV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 4: SV
+    {ADV_InputAV,    InputSourceYUV,  InputTypeAV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 5: AV
+};
 
-void InputYUV(void) {
-    advPacketSender.send(ADV_InputYpbpr);
-    inputSource = InputSourceYUV;
-    inputType = InputTypeYUV;
-    resetSyncProcessor();
-    brightnessOrContrastOption = 1;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
+// Config indices for clarity
+#define INPUT_CFG_RGBS  0
+#define INPUT_CFG_RGSB  1
+#define INPUT_CFG_VGA   2
+#define INPUT_CFG_YUV   3
+#define INPUT_CFG_SV    4
+#define INPUT_CFG_AV    5
 
-void InputSV(void) {
-    advPacketSender.send(ADV_InputSV);
-    inputSource = InputSourceYUV;
-    inputType = InputTypeSV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
+// Unified input switching function
+// mode: -1 = use send(), >= 0 = use sendWithMode(mode)
+static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
+    // Send packet to ADV
+    if (mode < 0) {
+        advController.send(cfg.packet);
+    } else {
+        advController.sendWithMode(cfg.packet, mode);
+    }
 
-void InputAV(void) {
-    advPacketSender.send(ADV_InputAV);
-    inputSource = InputSourceYUV;
-    inputType = InputTypeAV;
+    // Set input state
+    inputSource = cfg.source;
+    inputType = cfg.type;
     resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
+
+    // Configure ADC if needed
+    if (cfg.flags & INPUT_FLAG_CONFIG_ADC) {
+        GBS::ADC_SOGEN::write(cfg.adcValue);
+        GBS::SP_EXT_SYNC_SEL::write((cfg.flags & INPUT_FLAG_HV_ENABLE) ? HV_Enable : HV_Disable);
+        GBS::ADC_INPUT_SEL::write(cfg.adcValue);
+    }
+
+    // Set brightness option and disconnect state
+    brightnessOrContrastOption = cfg.brightness;
     rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
+
+    // Clear low power mode if needed
+    if (cfg.flags & INPUT_FLAG_LOW_POWER) {
+        rto->isInLowPowerMode = false;
+    }
+
     saveUserPrefs();
 }
 
 // ====================================================================================
-// Input Source Switching - Functions with Mode Parameter
+// Input Source Switching - Public Functions
 // ====================================================================================
 
-void InputRGBs_mode(uint8_t mode) {
-    advPacketSender.sendWithMode(ADV_InputRGBs, !mode);
-    inputSource = InputSourceRGBs;
-    inputType = InputTypeRGBs;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
+// Basic functions (no mode parameter)
+void InputRGBs(void)            { switchInput(inputConfigs[INPUT_CFG_RGBS]); }
+void InputRGsB(void)            { switchInput(inputConfigs[INPUT_CFG_RGSB]); }
+void InputVGA(void)             { switchInput(inputConfigs[INPUT_CFG_VGA], 1); }
+void InputYUV(void)             { switchInput(inputConfigs[INPUT_CFG_YUV]); }
+void InputSV(void)              { switchInput(inputConfigs[INPUT_CFG_SV]); }
+void InputAV(void)              { switchInput(inputConfigs[INPUT_CFG_AV]); }
 
-void InputRGsB_mode(uint8_t mode) {
-    advPacketSender.sendWithMode(ADV_InputRGsB, !mode);
-    inputSource = InputSourceRGBs;
-    inputType = InputTypeRGsB;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputVGA_mode(uint8_t mode) {
-    advPacketSender.sendWithMode(ADV_InputVGA, !mode);
-    inputSource = InputSourceVGA;
-    inputType = InputTypeVGA;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(RGB1);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-    GBS::ADC_INPUT_SEL::write(RGB1);
-    brightnessOrContrastOption = 0;
-    rto->sourceDisconnected = true;
-    saveUserPrefs();
-}
-
-void InputSV_mode(uint8_t mode) {
-    advPacketSender.sendWithMode(ADV_InputSV, mode);
-    inputSource = InputSourceYUV;
-    inputType = InputTypeSV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
-
-void InputAV_mode(uint8_t mode) {
-    advPacketSender.sendWithMode(ADV_InputAV, mode);
-    inputSource = InputSourceYUV;
-    inputType = InputTypeAV;
-    resetSyncProcessor();
-    GBS::ADC_SOGEN::write(YUV0);
-    GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-    GBS::ADC_INPUT_SEL::write(YUV0);
-    brightnessOrContrastOption = 2;
-    rto->sourceDisconnected = true;
-    rto->isInLowPowerMode = false;
-    saveUserPrefs();
-}
+// Functions with mode parameter (note: InputYUV_mode doesn't exist)
+void InputRGBs_mode(uint8_t m)  { switchInput(inputConfigs[INPUT_CFG_RGBS], !m); }
+void InputRGsB_mode(uint8_t m)  { switchInput(inputConfigs[INPUT_CFG_RGSB], !m); }
+void InputVGA_mode(uint8_t m)   { switchInput(inputConfigs[INPUT_CFG_VGA], !m); }
+void InputSV_mode(uint8_t m)    { switchInput(inputConfigs[INPUT_CFG_SV], m); }
+void InputAV_mode(uint8_t m)    { switchInput(inputConfigs[INPUT_CFG_AV], m); }
 
 // ====================================================================================
 // Input Source Switching - Boot/Restore Function
 // ====================================================================================
 
+// Apply hardware config from InputConfig (no packet send, no saveUserPrefs)
+static void applyInputHardwareConfig(const InputConfig& cfg) {
+    resetSyncProcessor();
+    if (cfg.flags & INPUT_FLAG_CONFIG_ADC) {
+        GBS::ADC_SOGEN::write(cfg.adcValue);
+        GBS::SP_EXT_SYNC_SEL::write((cfg.flags & INPUT_FLAG_HV_ENABLE) ? HV_Enable : HV_Disable);
+        GBS::ADC_INPUT_SEL::write(cfg.adcValue);
+    }
+    brightnessOrContrastOption = cfg.brightness;
+    rto->sourceDisconnected = true;
+}
+
 void applySavedInputSource(void) {
     // Apply saved input source configuration to hardware at startup
-    switch (inputSource) {
-        case InputSourceRGBs:
-            // inputType already loaded from preferences (InputTypeRGBs or InputTypeRGsB)
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
-            break;
+    // inputType is already loaded from preferences
 
-        case InputSourceVGA:
-            inputType = InputTypeVGA;
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Enable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
-            break;
-
-        case InputSourceYUV:
-            // inputType already loaded from preferences (InputTypeYUV, InputTypeSV, or InputTypeAV)
-            if (inputType == InputTypeSV) {
-                advPacketSender.send(ADV_InputSV);  // ADV needed for SV
-                resetSyncProcessor();
-                GBS::ADC_SOGEN::write(YUV0);
-                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-                GBS::ADC_INPUT_SEL::write(YUV0);
-                brightnessOrContrastOption = 2;
-            } else if (inputType == InputTypeAV) {
-                advPacketSender.send(ADV_InputAV);  // ADV needed for AV
-                resetSyncProcessor();
-                GBS::ADC_SOGEN::write(YUV0);
-                GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-                GBS::ADC_INPUT_SEL::write(YUV0);
-                brightnessOrContrastOption = 2;
-            } else {
-                // InputTypeYUV (YPbPr)
-                resetSyncProcessor();
-                brightnessOrContrastOption = 1;
-            }
-            rto->sourceDisconnected = true;
-            break;
-
+    // Validate inputType and get config index
+    uint8_t cfgIndex;
+    switch (inputType) {
+        case InputTypeRGBs: cfgIndex = INPUT_CFG_RGBS; break;
+        case InputTypeRGsB: cfgIndex = INPUT_CFG_RGSB; break;
+        case InputTypeVGA:  cfgIndex = INPUT_CFG_VGA;  break;
+        case InputTypeYUV:  cfgIndex = INPUT_CFG_YUV;  break;
+        case InputTypeSV:   cfgIndex = INPUT_CFG_SV;   break;
+        case InputTypeAV:   cfgIndex = INPUT_CFG_AV;   break;
         default:
-            // Default to RGBs if inputSource is invalid
+            // Invalid inputType, default to RGBs
             inputSource = InputSourceRGBs;
             inputType = InputTypeRGBs;
-            resetSyncProcessor();
-            GBS::ADC_SOGEN::write(RGB1);
-            GBS::SP_EXT_SYNC_SEL::write(HV_Disable);
-            GBS::ADC_INPUT_SEL::write(RGB1);
-            brightnessOrContrastOption = 0;
-            rto->sourceDisconnected = true;
+            cfgIndex = INPUT_CFG_RGBS;
             break;
     }
+
+    const InputConfig& cfg = inputConfigs[cfgIndex];
+
+    // SV/AV need ADV packet at boot (ADV controller needs to know input type)
+    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+        advController.send(cfg.packet);
+    }
+
+    applyInputHardwareConfig(cfg);
 }
 
 // ====================================================================================
@@ -704,9 +488,9 @@ void refreshMenusOnSignalChange()
         prevDeintMode = uopt->deintMode;
         // Refresh OLED display
         oledClearFlag = ~0;
-        // Refresh OSD TV display
-        if (lastOsdCommand != OSD_CMD_NONE) {
-            OSD_handleCommand(lastOsdCommand);
+        // Refresh OSD TV display (redraw current menu if open)
+        if (oled_menuItem != OLED_None) {
+            Menu_navigateTo((OLED_MenuState)oled_menuItem);
         }
     }
 }

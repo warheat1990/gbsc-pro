@@ -100,16 +100,20 @@ char IR_getResolutionCommand(uint8_t resolution);
 // IR Key Repeat Helper
 // ====================================================================================
 
-// Process IR input with key repeat support for held buttons.
-// Call after irDecode() returns true. Returns key to process, or 0 if:
-// - It's a repeat but no previous key was stored
-// - It's a repeat but throttle interval hasn't passed
-// Updates lastKey and lastRepeatTime automatically.
+// Default repeat interval for value adjustment menus (ms)
+#define IR_REPEAT_INTERVAL_MS 125
+
+// Process IR input with key repeat support using shared global state.
+// Use this for menus where user holds a key to adjust values (color, screen, etc.)
+// Call after irDecode() returns true. Returns key to process, or 0 if repeat ignored.
 // Usage:
 //   if (irDecode()) {
-//       uint32_t key = IR_getKeyWithRepeat(&myLastKey, &myLastTime, 125);
+//       uint32_t key = IR_getKeyRepeat();
 //       if (key) { /* process key */ }
 //       irResume();
 //   }
-uint32_t IR_getKeyWithRepeat(uint32_t* lastKey, unsigned long* lastRepeatTime, uint16_t intervalMs);
+uint32_t IR_getKeyRepeat(void);
+
+// Clear the stored repeat key state (call when navigating away or on non-repeat keys)
+void IR_clearRepeatKey(void);
 
