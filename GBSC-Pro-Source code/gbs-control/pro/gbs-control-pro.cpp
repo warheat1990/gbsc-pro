@@ -488,9 +488,10 @@ void refreshMenusOnSignalChange()
         prevDeintMode = uopt->deintMode;
         // Refresh OLED display
         oledClearFlag = ~0;
-        // Refresh OSD TV display (redraw current menu if open)
         if (oled_menuItem != OLED_None) {
-            Menu_navigateTo((OLED_MenuState)oled_menuItem);
+            OLED_MenuState current = (OLED_MenuState)oled_menuItem;
+            oled_menuItem = OLED_None;
+            Menu_navigateTo(current);
         }
     }
 }

@@ -57,7 +57,7 @@ String oled_Resolutions[7] = {"1280x960", "1280x1024", "1280x720", "1920x1080", 
 String oled_Presets[8] = {"1", "2", "3", "4", "5", "6", "7", "Back"};
 String oled_Misc[4] = {"Reset GBS", "Restore Factory", "-----Back"};
 
-int oled_menuItem = 1;
+// int oled_menuItem = 1;
 int oled_subsetFrame = 0;
 int oled_selectOption = 0;
 int oled_page = 0;

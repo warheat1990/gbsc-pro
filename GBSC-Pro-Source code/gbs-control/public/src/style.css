@@ -684,7 +684,7 @@ section[name="alert"] {
   }
 
   .gbs-output__textarea {
-    height: calc(100vh - 114px);
+    height: calc(100vh - 163px);
   }
 
   .gbs-output-hide .gbs-container {
