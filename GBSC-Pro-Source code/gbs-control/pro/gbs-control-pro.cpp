@@ -140,8 +140,14 @@ uint8_t tentativeResolution = 0;
 // Global Variables - Audio
 // ====================================================================================
 
-uint8_t volume = 0;
-boolean audioMuted = true;
+uint8_t volume = 12;        // Default: -12dB attenuation (display shows 38/50)
+boolean audioMuted = false;  // Default: unmuted
+
+// ====================================================================================
+// Global Variables - OSD Theme
+// ====================================================================================
+
+uint8_t osdTheme = 0;       // Default: Classic theme (OSD_THEME_CLASSIC)
 
 // ====================================================================================
 // ADV Communication - Packet Sender Instance

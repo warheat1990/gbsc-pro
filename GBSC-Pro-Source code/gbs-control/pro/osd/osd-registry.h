@@ -60,6 +60,11 @@ typedef enum : uint8_t {
     // Main Menu
     OSD_CMD_MAIN_PAGE1,
     OSD_CMD_MAIN_PAGE2,
+    OSD_CMD_MAIN_PAGE3,
+
+    // Preferences Menu
+    OSD_CMD_PREFERENCES_PAGE1,
+    OSD_CMD_PREFERENCES_PAGE1_VALUES,
 
     // Output Resolution
     OSD_CMD_OUTPUT_1080_1024_960,
@@ -119,6 +124,9 @@ typedef enum : uint8_t {
     OSD_CMD_SVAVINPUT_PAGE2,
     OSD_CMD_SVAVINPUT_PAGE2_VALUES,
 
+    // Firmware Version
+    OSD_CMD_FIRMWARE_VERSION,
+
     OSD_CMD_COUNT
 } OsdCommand;
 
@@ -143,9 +151,17 @@ void handle_OSD_Init(void);
 
 void handle_MainMenu_Page1(void);
 void handle_MainMenu_Page2(void);
+void handle_MainMenu_Page3(void);
 void handle_HighlightRow1(void);
 void handle_HighlightRow2(void);
 void handle_HighlightRow3(void);
+
+// ====================================================================================
+// Handler Function Declarations - Preferences Menu
+// ====================================================================================
+
+void handle_Preferences_Page1(void);
+void handle_Preferences_Page1_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Output Resolution
@@ -219,6 +235,12 @@ void handle_InputInfo(void);
 void handle_InfoDisplay_Source(void);
 
 // ====================================================================================
+// Handler Function Declarations - Firmware Version
+// ====================================================================================
+
+void handle_FirmwareVersion(void);
+
+// ====================================================================================
 // OSD Dispatch Table X-Macro
 // Format: DISPATCH_ENTRY(command, handler)
 // ====================================================================================
@@ -235,6 +257,7 @@ void handle_InfoDisplay_Source(void);
     /* Main Menu */ \
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE1, handle_MainMenu_Page1) \
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE2, handle_MainMenu_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE3, handle_MainMenu_Page3) \
     \
     /* Output Resolution */ \
     DISPATCH_ENTRY(OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960) \
@@ -266,6 +289,10 @@ void handle_InfoDisplay_Source(void);
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5) \
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values) \
     \
+    /* Preferences Menu (Theme, Volume, Mute) */ \
+    DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1,        handle_Preferences_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1_VALUES, handle_Preferences_Page1_Values) \
+    \
     /* Developer */ \
     DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY,        handle_Developer_Memory) \
     DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values) \
@@ -293,7 +320,10 @@ void handle_InfoDisplay_Source(void);
     \
     /* SV/AV Input Settings - Page 1 */ \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1) \
-    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values)
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values) \
+    \
+    /* Firmware Version */ \
+    DISPATCH_ENTRY(OSD_CMD_FIRMWARE_VERSION, handle_FirmwareVersion)
 
 // ====================================================================================
 // Dispatch Table and Command Handler Declarations

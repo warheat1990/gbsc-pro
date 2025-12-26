@@ -13,6 +13,26 @@
 #include "osd-core.h"
 
 // ====================================================================================
+// OSD Theme Variables (shared across all files via extern in stv9426.h)
+// ====================================================================================
+
+// Current theme ID
+uint8_t OSD_currentTheme = OSD_THEME_CLASSIC;
+
+// Text colors - initialized to Classic theme (blue background)
+uint8_t OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);   // 0x17
+uint8_t OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLUE);  // 0x16
+uint8_t OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLUE);     // 0x14
+
+// Navigation elements
+uint8_t OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLUE);   // 0x12
+uint8_t OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW); // 0x60
+uint8_t OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11
+
+// Background
+uint8_t OSD_BACKGROUND       = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11
+
+// ====================================================================================
 // OSD Dispatch Table (generated from X-macro)
 // ====================================================================================
 

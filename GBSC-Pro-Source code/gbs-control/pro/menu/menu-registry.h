@@ -162,6 +162,16 @@ typedef enum {
     OLED_SystemSettings_SVAVInput_Saturation,
     OLED_SystemSettings_SVAVInput_Default,
 
+    // Preferences menu (Page 2 row 3 of main menu)
+    OLED_Preferences,
+    OLED_Preferences_Theme,
+    OLED_Preferences_Volume,
+    OLED_Preferences_Mute,
+
+    // Firmware Version menu (Page 3 row 1 of main menu)
+    OLED_FirmwareVersion,
+    OLED_FirmwareVersion_Info,  // Info screen (read-only)
+
     // Special screens
     OLED_Mute_Display,
     OLED_Volume_Adjust,
@@ -248,7 +258,15 @@ typedef struct {
     MENU_ITEM(OLED_ScreenSettings,   OSD_CMD_MAIN_PAGE1, 3) \
     MENU_ITEM(OLED_SystemSettings,   OSD_CMD_MAIN_PAGE2, 1) \
     MENU_ITEM(OLED_ColorSettings,    OSD_CMD_MAIN_PAGE2, 2) \
-    MENU_ITEM(OLED_ResetSettings,    OSD_CMD_MAIN_PAGE2, 3)
+    MENU_ITEM(OLED_Preferences,      OSD_CMD_MAIN_PAGE2, 3) \
+    MENU_ITEM(OLED_FirmwareVersion,  OSD_CMD_MAIN_PAGE3, 1) \
+    MENU_ITEM(OLED_ResetSettings,    OSD_CMD_MAIN_PAGE3, 2)
+
+// Preferences Menu Mappings
+#define MENU_ITEMS_PREFERENCES \
+    MENU_ITEM(OLED_Preferences_Theme,  OSD_CMD_PREFERENCES_PAGE1, 1) \
+    MENU_ITEM(OLED_Preferences_Volume, OSD_CMD_PREFERENCES_PAGE1, 2) \
+    MENU_ITEM(OLED_Preferences_Mute,   OSD_CMD_PREFERENCES_PAGE1, 3)
 
 // Input Menu Mappings
 #define MENU_ITEMS_INPUT \
@@ -318,7 +336,8 @@ typedef struct {
     MENU_ITEMS_SCREEN \
     MENU_ITEMS_COLOR \
     MENU_ITEMS_SYSTEM \
-    MENU_ITEMS_SVAVINPUT
+    MENU_ITEMS_SVAVINPUT \
+    MENU_ITEMS_PREFERENCES
 
 // ====================================================================================
 // IR Menu Handler Function Declarations
@@ -330,6 +349,7 @@ bool IR_handleOutputResolution();
 bool IR_handleScreenSettings();
 bool IR_handleColorSettings();
 bool IR_handleSystemSettings();
+bool IR_handlePreferencesMenu();
 bool IR_handleProfileManagement();
 bool IR_handleMuteDisplay();
 bool IR_handleMiscSettings();

@@ -28,6 +28,13 @@
 #include "drivers/adv_controller.h"
 
 // ====================================================================================
+// Firmware Version Strings
+// ====================================================================================
+
+#define GBS_FW_VERSION "2.0.0"  // GBS Control firmware version (ESP8266)
+#define ADV_FW_VERSION "2.0.0"  // ADV Controller firmware version (HC32)
+
+// ====================================================================================
 // Registry Headers (types and enums)
 // ====================================================================================
 
@@ -140,6 +147,12 @@ extern uint8_t tentativeResolution;
 
 extern uint8_t volume;
 extern boolean audioMuted;
+
+// ====================================================================================
+// External Variables - OSD Theme
+// ====================================================================================
+
+extern uint8_t osdTheme;
 
 // ====================================================================================
 // Function Declarations - ADV Communication

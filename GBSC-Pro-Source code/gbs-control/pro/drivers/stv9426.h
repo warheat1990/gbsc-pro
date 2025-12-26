@@ -152,21 +152,116 @@ static const uint8_t disable_icon = 0x1D; // Disable icon
 // These variables define the color scheme for all OSD elements.
 // They can be modified at runtime to change the theme.
 
-// Text colors
-static uint8_t OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);   // 0x17 - Normal menu text
-static uint8_t OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLUE);  // 0x16 - Selected/highlighted item
-static uint8_t OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLUE);     // 0x14 - Unavailable option
+// Text colors (defined in osd-core.cpp)
+extern uint8_t OSD_TEXT_NORMAL;      // Normal menu text
+extern uint8_t OSD_TEXT_SELECTED;    // Selected/highlighted item
+extern uint8_t OSD_TEXT_DISABLED;    // Unavailable option
 
 // Special value: use menu line color (yellow if selected, white otherwise)
 #define OSD_COLOR_AUTO 0xFF
 
-// Navigation elements
-static uint8_t OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLUE);   // 0x12 - Page numbers, nav arrows
-static uint8_t OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW); // 0x60 - Active row cursor
-static uint8_t OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11 - Inactive row cursor
+// Navigation elements (defined in osd-core.cpp)
+extern uint8_t OSD_ICON_PAGE;        // Page numbers, nav arrows
+extern uint8_t OSD_CURSOR_ACTIVE;    // Active row cursor
+extern uint8_t OSD_CURSOR_INACTIVE;  // Inactive row cursor
 
-// Background
-static uint8_t OSD_BACKGROUND       = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);    // 0x11 - Menu background fill
+// Background (defined in osd-core.cpp)
+extern uint8_t OSD_BACKGROUND;       // Menu background fill
+
+// ====================================================================================
+// OSD Theme Presets
+// ====================================================================================
+
+// Theme IDs
+#define OSD_THEME_CLASSIC    0   // Blue background, white/yellow text (default)
+#define OSD_THEME_DARK       1   // Black background, white/cyan text
+#define OSD_THEME_LIGHT      2   // White background, black/blue text
+#define OSD_THEME_RETRO      3   // Green background, black/yellow text (CRT style)
+#define OSD_THEME_COUNT      4   // Total number of themes
+
+// Theme names for menu display
+static const char* OSD_THEME_NAMES[] = {
+    "Classic",
+    "Dark",
+    "Light",
+    "Retro"
+};
+
+// Current theme ID (defined in osd-core.cpp)
+extern uint8_t OSD_currentTheme;
+
+// Set OSD theme - changes all color variables at once
+// themeId: OSD_THEME_CLASSIC, OSD_THEME_DARK, OSD_THEME_LIGHT, or OSD_THEME_RETRO
+inline void OSD_setTheme(uint8_t themeId)
+{
+    OSD_currentTheme = themeId;
+
+    switch (themeId) {
+        case OSD_THEME_DARK:
+            // Black background, white/yellow text
+            OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLACK);
+            OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLACK);
+            OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLACK);
+            OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLACK);
+            OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW);
+            OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_BLACK, OSD_BG_BLACK);
+            OSD_BACKGROUND       = OSD_COLOR(OSD_FG_BLACK, OSD_BG_BLACK);
+            break;
+
+        case OSD_THEME_LIGHT:
+            // White background, black/blue text
+            OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_BLACK, OSD_BG_WHITE);
+            OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_BLUE, OSD_BG_WHITE);
+            OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_WHITE);
+            OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_WHITE);
+            OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);
+            OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_WHITE, OSD_BG_WHITE);
+            OSD_BACKGROUND       = OSD_COLOR(OSD_FG_WHITE, OSD_BG_WHITE);
+            break;
+
+        case OSD_THEME_RETRO:
+            // Green background, black/yellow text (CRT terminal style)
+            OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_BLACK, OSD_BG_GREEN);
+            OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_GREEN);
+            OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_GREEN);
+            OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_WHITE, OSD_BG_GREEN);
+            OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_GREEN, OSD_BG_YELLOW);
+            OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_GREEN, OSD_BG_GREEN);
+            OSD_BACKGROUND       = OSD_COLOR(OSD_FG_GREEN, OSD_BG_GREEN);
+            break;
+
+        case OSD_THEME_CLASSIC:
+        default:
+            // Blue background, white/yellow text (original)
+            OSD_TEXT_NORMAL      = OSD_COLOR(OSD_FG_WHITE, OSD_BG_BLUE);
+            OSD_TEXT_SELECTED    = OSD_COLOR(OSD_FG_YELLOW, OSD_BG_BLUE);
+            OSD_TEXT_DISABLED    = OSD_COLOR(OSD_FG_RED, OSD_BG_BLUE);
+            OSD_ICON_PAGE        = OSD_COLOR(OSD_FG_GREEN, OSD_BG_BLUE);
+            OSD_CURSOR_ACTIVE    = OSD_COLOR(OSD_FG_BLACK, OSD_BG_YELLOW);
+            OSD_CURSOR_INACTIVE  = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);
+            OSD_BACKGROUND       = OSD_COLOR(OSD_FG_BLUE, OSD_BG_BLUE);
+            break;
+    }
+}
+
+// Get current theme ID
+inline uint8_t OSD_getTheme()
+{
+    return OSD_currentTheme;
+}
+
+// Get theme name for display
+inline const char* OSD_getThemeName(uint8_t themeId)
+{
+    if (themeId >= OSD_THEME_COUNT) return "Unknown";
+    return OSD_THEME_NAMES[themeId];
+}
+
+// Cycle to next theme (useful for quick switching)
+inline void OSD_nextTheme()
+{
+    OSD_setTheme((OSD_currentTheme + 1) % OSD_THEME_COUNT);
+}
 
 // ====================================================================================
 // OSD Row Identifiers
@@ -293,9 +388,14 @@ inline void OSD_writeCharAtRow(uint8_t row, uint8_t pos, uint8_t charCode, uint8
 
     uint8_t bank = OSD_rowToBank(row);
     uint8_t hwPos = (pos * 2) + 1;  // Convert logical to hardware pos
+
     // Character mapping for OSD font (sorted by output byte value)
     switch (charCode) {
-        case ' ':  color = OSD_BACKGROUND; break;
+        case ' ':
+            // Space: keep background from color, set foreground same as background
+            // This makes space "invisible" but with correct background color
+            color = (color & 0xF0) | ((color >> 4) & 0x07);
+            break;
         case '\'': charCode = 0x27; break;
         case '.':  charCode = 0x2E; break;
         case '/':  charCode = 0x2F; break;
@@ -387,6 +487,23 @@ inline void OSD_fillBackground()
     OSD_fillRowBackground(ROW_1, 28, OSD_BACKGROUND);
     OSD_fillRowBackground(ROW_2, 28, OSD_BACKGROUND);
     OSD_fillRowBackground(ROW_3, 28, OSD_BACKGROUND);
+}
+
+// ====================================================================================
+// Display 2-Digit Decimal Number (0-99)
+// ====================================================================================
+
+// Display a byte value (0-99) as 2 decimal digits at specified positions
+// row: 1, 2, or 3
+// value: byte to display (0-99)
+// pos1, pos2: logical positions (0-27) for units, tens
+// color: OSD_COLOR_AUTO (default) uses menu line color, or specify explicit color
+inline void OSD_displayNumber2DigitAtRow(uint8_t row, byte value,
+                                          uint8_t pos1, uint8_t pos2,
+                                          uint8_t color = OSD_COLOR_AUTO)
+{
+    OSD_writeCharAtRow(row, pos1, '0' + (value % 10), color);         // units
+    OSD_writeCharAtRow(row, pos2, '0' + ((value / 10) % 10), color);  // tens
 }
 
 // ====================================================================================

@@ -139,7 +139,7 @@ bool IR_handleMainMenu()
                     Menu_navigateTo(OLED_SystemSettings);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_ResetSettings);
+                    Menu_navigateTo(OLED_Preferences);
                     break;
                 case IR_KEY_OK:
                     Menu_navigateTo(OLED_ColorSettings_RGB_R);
@@ -153,7 +153,86 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_ResetSettings - Main menu entry (row 3, page 2)
+    // OLED_Preferences - Main menu entry (row 3, page 2)
+    else if (oled_menuItem == OLED_Preferences) {
+        showMenu("Menu->>>", "Preferences");
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_ColorSettings);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_FirmwareVersion);
+                    break;
+                case IR_KEY_OK:
+                    Menu_navigateTo(OLED_Preferences_Theme);
+                    break;
+                case IR_KEY_EXIT:
+                    exitMenu();
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // ==================== Main Menu Page 3 ====================
+
+    // OLED_FirmwareVersion - Main menu entry (row 1, page 3)
+    else if (oled_menuItem == OLED_FirmwareVersion) {
+        showMenu("Menu->>>", "Firmware Version");
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Preferences);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_ResetSettings);
+                    break;
+                case IR_KEY_OK:
+                    // Show firmware version info screen
+                    OSD_fillBackground();
+                    OSD_handleCommand(OSD_CMD_FIRMWARE_VERSION);
+                    oled_menuItem = OLED_FirmwareVersion_Info;
+                    break;
+                case IR_KEY_EXIT:
+                    exitMenu();
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_FirmwareVersion_Info - Firmware version info screen (read-only)
+    else if (oled_menuItem == OLED_FirmwareVersion_Info) {
+        showMenu("Firmware", "Version");
+        OSD_handleCommand(OSD_CMD_FIRMWARE_VERSION);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_EXIT:
+                    // Return to main menu page 3
+                    Menu_navigateTo(OLED_FirmwareVersion);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_ResetSettings - Main menu entry (row 2, page 3)
     else if (oled_menuItem == OLED_ResetSettings) {
         showMenu("Menu->>>", "Reset Settings");
 
@@ -163,7 +242,7 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_ColorSettings);
+                    Menu_navigateTo(OLED_FirmwareVersion);
                     break;
                 case IR_KEY_OK:
                     userCommand = '1';
@@ -201,8 +280,8 @@ bool IR_handleMainMenu()
                     userCommand = 'a';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW3);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE2);
+                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE3);
                     oled_menuItem = OLED_ResetSettings;
                     break;
             }

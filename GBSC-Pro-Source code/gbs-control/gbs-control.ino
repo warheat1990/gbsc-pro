@@ -7287,11 +7287,18 @@ void setup()
     display.init();                 //inits OLED on I2C bus
     display.flipScreenVertically(); //orientation fix for OLED
 
+    // Initialize IR receiver
     irrecv.enableIRIn();
+
+    // Initialize OSD
     OSD_clearAll();
     OSD_init();
-    PT2257_mute(false);
-    PT2257_setAttenuation(12); // -12 dB (display shows 38/50)
+
+    // Initialize audio: unmuted, volume at -12dB (display shows 38/50)
+    audioMuted = false;
+    volume = 12;
+    PT2257_mute(audioMuted);
+    PT2257_setAttenuation(volume);
 
     pinMode(pin_clk, INPUT_PULLUP);
     pinMode(pin_data, INPUT_PULLUP);
@@ -7522,11 +7529,17 @@ void setup()
             volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
             if (volume > 50)
                 volume = 0;
+
+            audioMuted = (uint8_t)(f.read() - '0');  // #49
+            if (audioMuted > 1)
+                audioMuted = false;
+
+            // Apply loaded audio settings to hardware
+            PT2257_mute(audioMuted);
+            PT2257_setAttenuation(volume);
+
             // InCurrent = (uint8_t)(f.read() - '0');
             inputSource = (uint8_t)(f.read() - '0');
-
-            // GBS::SP_EXT_SYNC_SEL::write((uint8_t)(f.read() - '0'));
-            // GBS::ADC_INPUT_SEL::write((uint8_t)(f.read() - '0'));
 
             SVModeOption = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
             if (SVModeOption > MODEOPTION_MAX - 1)
@@ -7581,6 +7594,11 @@ void setup()
             B_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
             if ((B_VAL > 0xFF - 1) || (B_VAL == 0))
                 B_VAL = 0x80;
+
+            osdTheme = (uint8_t)(f.read() - '0');  // #48
+            if (osdTheme >= OSD_THEME_COUNT)
+                osdTheme = OSD_THEME_CLASSIC;
+            OSD_setTheme(osdTheme);
 
             f.close();
         }
@@ -10695,6 +10713,7 @@ void saveUserPrefs()
     f.write(uopt->disableExternalClockGenerator + '0'); // #19
     f.write(volume / 10 + '0');
     f.write(volume % 10 + '0');
+    f.write(audioMuted + '0');
     f.write(inputSource + '0');
     f.write(SVModeOption / 10 + '0');
     f.write(SVModeOption % 10 + '0');
@@ -10723,6 +10742,7 @@ void saveUserPrefs()
     f.write((B_VAL / 100) + '0');
     f.write((B_VAL % 100) / 10 + '0');
     f.write(B_VAL % 10 + '0');
+    f.write(osdTheme + '0');
     f.close();
 }
 
