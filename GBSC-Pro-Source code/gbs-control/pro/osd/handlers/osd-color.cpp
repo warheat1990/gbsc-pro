@@ -25,9 +25,9 @@ void handle_ColorSettings_Page1(void)
 void handle_ColorSettings_Page1_Values(void)
 {
     // Display R, G, B values at P23-P25 on each row
-    OSD_displayNumber3DigitAtRow(1, R_VAL, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(2, G_VAL, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(3, B_VAL, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(1, gbsColorR, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(2, gbsColorG, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(3, gbsColorB, 25, 24, 23);
 }
 
 // Page 2: ADC gain, Scanlines, Line filter
@@ -65,7 +65,12 @@ void handle_ColorSettings_Page3(void)
     OSD_writeStringAtRow(1, 1, "Sharpness");
     OSD_drawDashRange(1, 10, 22);
     OSD_writeStringAtRow(2, 1, "Peaking");
-    OSD_drawDashRange(2, 8, 22);
+    if (isPeakingLocked()) {
+        OSD_drawDashRange(2, 8, 19);
+        OSD_writeStringAtRow(2, 20, "LOCKED");
+    } else {
+        OSD_drawDashRange(2, 8, 22);
+    }
     OSD_writeStringAtRow(3, 1, "Step response");
     OSD_drawDashRange(3, 14, 22);
 }

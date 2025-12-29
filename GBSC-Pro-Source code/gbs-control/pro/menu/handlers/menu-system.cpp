@@ -33,7 +33,7 @@ bool IR_handleSystemSettings()
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
-                    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+                    if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
                         Menu_navigateTo(OLED_SystemSettings_SVAVInput_DoubleLine);
                     }
                     break;
@@ -54,7 +54,7 @@ bool IR_handleSystemSettings()
 
     // OLED_SystemSettings_Compatibility
     else if (oled_menuItem == OLED_SystemSettings_Compatibility) {
-        showMenuToggle("Menu->System", "Compatibility", rgbComponentMode == 1);
+        showMenuToggle("Menu->System", "Compatibility", uopt->advCompatibility == 1);
         OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -69,10 +69,10 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
                     break;
                 case IR_KEY_OK:
-                    rgbComponentMode = !rgbComponentMode;
-                    if (rgbComponentMode > 1)
-                        rgbComponentMode = 0;
-                    ADV_sendCompatibility(rgbComponentMode);
+                    uopt->advCompatibility = !uopt->advCompatibility;
+                    if (uopt->advCompatibility > 1)
+                        uopt->advCompatibility = 0;
+                    ADV_sendCompatibility(uopt->advCompatibility);
                     if (GBS::ADC_INPUT_SEL::read())
                         applyVideoModePreset();
                     break;
@@ -322,7 +322,7 @@ bool IR_handleSystemSettings()
 
     // OLED_SystemSettings_SVAVInput_DoubleLine
     else if (oled_menuItem == OLED_SystemSettings_SVAVInput_DoubleLine) {
-        showMenuValue("M>Sys>SvAv Set", "DoubleLine", lineOption ? "2X" : "1X");
+        showMenuValue("M>Sys>SvAv Set", "DoubleLine", advLineDouble ? "2X" : "1X");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -334,11 +334,11 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
                     break;
                 case IR_KEY_OK:
-                    lineOption = !lineOption;
-                    if(!lineOption) {
-                        smoothOption = false;
+                    advLineDouble = !advLineDouble;
+                    if(!advLineDouble) {
+                        advSmooth = false;
                     }
-                    settingLineOptionChanged = 1;
+                    ADV_sendLineDouble(advLineDouble);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
@@ -351,7 +351,7 @@ bool IR_handleSystemSettings()
 
     // OLED_SystemSettings_SVAVInput_Smooth
     else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
-        showMenuToggle("M>Sys>SvAv Set", "Smooth", smoothOption);
+        showMenuToggle("M>Sys>SvAv Set", "Smooth", advSmooth);
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -366,9 +366,9 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
                     break;
                 case IR_KEY_OK:
-                    if (lineOption) {
-                        smoothOption = !smoothOption;
-                        settingSmoothOptionChanged = 1;
+                    if (advLineDouble) {
+                        advSmooth = !advSmooth;
+                        ADV_sendSmooth(advSmooth);
                     }
                     break;
                 case IR_KEY_EXIT:
@@ -403,13 +403,13 @@ bool IR_handleSystemSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        brightness = MIN(brightness + STEP, 254);
-                        ADV_sendBCSH(0x0a, brightness - 128);
+                        advBrightness = MIN(advBrightness + STEP, 254);
+                        ADV_sendBCSH(0x0a, advBrightness - 128);
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        brightness = MAX(brightness - STEP, 0);
-                        ADV_sendBCSH(0x0a, brightness - 128);
+                        advBrightness = MAX(advBrightness - STEP, 0);
+                        ADV_sendBCSH(0x0a, advBrightness - 128);
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
@@ -453,13 +453,13 @@ bool IR_handleSystemSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        contrast = MIN(contrast + STEP, 254);
-                        ADV_sendBCSH(0x08, contrast);
+                        advContrast = MIN(advContrast + STEP, 254);
+                        ADV_sendBCSH(0x08, advContrast);
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        contrast = MAX(contrast - STEP, 0);
-                        ADV_sendBCSH(0x08, contrast);
+                        advContrast = MAX(advContrast - STEP, 0);
+                        ADV_sendBCSH(0x08, advContrast);
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
@@ -502,13 +502,13 @@ bool IR_handleSystemSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        saturation = MIN(saturation + STEP, 254);
-                        ADV_sendBCSH(0xe3, saturation);
+                        advSaturation = MIN(advSaturation + STEP, 254);
+                        ADV_sendBCSH(0xe3, advSaturation);
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        saturation = MAX(saturation - STEP, 0);
-                        ADV_sendBCSH(0xe3, saturation);
+                        advSaturation = MAX(advSaturation - STEP, 0);
+                        ADV_sendBCSH(0xe3, advSaturation);
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
@@ -543,9 +543,9 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_OK:
                     ADV_sendBCSH('D', 'E');
-                    brightness = 128;
-                    contrast = 128;
-                    saturation = 128;
+                    advBrightness = 128;
+                    advContrast = 128;
+                    advSaturation = 128;
                     saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:

@@ -11,9 +11,6 @@
 // ====================================================================================
 
 extern void saveUserPrefs();
-extern uint8_t volume;
-extern boolean audioMuted;
-extern uint8_t osdTheme;
 
 // ====================================================================================
 // IR_handlePreferencesMenu - Preferences Menu Navigation
@@ -40,7 +37,7 @@ bool IR_handlePreferencesMenu()
                         uint8_t currentTheme = OSD_getTheme();
                         uint8_t newTheme = (currentTheme == 0) ? (OSD_THEME_COUNT - 1) : (currentTheme - 1);
                         OSD_setTheme(newTheme);
-                        osdTheme = newTheme;
+                        uopt->osdTheme = newTheme;
                         // Redraw with new theme colors
                         OSD_fillBackground();
                         OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
@@ -55,7 +52,7 @@ bool IR_handlePreferencesMenu()
                         uint8_t currentTheme = OSD_getTheme();
                         uint8_t newTheme = (currentTheme + 1) % OSD_THEME_COUNT;
                         OSD_setTheme(newTheme);
-                        osdTheme = newTheme;
+                        uopt->osdTheme = newTheme;
                         // Redraw with new theme colors
                         OSD_fillBackground();
                         OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
@@ -95,16 +92,16 @@ bool IR_handlePreferencesMenu()
                         Menu_navigateTo(OLED_Preferences_Mute);
                         break;
                     case IR_KEY_RIGHT:
-                        // Increase volume (decrease attenuation)
+                        // Increase volume (volume: 0=mute, 50=max)
                         lastMenuItemTime = millis();
-                        volume = MAX(volume - 1, 0);
-                        PT2257_setAttenuation(volume);
+                        uopt->volume = MIN(uopt->volume + 1, 50);
+                        PT2257_setVolume(uopt->volume);
                         break;
                     case IR_KEY_LEFT:
-                        // Decrease volume (increase attenuation)
+                        // Decrease volume (volume: 0=mute, 50=max)
                         lastMenuItemTime = millis();
-                        volume = MIN(volume + 1, 50);
-                        PT2257_setAttenuation(volume);
+                        uopt->volume = MAX(uopt->volume - 1, 0);
+                        PT2257_setVolume(uopt->volume);
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
@@ -126,7 +123,7 @@ bool IR_handlePreferencesMenu()
 
     // OLED_Preferences_Mute - Mute toggle with OK button
     else if (oled_menuItem == OLED_Preferences_Mute) {
-        showMenuToggle("Preferences", "Mute", audioMuted);
+        showMenuToggle("Preferences", "Mute", uopt->audioMuted);
         OSD_handleCommand(OSD_CMD_PREFERENCES_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -139,8 +136,8 @@ bool IR_handlePreferencesMenu()
                     break;
                 case IR_KEY_OK:
                     // Toggle mute
-                    audioMuted = !audioMuted;
-                    PT2257_mute(audioMuted);
+                    uopt->audioMuted = !uopt->audioMuted;
+                    PT2257_mute(uopt->audioMuted);
                     saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:

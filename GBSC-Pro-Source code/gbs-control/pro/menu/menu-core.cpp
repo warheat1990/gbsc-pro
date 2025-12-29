@@ -254,16 +254,16 @@ static void IR_handleMuteToggle(void)
     NEW_OLED_MENU = false;
 
     // Toggle mute state
-    if (audioMuted) {
+    if (uopt->audioMuted) {
         PT2257_mute(false);  // Unmute
-        audioMuted = 0;
+        uopt->audioMuted = 0;
     } else {
         PT2257_mute(true);  // Mute
-        audioMuted = 1;
+        uopt->audioMuted = 1;
     }
 
     // Display on OLED
-    IR_displayMuteOnOLED(audioMuted);
+    IR_displayMuteOnOLED(uopt->audioMuted);
 
     // Set up OSD display with timeout (like volume)
     OSD_fillRowBackground(ROW_1, 10, OSD_BACKGROUND);
@@ -519,24 +519,24 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
 
     switch (preset) {
         case SETTING_PresetPreference::MT_7391_1X:
-            ADV_sendLine1X();
+            ADV_sendLineDouble(false);
             break;
         case SETTING_PresetPreference::MT_7391_2X:
-            ADV_sendLine2X();
+            ADV_sendLineDouble(true);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
-            ADV_sendSmoothOff();
+            ADV_sendSmooth(false);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_ON:
-            ADV_sendSmoothOn();
+            ADV_sendSmooth(true);
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_OFF:
-            rgbComponentMode = COMPATIBILITY_OFF;
-            ADV_sendCompatibility(rgbComponentMode);
+            uopt->advCompatibility = COMPATIBILITY_OFF;
+            ADV_sendCompatibility(uopt->advCompatibility);
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_ON:
-            rgbComponentMode = COMPATIBILITY_ON;
-            ADV_sendCompatibility(rgbComponentMode);
+            uopt->advCompatibility = COMPATIBILITY_ON;
+            ADV_sendCompatibility(uopt->advCompatibility);
             break;
 #ifdef ACE
         case SETTING_PresetPreference::MT_ACE_OFF:
@@ -593,16 +593,16 @@ bool OLED_handleTvModeSelection(OLEDMenuManager *manager, OLEDMenuItem *item, OL
     uopt->TVMODE_presetPreference = preset;
 
     // Update AV/SV mode options if applicable
-    if (inputType == InputTypeAV) {
-        AVModeOption = 0;
+    if (uopt->activeInputType == InputTypeAV) {
+        uopt->avVideoFormat = 0;
         saveUserPrefs();
-    } else if (inputType == InputTypeSV) {
-        SVModeOption = 0;
+    } else if (uopt->activeInputType == InputTypeSV) {
+        uopt->svVideoFormat = 0;
         saveUserPrefs();
     }
 
     // Send TV mode command if in SV or AV mode
-    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+    if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
         ADV_sendVideoFormat(ADV_VideoFormats[preset]);
     }
 

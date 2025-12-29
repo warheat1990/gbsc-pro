@@ -23,13 +23,20 @@
 #define PT2257_MUTE_OFF  0x78
 
 // Set attenuation level (0-79 dB, both channels)
-// Volume 0 = 0 dB (max), Volume 79 = -79 dB (min)
+// Attenuation 0 = 0 dB (max), Attenuation 79 = -79 dB (min)
 inline void PT2257_setAttenuation(uint8_t dB) {
     if (dB > 79) dB = 79;
     Wire.beginTransmission(PT2257_ADDR);
     Wire.write(PT2257_ATT_10DB + (dB / 10));  // Tens: -0, -10, ... -70 dB
     Wire.write(PT2257_ATT_1DB + (dB % 10));   // Units: -0, -1, ... -9 dB
     Wire.endTransmission();
+}
+
+// Set volume level (0-50, where 50=max, 0=mute)
+// Converts to attenuation internally: volume 50 = 0dB, volume 0 = -50dB
+inline void PT2257_setVolume(uint8_t level) {
+    uint8_t dB = (level > 50) ? 0 : (50 - level);
+    PT2257_setAttenuation(dB);
 }
 
 // Mute/unmute audio

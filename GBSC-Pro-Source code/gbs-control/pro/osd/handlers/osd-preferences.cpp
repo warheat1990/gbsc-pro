@@ -9,8 +9,7 @@
 // External References
 // ====================================================================================
 
-extern uint8_t volume;
-extern boolean audioMuted;
+extern struct userOptions *uopt;
 
 // ====================================================================================
 // Preferences Menu - Page 1 (Theme, Volume, Mute)
@@ -41,9 +40,8 @@ void handle_Preferences_Page1_Values(void)
     }
 
     // Volume value (0-50 displayed as 2-digit number)
-    uint8_t displayVolume = 50 - volume;  // 0=max(50), 50=min(0)
-    OSD_displayNumber2DigitAtRow(2, displayVolume, 25, 24);
+    OSD_displayNumber2DigitAtRow(2, uopt->volume, 25, 24);  // volume: 0=mute, 50=max
 
     // Mute status (ON/OFF)
-    OSD_writeOnOff(3, audioMuted);
+    OSD_writeOnOff(3, uopt->audioMuted);
 }

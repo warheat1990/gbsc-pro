@@ -12,8 +12,8 @@
 
 typedef TV5725<GBS_ADDR> GBS;
 extern struct runTimeOptions *rto;
+extern struct userOptions *uopt;
 extern float getOutputFrameRate();
-extern uint8_t inputType;
 
 // ====================================================================================
 // Mute Status Display
@@ -103,7 +103,7 @@ void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive)
 
     // Input type (positions 17-22)
     OSD_clearRowContent(ROW_1, 22, 17);
-    OSD_writeStringAtRow(1, 17, getInputTypeName(inputType), OSD_TEXT_NORMAL);
+    OSD_writeStringAtRow(1, 17, getInputTypeName(uopt->activeInputType), OSD_TEXT_NORMAL);
 
     // Frame rate (positions 24-27)
     uint8_t frameRate = (uint8_t)ofr;
@@ -123,21 +123,22 @@ void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive)
     }
 
     // Show signal type at position 9
-    if (currentInput == 1 || inputType == InputTypeRGBs || inputType == InputTypeRGsB || inputType == InputTypeVGA) {
+    uint8_t activeInput = uopt->activeInputType;
+    if (currentInput == 1 || activeInput == InputTypeRGBs || activeInput == InputTypeRGsB || activeInput == InputTypeVGA) {
         OSD_writeStringAtRow(2, 9, "RGB", OSD_TEXT_NORMAL);
         boolean vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         boolean hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
         if (vsyncActive && hsyncActive) {
             OSD_writeStringAtRow(2, 13, "HV", OSD_TEXT_NORMAL);
-        } else if (inputType == InputTypeVGA) {
+        } else if (activeInput == InputTypeVGA) {
             OSD_writeStringAtRow(2, 9, "No Input", OSD_TEXT_NORMAL);
             return;
         }
-    } else if (inputType == InputTypeYUV) {
+    } else if (activeInput == InputTypeYUV) {
         OSD_writeStringAtRow(2, 9, "YPbPr", OSD_TEXT_NORMAL);
-    } else if (inputType == InputTypeSV) {
+    } else if (activeInput == InputTypeSV) {
         OSD_writeStringAtRow(2, 9, "SV", OSD_TEXT_NORMAL);
-    } else if (inputType == InputTypeAV) {
+    } else if (activeInput == InputTypeAV) {
         OSD_writeStringAtRow(2, 9, "AV", OSD_TEXT_NORMAL);
     } else {
         OSD_writeStringAtRow(2, 9, "No Input", OSD_TEXT_NORMAL);

@@ -31,8 +31,8 @@
 // Firmware Version Strings
 // ====================================================================================
 
-#define GBS_FW_VERSION "2.0.0"  // GBS Control firmware version (ESP8266)
-#define ADV_FW_VERSION "2.0.0"  // ADV Controller firmware version (HC32)
+#define GBS_FW_VERSION "2.0.0beta"  // GBS Control firmware version (ESP8266)
+#define ADV_FW_VERSION "2.0.0beta"  // ADV Controller firmware version (HC32)
 
 // ====================================================================================
 // Registry Headers (types and enums)
@@ -69,12 +69,41 @@ extern IRrecv irrecv;
 extern decode_results results;
 
 // ====================================================================================
-// External Variables - Input/Output State
+// Input Source Helper
 // ====================================================================================
 
-extern uint8_t inputSource;
-extern uint8_t inputType;
-extern uint8_t rgbComponentMode;
+// Input source routing values (for GBS ADC configuration)
+enum InputSource : uint8_t {
+    InputSourceRGBs = 0,
+    InputSourceVGA = 1,
+    InputSourceYUV = 2
+};
+
+// Input type values (logical input selection)
+enum InputType : uint8_t {
+    InputTypeRGBs = 1,
+    InputTypeRGsB = 2,
+    InputTypeVGA = 3,
+    InputTypeYUV = 4,
+    InputTypeSV = 5,
+    InputTypeAV = 6
+};
+
+// Derive InputSource from activeInputType (replaces inputSource variable)
+inline uint8_t getInputSourceFromType(uint8_t inputType) {
+    switch (inputType) {
+        case InputTypeRGBs:
+        case InputTypeRGsB:
+            return InputSourceRGBs;
+        case InputTypeVGA:
+            return InputSourceVGA;
+        case InputTypeYUV:
+        case InputTypeSV:
+        case InputTypeAV:
+        default:
+            return InputSourceYUV;
+    }
+}
 
 // ====================================================================================
 // External Variables - Timing
@@ -110,29 +139,24 @@ extern uint16_t horizontalBlankStart;
 extern uint16_t horizontalBlankStop;
 
 // ====================================================================================
-// External Variables - Picture Settings
+// External Variables - Picture Settings (per-slot, stored in SlotMeta)
 // ====================================================================================
 
-extern unsigned char R_VAL;
-extern unsigned char G_VAL;
-extern unsigned char B_VAL;
-extern uint8_t brightness;
-extern uint8_t contrast;
-extern uint8_t saturation;
-extern uint8_t brightnessOrContrastOption;
+extern uint8_t gbsColorR;        // GBS TV5725 color balance R (0-255, default 128)
+extern uint8_t gbsColorG;        // GBS TV5725 color balance G (0-255, default 128)
+extern uint8_t gbsColorB;        // GBS TV5725 color balance B (0-255, default 128)
+extern uint8_t advBrightness;    // ADV7280 brightness (0-255, default 128)
+extern uint8_t advContrast;      // ADV7280 contrast (0-255, default 128)
+extern uint8_t advSaturation;    // ADV7280 saturation (0-255, default 128)
 
 // ====================================================================================
 // External Variables - Video Mode Options
 // ====================================================================================
 
-extern uint8_t SVModeOption;
-extern uint8_t AVModeOption;
-extern uint8_t SVModeOptionChanged;
-extern uint8_t AVModeOptionChanged;
-extern uint8_t smoothOption;
-extern uint8_t lineOption;
-extern bool settingLineOptionChanged;
-extern bool settingSmoothOptionChanged;
+extern uint8_t svVideoFormatChanged;   // Flag: S-Video format changed, needs ADV update
+extern uint8_t avVideoFormatChanged;   // Flag: Composite format changed, needs ADV update
+extern uint8_t advSmooth;              // ADV7280 smooth interpolation (per-slot)
+extern uint8_t advLineDouble;          // ADV7280 line doubler 2X (per-slot)
 
 // ====================================================================================
 // External Variables - Resolution Settings
@@ -142,32 +166,24 @@ extern uint8_t keepSettings;
 extern uint8_t tentativeResolution;
 
 // ====================================================================================
-// External Variables - Audio
+// External Variables - Factory Reset
 // ====================================================================================
 
-extern uint8_t volume;
-extern boolean audioMuted;
-
-// ====================================================================================
-// External Variables - OSD Theme
-// ====================================================================================
-
-extern uint8_t osdTheme;
+extern uint8_t factoryResetSelection;  // 0 = No (default), 1 = Yes
 
 // ====================================================================================
 // Function Declarations - ADV Communication
 // ====================================================================================
 
 // ADV packet wrappers
-void ADV_sendLine1X();
-void ADV_sendLine2X();
-void ADV_sendSmoothOff();
-void ADV_sendSmoothOn();
+void ADV_sendLineDouble(bool enable);
+void ADV_sendSmooth(bool enable);
 void ADV_sendCompatibility(bool mode);
 void ADV_sendVideoFormat(uint8_t format);
 void ADV_sendBCSH(unsigned char reg, unsigned char val);
 void ADV_sendCustomI2C(const unsigned char* data, size_t size);
 void ADV_applyPendingOptions(void);
+void ADV_applySlotSettings(void);
 
 // ====================================================================================
 // Function Declarations - Input Source Switching

@@ -42,12 +42,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        R_VAL = MIN(R_VAL + STEP, 255);
+                        gbsColorR = MIN(gbsColorR + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        R_VAL = MAX(0, R_VAL - STEP);
+                        gbsColorR = MAX(0, gbsColorR - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
@@ -91,12 +91,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        G_VAL = MIN(G_VAL + STEP, 255);
+                        gbsColorG = MIN(gbsColorG + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        G_VAL = MAX(0, G_VAL - STEP);
+                        gbsColorG = MAX(0, gbsColorG - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
@@ -140,12 +140,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        B_VAL = MIN(B_VAL + STEP, 255);
+                        gbsColorB = MIN(gbsColorB + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        B_VAL = MAX(0, B_VAL - STEP);
+                        gbsColorB = MAX(0, gbsColorB - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:

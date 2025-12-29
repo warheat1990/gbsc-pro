@@ -12,10 +12,8 @@ enum PresetPreference : uint8_t {
     OutputBypass = 10,
 };
 
-// GBSC-PRO: Forward declarations (definitions in options-pro.h)
-enum INPUT_PresetPreference : uint8_t;
-enum SETTING_PresetPreference : uint8_t;
-enum TVMODE_PresetPreference : uint8_t;
+// GBSC-PRO: Include Pro-specific enums and field definitions
+#include "pro/options-pro.h"
 
 // userOptions holds user preferences / customizations
 struct userOptions
@@ -41,10 +39,8 @@ struct userOptions
     uint8_t wantFullHeight;
     uint8_t enableCalibrationADC;
     uint8_t scanlineStrength;
-    // GBSC-PRO additions:
-    INPUT_PresetPreference INPUT_presetPreference;
-    SETTING_PresetPreference SETTING_presetPreference;
-    TVMODE_PresetPreference TVMODE_presetPreference;
+    // GBSC-PRO fields (defined in pro/options-pro.h)
+    USER_OPTIONS_PRO_FIELDS
 };
 
 

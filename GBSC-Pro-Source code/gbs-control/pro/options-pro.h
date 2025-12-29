@@ -59,4 +59,22 @@ enum TVMODE_PresetPreference : uint8_t {
     MT_MODE_SECAM,
 };
 
+// ====================================================================================
+// Pro userOptions Fields
+// These fields are included in struct userOptions via options.h
+// ====================================================================================
+
+#define USER_OPTIONS_PRO_FIELDS \
+    INPUT_PresetPreference INPUT_presetPreference; \
+    SETTING_PresetPreference SETTING_presetPreference; \
+    TVMODE_PresetPreference TVMODE_presetPreference; \
+    uint8_t volume;                 /* PT2257 volume (0-50, 50=max, 0=mute) */ \
+    uint8_t audioMuted;             /* PT2257 mute state (0=unmuted, 1=muted) */ \
+    uint8_t activeInputType;        /* Input type (1-6: RGBs/RGsB/VGA/YUV/SV/AV) */ \
+    uint8_t svVideoFormat;          /* ADV7280 S-Video format (0=Auto, 1-11) */ \
+    uint8_t avVideoFormat;          /* ADV7280 Composite format (0=Auto, 1-11) */ \
+    uint8_t bcshAdjustMode;         /* BCSH adjustment UI mode */ \
+    uint8_t advCompatibility;       /* ADV7280 RGB compatibility mode */ \
+    uint8_t osdTheme;               /* TV OSD theme (0-3) */
+
 #endif // OPTIONS_PRO_H_

@@ -1,10 +1,11 @@
 #ifndef _SLOT_H_
 // SLOTS
 #define SLOTS_FILE "/slots.bin" // the file where to store slots metadata
-#define SLOTS_TOTAL 72          // max number of slots
+#define SLOTS_TOTAL 36          // max number of slots (A-Z, 0-9)
 #define EMPTY_SLOT_NAME "Empty                   "
 typedef struct
 {
+    // --- ORIGINAL GBS-CONTROL ---
     char name[25];
     uint8_t presetID;
     uint8_t scanlines;
@@ -13,6 +14,26 @@ typedef struct
     uint8_t wantVdsLineFilter;
     uint8_t wantStepResponse;
     uint8_t wantPeaking;
+    // --- PRO: GBS Processing options ---
+    uint8_t wantFullHeight;      // 0=off, 1=on (default 1)
+    uint8_t deintMode;           // 0=Adaptive, 1=Bob (default 0)
+    uint8_t enableFrameTimeLock; // 0=off, 1=on (default 0)
+    uint8_t frameTimeLockMethod; // 0 or 1 (default 0)
+    uint8_t PalForce60;          // 0=off, 1=on (default 0)
+    uint8_t enableAutoGain;      // 0=off, 1=on (default 0)
+    uint8_t wantSharpness;       // 0=off, 1=on (default 0)
+    // --- PRO: GBS Color balance ---
+    uint8_t gbsColorR;           // 0-255 (default 128)
+    uint8_t gbsColorG;           // 0-255 (default 128)
+    uint8_t gbsColorB;           // 0-255 (default 128)
+    // --- PRO: ADV7280 settings (directly expandable) ---
+    uint8_t advSmooth;           // 0=off, 1=on
+    uint8_t advLineDouble;       // 0=1X, 1=2X
+    uint8_t advBrightness;       // 0-255 (default 128)
+    uint8_t advContrast;         // 0-255 (default 128)
+    uint8_t advSaturation;       // 0-255 (default 128)
+    // --- Reserved for future expansion (do not use directly) ---
+    uint8_t reserved[80];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 typedef struct

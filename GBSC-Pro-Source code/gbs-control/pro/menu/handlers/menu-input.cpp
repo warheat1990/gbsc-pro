@@ -25,8 +25,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    rgbComponentMode = 1;
-                    InputRGBs_mode(rgbComponentMode);
+                    uopt->advCompatibility = 1;
+                    InputRGBs_mode(uopt->advCompatibility);
                     rto->isInLowPowerMode = false;
                     break;
                 case IR_KEY_MENU:
@@ -52,8 +52,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    rgbComponentMode = 1;
-                    InputRGsB_mode(rgbComponentMode);
+                    uopt->advCompatibility = 1;
+                    InputRGsB_mode(uopt->advCompatibility);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();
@@ -81,8 +81,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    rgbComponentMode = 0;
-                    InputVGA_mode(rgbComponentMode);
+                    uopt->advCompatibility = 0;
+                    InputVGA_mode(uopt->advCompatibility);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();
@@ -133,14 +133,14 @@ bool IR_handleInputSelection()
 
     // OLED_Input_SV
     else if (oled_menuItem == OLED_Input_SV) {
-        showMenuValue("Menu->Input", "SV", getVideoFormatName(SVModeOption));
+        showMenuValue("Menu->Input", "SV", getVideoFormatName(uopt->svVideoFormat));
 
         OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    InputSV_mode(SVModeOption + 1);
+                    InputSV_mode(uopt->svVideoFormat + 1);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();
@@ -152,16 +152,16 @@ bool IR_handleInputSelection()
                     Menu_navigateTo(OLED_Input_AV);
                     break;
                 case IR_KEY_LEFT:
-                    if (SVModeOption <= MODEOPTION_MIN)
-                        SVModeOption = MODEOPTION_MAX;
-                    SVModeOption--;
-                    SVModeOptionChanged = 1;
+                    if (uopt->svVideoFormat <= MODEOPTION_MIN)
+                        uopt->svVideoFormat = MODEOPTION_MAX;
+                    uopt->svVideoFormat--;
+                    svVideoFormatChanged = 1;
                     break;
                 case IR_KEY_RIGHT:
-                    SVModeOption++;
-                    if (SVModeOption >= MODEOPTION_MAX)
-                        SVModeOption = MODEOPTION_MIN;
-                    SVModeOptionChanged = 1;
+                    uopt->svVideoFormat++;
+                    if (uopt->svVideoFormat >= MODEOPTION_MAX)
+                        uopt->svVideoFormat = MODEOPTION_MIN;
+                    svVideoFormatChanged = 1;
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_Input);
@@ -174,14 +174,14 @@ bool IR_handleInputSelection()
 
     // OLED_Input_AV
     else if (oled_menuItem == OLED_Input_AV) {
-        showMenuValue("Menu->Input", "AV", getVideoFormatName(AVModeOption));
+        showMenuValue("Menu->Input", "AV", getVideoFormatName(uopt->avVideoFormat));
 
         OSD_handleCommand(OSD_CMD_INPUT_PAGE2_VALUES);
         if (irDecode()) {
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    InputAV_mode(AVModeOption + 1);
+                    InputAV_mode(uopt->avVideoFormat + 1);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();
@@ -190,16 +190,16 @@ bool IR_handleInputSelection()
                     Menu_navigateTo(OLED_Input_SV);
                     break;
                 case IR_KEY_LEFT:
-                    if (AVModeOption <= MODEOPTION_MIN)
-                        AVModeOption = MODEOPTION_MAX;
-                    AVModeOption--;
-                    AVModeOptionChanged = 1;
+                    if (uopt->avVideoFormat <= MODEOPTION_MIN)
+                        uopt->avVideoFormat = MODEOPTION_MAX;
+                    uopt->avVideoFormat--;
+                    avVideoFormatChanged = 1;
                     break;
                 case IR_KEY_RIGHT:
-                    AVModeOption++;
-                    if (AVModeOption >= MODEOPTION_MAX)
-                        AVModeOption = MODEOPTION_MIN;
-                    AVModeOptionChanged = 1;
+                    uopt->avVideoFormat++;
+                    if (uopt->avVideoFormat >= MODEOPTION_MAX)
+                        uopt->avVideoFormat = MODEOPTION_MIN;
+                    avVideoFormatChanged = 1;
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_Input);

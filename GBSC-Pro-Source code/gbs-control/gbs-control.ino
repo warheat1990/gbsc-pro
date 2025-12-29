@@ -37,6 +37,7 @@
 
 static inline void writeBytes(uint8_t slaveRegister, uint8_t *values, uint8_t numValues);
 const uint8_t *loadPresetFromLittleFS(byte forVideoMode);
+bool loadSlotSettings();
 
 SSD1306Wire display(0x3c, D2, D1); //inits I2C address & pins for OLED
 const int pin_clk = 14;            //D5 = GPIO14 (input of one direction for encoder)
@@ -208,7 +209,7 @@ struct userOptions *uopt = &uopts;
 struct adcOptions adcopts;
 struct adcOptions *adco = &adcopts;
 
-String slotIndexMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~()!*:,";
+String slotIndexMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";  // 36 slots (A-Z, 0-9)
 
 char serialCommand;               // Serial / Web Server commands
 String serialCommandBuffer = "";  // Buffering for Web Server commands
@@ -1483,7 +1484,7 @@ uint8_t detectAndSwitchToActiveInput()
             else
                 SerialM.println(F("Component"));
 
-            if ((currentInput == 1 && isInfoDisplayActive == 0) && (inputSource == InputSourceVGA || inputSource == InputSourceRGBs)) { // RGBS or RGBHV
+            if ((currentInput == 1 && isInfoDisplayActive == 0) && (getInputSourceFromType(uopt->activeInputType) == InputSourceVGA || getInputSourceFromType(uopt->activeInputType) == InputSourceRGBs)) { // RGBS or RGBHV
                 boolean vsyncActive = 0;
                 rto->inputIsYpBpR = false; // declare for MD
                 rto->currentLevelSOG = 13; // test startup with MD and MS separately!
@@ -1499,7 +1500,7 @@ uint8_t detectAndSwitchToActiveInput()
                 }
 
                 // if VSync is active, it's RGBHV or RGBHV with CSync on HS pin
-                if ((vsyncActive && isInfoDisplayActive == 0) && (inputSource == InputSourceVGA || inputSource == InputSourceRGBs)) {
+                if ((vsyncActive && isInfoDisplayActive == 0) && (getInputSourceFromType(uopt->activeInputType) == InputSourceVGA || getInputSourceFromType(uopt->activeInputType) == InputSourceRGBs)) {
                     SerialM.println(F("VSync: present"));
                     GBS::MD_SEL_VGA60::write(1); // VGA 640x480 more likely than EDTV
                     boolean hsyncActive = 0;
@@ -1571,7 +1572,7 @@ uint8_t detectAndSwitchToActiveInput()
                     }
                 }
 
-                if ((!vsyncActive && isInfoDisplayActive == 0) && inputSource == InputSourceRGBs) { // then do RGBS check
+                if ((!vsyncActive && isInfoDisplayActive == 0) && getInputSourceFromType(uopt->activeInputType) == InputSourceRGBs) { // then do RGBS check
                     rto->syncTypeCsync = true;
                     GBS::MD_SEL_VGA60::write(0); // EDTV60 more likely than VGA60
                     uint16_t testCycle = 0;
@@ -1696,7 +1697,7 @@ uint8_t inputAndSyncDetect()
         resetDebugPort();
         applyRGBPatches();
         LEDON;
-        if (inputType == InputTypeRGBs || inputType == InputTypeRGsB) {
+        if (uopt->activeInputType == InputTypeRGBs || uopt->activeInputType == InputTypeRGsB) {
             rto->HdmiHoldDetection = false;
         }
         return 1;
@@ -1707,7 +1708,7 @@ uint8_t inputAndSyncDetect()
         resetDebugPort();
         applyYuvPatches();
         LEDON;
-        if (inputType == InputTypeYUV || inputType == InputTypeSV || inputType == InputTypeAV) {
+        if (uopt->activeInputType == InputTypeYUV || uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
             rto->HdmiHoldDetection = false;
         }
         return 2;
@@ -1718,7 +1719,7 @@ uint8_t inputAndSyncDetect()
         rto->sourceDisconnected = false;
         rto->videoStandardInput = 15;
         resetDebugPort();
-        if (inputType == InputTypeVGA && rto->HdmiHoldDetection) {
+        if (uopt->activeInputType == InputTypeVGA && rto->HdmiHoldDetection) {
             rto->HdmiHoldDetection = false;
         }
         LEDON;
@@ -4028,6 +4029,12 @@ void doPostPresetLoadSteps()
         activeFrameTimeLockInitialSteps();
     }
 
+    // Pro: Apply ADV7280 settings (brightness, contrast, saturation, smooth, lineDouble)
+    ADV_applySlotSettings();
+
+    // Pro: Apply GBS color balance
+    applyRGBtoYUVConversion();
+
     SerialM.print(F("\npreset applied: "));
     if (rto->presetID == 0x01 || rto->presetID == 0x11)
         SerialM.print(F("1280x960"));
@@ -4092,6 +4099,167 @@ void doPostPresetLoadSteps()
     }
     // presetPreference = OutputCustomized may fail to load (missing) preset file and arrive here with defaults
     SerialM.println("\n");
+}
+
+// Initialize slots.bin file with default values
+// Returns opened file handle for r+ access, or empty File on failure
+static File initSlotsFile()
+{
+    File slotsBinaryFile = LittleFS.open(SLOTS_FILE, "w");
+    if (!slotsBinaryFile) {
+        return File();
+    }
+
+    SlotMeta emptySlot;
+    memset(&emptySlot, 0, sizeof(emptySlot));
+    strncpy(emptySlot.name, EMPTY_SLOT_NAME, 25);
+    emptySlot.wantStepResponse = true;
+    emptySlot.wantPeaking = true;
+    // GBS Processing options defaults
+    emptySlot.wantFullHeight = 1;       // Default on
+    emptySlot.deintMode = 0;            // Default Adaptive
+    emptySlot.enableFrameTimeLock = 0;  // Default off
+    emptySlot.frameTimeLockMethod = 0;  // Default method 0
+    emptySlot.PalForce60 = 0;           // Default off
+    emptySlot.enableAutoGain = 0;       // Default off
+    // GBS Color balance defaults
+    emptySlot.gbsColorR = 128;
+    emptySlot.gbsColorG = 128;
+    emptySlot.gbsColorB = 128;
+    // ADV7280 defaults
+    emptySlot.advBrightness = 128;
+    emptySlot.advContrast = 128;
+    emptySlot.advSaturation = 128;
+
+    for (int i = 0; i < SLOTS_TOTAL; i++) {
+        emptySlot.slot = i;
+        slotsBinaryFile.write((byte *)&emptySlot, sizeof(emptySlot));
+    }
+    slotsBinaryFile.close();
+
+    return LittleFS.open(SLOTS_FILE, "r+");
+}
+
+// Save current settings to a specific slot in slots.bin
+// slotIndex: 0-19 (slot A-T)
+// name: optional slot name (NULL to keep existing name)
+bool saveSlotSettingsAt(int slotIndex, const char* name)
+{
+    if (slotIndex < 0 || slotIndex >= SLOTS_TOTAL) {
+        return false;
+    }
+
+    File slotsBinaryFile = LittleFS.open(SLOTS_FILE, "r+");
+    if (!slotsBinaryFile) {
+        slotsBinaryFile = initSlotsFile();
+        if (!slotsBinaryFile) {
+            return false;
+        }
+    }
+
+    // Read current slot data
+    SlotMeta slotData;
+    slotsBinaryFile.seek(slotIndex * sizeof(SlotMeta));
+    slotsBinaryFile.read((byte *)&slotData, sizeof(SlotMeta));
+
+    // Update with current values
+    slotData.slot = slotIndex;
+    slotData.presetID = rto->presetID;
+    slotData.scanlines = uopt->wantScanlines;
+    slotData.scanlinesStrength = uopt->scanlineStrength;
+    slotData.wantVdsLineFilter = uopt->wantVdsLineFilter;
+    slotData.wantStepResponse = uopt->wantStepResponse;
+    slotData.wantPeaking = uopt->wantPeaking;
+    // GBS Processing options
+    slotData.wantFullHeight = uopt->wantFullHeight;
+    slotData.deintMode = uopt->deintMode;
+    slotData.enableFrameTimeLock = uopt->enableFrameTimeLock;
+    slotData.frameTimeLockMethod = uopt->frameTimeLockMethod;
+    slotData.PalForce60 = uopt->PalForce60;
+    slotData.enableAutoGain = uopt->enableAutoGain;
+    slotData.wantSharpness = (GBS::VDS_PK_LB_GAIN::read() != 0x16) ? 1 : 0;
+    // GBS Color balance
+    slotData.gbsColorR = gbsColorR;
+    slotData.gbsColorG = gbsColorG;
+    slotData.gbsColorB = gbsColorB;
+    // ADV7280 settings
+    slotData.advSmooth = advSmooth;
+    slotData.advLineDouble = advLineDouble;
+    slotData.advBrightness = advBrightness;
+    slotData.advContrast = advContrast;
+    slotData.advSaturation = advSaturation;
+
+    // Update name if provided
+    if (name != NULL) {
+        memset(slotData.name, ' ', 24);
+        slotData.name[24] = '\0';
+        strncpy(slotData.name, name, 24);
+    }
+
+    // Write back to file
+    slotsBinaryFile.seek(slotIndex * sizeof(SlotMeta));
+    slotsBinaryFile.write((byte *)&slotData, sizeof(SlotMeta));
+    slotsBinaryFile.close();
+
+    return true;
+}
+
+// Load slot settings from slots.bin into uopt and global variables
+// Call BEFORE applyPresets() so PalForce60/wantFullHeight are available
+bool loadSlotSettings()
+{
+    auto currentSlot = slotIndexMap.indexOf(uopt->presetSlot);
+    if (currentSlot == -1) {
+        return false;
+    }
+
+    File f = LittleFS.open(SLOTS_FILE, "r");
+    if (!f) {
+        return false;
+    }
+
+    SlotMeta slotData;
+    f.seek(currentSlot * sizeof(SlotMeta));
+    f.read((byte *)&slotData, sizeof(SlotMeta));
+    f.close();
+
+    // Load filter settings
+    uopt->wantScanlines = slotData.scanlines;
+    uopt->scanlineStrength = slotData.scanlinesStrength;
+    uopt->wantVdsLineFilter = slotData.wantVdsLineFilter;
+    uopt->wantStepResponse = slotData.wantStepResponse;
+    uopt->wantPeaking = slotData.wantPeaking;
+
+    // Load GBS processing options (used by applyPresets)
+    uopt->wantFullHeight = slotData.wantFullHeight;
+    uopt->deintMode = slotData.deintMode;
+    uopt->enableFrameTimeLock = slotData.enableFrameTimeLock;
+    uopt->frameTimeLockMethod = slotData.frameTimeLockMethod;
+    uopt->PalForce60 = slotData.PalForce60;
+    uopt->enableAutoGain = slotData.enableAutoGain;
+    // Load sharpness (sharpness ON implies peaking ON)
+    if (slotData.wantSharpness) {
+        uopt->wantPeaking = 1;  // Sharpness requires peaking enabled
+        GBS::VDS_PK_LB_GAIN::write(0x5f);
+        GBS::VDS_PK_LH_GAIN::write(0x5f);
+    } else {
+        GBS::VDS_PK_LB_GAIN::write(0x16);
+        GBS::VDS_PK_LH_GAIN::write(0x0A);
+    }
+
+    // Load GBS color balance
+    gbsColorR = slotData.gbsColorR;
+    gbsColorG = slotData.gbsColorG;
+    gbsColorB = slotData.gbsColorB;
+
+    // Load ADV7280 settings
+    advSmooth = slotData.advSmooth;
+    advLineDouble = slotData.advLineDouble;
+    advBrightness = slotData.advBrightness;
+    advContrast = slotData.advContrast;
+    advSaturation = slotData.advSaturation;
+
+    return true;
 }
 
 // TODO replace result with VideoStandardInput enum
@@ -7182,6 +7350,18 @@ void loadDefaultUserOptions()
     uopt->enableCalibrationADC = 1;          // #17
     uopt->scanlineStrength = 0x30;           // #18
     uopt->disableExternalClockGenerator = 0; // #19
+
+    // GBSC-Pro global settings (stored in uopt)
+    uopt->volume = 38;              // Default: 38/50 (50=max, 0=mute)
+    uopt->audioMuted = 0;           // Default: unmuted
+    uopt->activeInputType = 1;      // Default: RGBs (InputTypeRGBs)
+    uopt->svVideoFormat = 0;        // Default: Auto
+    uopt->avVideoFormat = 0;        // Default: Auto
+    uopt->bcshAdjustMode = 0;       // Default: 0
+    uopt->advCompatibility = 0;     // Default: off
+    uopt->osdTheme = 0;             // Default: Classic theme
+    // Note: advSmooth, advLineDouble, advBrightness, advContrast, advSaturation,
+    // gbsColorR, gbsColorG, gbsColorB have defaults in SlotMeta initialization
 }
 
 //RF_PRE_INIT() {
@@ -7294,11 +7474,9 @@ void setup()
     OSD_clearAll();
     OSD_init();
 
-    // Initialize audio: unmuted, volume at -12dB (display shows 38/50)
-    audioMuted = false;
-    volume = 12;
-    PT2257_mute(audioMuted);
-    PT2257_setAttenuation(volume);
+    // Initialize audio from user preferences (volume: 0=mute, 50=max)
+    PT2257_mute(uopt->audioMuted);
+    PT2257_setVolume(uopt->volume);
 
     pinMode(pin_clk, INPUT_PULLUP);
     pinMode(pin_data, INPUT_PULLUP);
@@ -7526,79 +7704,42 @@ void setup()
             if (uopt->disableExternalClockGenerator > 1)
                 uopt->disableExternalClockGenerator = 0;
 
-            volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if (volume > 50)
-                volume = 0;
+            // Pro global settings from uopt
+            uopt->volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if (uopt->volume > 50)
+                uopt->volume = 38;
 
-            audioMuted = (uint8_t)(f.read() - '0');  // #49
-            if (audioMuted > 1)
-                audioMuted = false;
+            uopt->audioMuted = (uint8_t)(f.read() - '0');
+            if (uopt->audioMuted > 1)
+                uopt->audioMuted = 0;
 
             // Apply loaded audio settings to hardware
-            PT2257_mute(audioMuted);
-            PT2257_setAttenuation(volume);
+            PT2257_mute(uopt->audioMuted);
+            PT2257_setVolume(uopt->volume);
 
-            // InCurrent = (uint8_t)(f.read() - '0');
-            inputSource = (uint8_t)(f.read() - '0');
+            uopt->activeInputType = (uint8_t)(f.read() - '0');
+            if (uopt->activeInputType < 1 || uopt->activeInputType > 6)
+                uopt->activeInputType = 1;
 
-            SVModeOption = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if (SVModeOption > MODEOPTION_MAX - 1)
-                SVModeOption = 0;
-            AVModeOption = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if (AVModeOption > MODEOPTION_MAX - 1)
-                AVModeOption = 0;
+            uopt->svVideoFormat = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if (uopt->svVideoFormat > MODEOPTION_MAX - 1)
+                uopt->svVideoFormat = 0;
+            uopt->avVideoFormat = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if (uopt->avVideoFormat > MODEOPTION_MAX - 1)
+                uopt->avVideoFormat = 0;
 
-            // printf(" SV AV: %d  %d \n",SVModeOption,AVModeOption);
-            smoothOption = (uint8_t)(f.read() - '0');
-            if (smoothOption > 1)
-                smoothOption = 0;
+            uopt->bcshAdjustMode = (uint8_t)(f.read() - '0');
+            if (uopt->bcshAdjustMode > 2)
+                uopt->bcshAdjustMode = 0;
 
-            lineOption = (uint8_t)(f.read() - '0');
-            // lineOption = 1;
-            if (lineOption > 1)
-                lineOption = 1;
+            uopt->advCompatibility = (uint8_t)(f.read() - '0');
+            if (uopt->advCompatibility > 1)
+                uopt->advCompatibility = 0;
 
-            brightnessOrContrastOption = (uint8_t)(f.read() - '0');
-            if (brightnessOrContrastOption > 2)
-                brightnessOrContrastOption = 1;
-
-            inputType = (uint8_t)(f.read() - '0');
-            if (inputType < 1 || inputType > 6)
-                inputType = 1;
-
-            rgbComponentMode = (uint8_t)(f.read() - '0');
-            if (rgbComponentMode > 1)
-                rgbComponentMode = 0;
-
-
-            brightness = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((brightness > 0xFF - 1) || (brightness == 0))
-                brightness = 0x80;
-
-            contrast = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((contrast > 0xFF - 1) || (contrast == 0))
-                contrast = 0x80;
-
-            saturation = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((saturation > 0xFF - 1) || (saturation == 0))
-                saturation = 0x80;
-
-            R_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((R_VAL > 0xFF - 1) || (R_VAL == 0))
-                R_VAL = 0x80;
-
-            G_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((G_VAL > 0xFF - 1) || (G_VAL == 0))
-                G_VAL = 0x80;
-
-            B_VAL = (uint8_t)(f.read() - '0') * 100 + (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if ((B_VAL > 0xFF - 1) || (B_VAL == 0))
-                B_VAL = 0x80;
-
-            osdTheme = (uint8_t)(f.read() - '0');  // #48
-            if (osdTheme >= OSD_THEME_COUNT)
-                osdTheme = OSD_THEME_CLASSIC;
-            OSD_setTheme(osdTheme);
+            uopt->osdTheme = (uint8_t)(f.read() - '0');
+            if (uopt->osdTheme >= OSD_THEME_COUNT)
+                uopt->osdTheme = OSD_THEME_CLASSIC;
+            OSD_setTheme(uopt->osdTheme);
 
             f.close();
         }
@@ -7706,6 +7847,10 @@ void setup()
         // This must be called after prepareSyncProcessor() and calibrateAdcOffset()
         // which set default/temporary values for ADC_INPUT_SEL, ADC_SOGEN, and SP_EXT_SYNC_SEL
         applySavedInputSource();
+
+        // Load slot settings into memory (ADV, GBS colors, etc.)
+        // These will be applied by doPostPresetLoadSteps() when syncWatcher calls applyPresets()
+        loadSlotSettings();
 
         delay(4); // help wifi (presets are unloaded now)
         handleWiFi(1);
@@ -7986,9 +8131,9 @@ void loop()
     // Update audio volume only when changed
     if ((millis() - lastSystemTime) >= 400) {
         static uint8_t lastVolume = 0xFF;
-        if (volume != lastVolume) {
-            PT2257_setAttenuation(volume);
-            lastVolume = volume;
+        if (uopt->volume != lastVolume) {
+            PT2257_setVolume(uopt->volume);
+            lastVolume = uopt->volume;
         }
         lastSystemTime = millis();
     }
@@ -9924,31 +10069,11 @@ void startWebserver()
 
     server.on("/bin/slots.bin", HTTP_GET, [](AsyncWebServerRequest *request) {
         if (ESP.getFreeHeap() > 10000) {
-            SlotMetaArray slotsObject;
-            File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
-
-            if (!slotsBinaryFileRead) {
-                File slotsBinaryFileWrite = LittleFS.open(SLOTS_FILE, "w");
-                for (int i = 0; i < SLOTS_TOTAL; i++) {
-                    slotsObject.slot[i].slot = i;
-                    slotsObject.slot[i].presetID = 0;
-                    slotsObject.slot[i].scanlines = 0;
-                    slotsObject.slot[i].scanlinesStrength = 0;
-                    slotsObject.slot[i].wantVdsLineFilter = false;
-                    slotsObject.slot[i].wantStepResponse = true;
-                    slotsObject.slot[i].wantPeaking = true;
-                    char emptySlotName[25] = "Empty                   ";
-                    strncpy(slotsObject.slot[i].name, emptySlotName, 25);
-                }
-                size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
-                if (written != sizeof(slotsObject)) {
-                    SerialM.println(F("Error: Failed to write slots.bin!"));
-                }
-                slotsBinaryFileWrite.close();
-            } else {
-                slotsBinaryFileRead.close();
+            // Create file with defaults if it doesn't exist
+            if (!LittleFS.exists(SLOTS_FILE)) {
+                File f = initSlotsFile();
+                if (f) f.close();
             }
-
             request->send(LittleFS, "/slots.bin", "application/octet-stream");
         }
     });
@@ -9966,6 +10091,10 @@ void startWebserver()
                 slotParamValue.toCharArray(slotValue, sizeof(slotValue));
                 uopt->presetSlot = (uint8_t)slotValue[0];
                 uopt->presetPreference = OutputCustomized;
+
+                // Load slot settings and apply preset (doPostPresetLoadSteps applies ADV/GBS colors)
+                loadSlotSettings();
+                applyPresets(rto->videoStandardInput);
                 saveUserPrefs();
                 result = true;
             }
@@ -9977,76 +10106,18 @@ void startWebserver()
     server.on("/slot/save", HTTP_GET, [](AsyncWebServerRequest *request) {
         bool result = false;
 
-        if (ESP.getFreeHeap() > 10000) {
-            int params = request->params();
+        if (ESP.getFreeHeap() > 10000 && request->params() >= 2) {
+            // index param
+            const AsyncWebParameter *slotIndexParam = request->getParam(0);
+            uint8_t slotIndex = lowByte(slotIndexParam->value().toInt());
 
-            if (params > 0) {
-                SlotMetaArray slotsObject;
-                memset(&slotsObject, 0, sizeof(slotsObject));
-                File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
+            // name param
+            const AsyncWebParameter *slotNameParam = request->getParam(1);
+            String slotName = slotNameParam->value();
 
-                if (slotsBinaryFileRead) {
-                    slotsBinaryFileRead.read((byte *)&slotsObject, sizeof(slotsObject));
-                    slotsBinaryFileRead.close();
-                } else {
-                    File slotsBinaryFileWrite = LittleFS.open(SLOTS_FILE, "w");
-
-                    for (int i = 0; i < SLOTS_TOTAL; i++) {
-                        slotsObject.slot[i].slot = i;
-                        slotsObject.slot[i].presetID = 0;
-                        slotsObject.slot[i].scanlines = 0;
-                        slotsObject.slot[i].scanlinesStrength = 0;
-                        slotsObject.slot[i].wantVdsLineFilter = false;
-                        slotsObject.slot[i].wantStepResponse = true;
-                        slotsObject.slot[i].wantPeaking = true;
-                        char emptySlotName[25] = "Empty                   ";
-                        strncpy(slotsObject.slot[i].name, emptySlotName, 25);
-                    }
-
-                    size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
-                    if (written != sizeof(slotsObject)) {
-                        SerialM.println(F("Error: Failed to write slots.bin!"));
-                    }
-                    slotsBinaryFileWrite.close();
-                }
-
-                // index param
-                const AsyncWebParameter *slotIndexParam = request->getParam(0);
-                String slotIndexString = slotIndexParam->value();
-                uint8_t slotIndex = lowByte(slotIndexString.toInt());
-                if (slotIndex >= SLOTS_TOTAL) {
-                    goto fail;
-                }
-
-                // name param
-                const AsyncWebParameter *slotNameParam = request->getParam(1);
-                String slotName = slotNameParam->value();
-
-                char emptySlotName[25] = "                        ";
-                strncpy(slotsObject.slot[slotIndex].name, emptySlotName, 25);
-
-                slotsObject.slot[slotIndex].slot = slotIndex;
-                slotName.toCharArray(slotsObject.slot[slotIndex].name, sizeof(slotsObject.slot[slotIndex].name));
-                slotsObject.slot[slotIndex].presetID = rto->presetID;
-                slotsObject.slot[slotIndex].scanlines = uopt->wantScanlines;
-                slotsObject.slot[slotIndex].scanlinesStrength = uopt->scanlineStrength;
-                slotsObject.slot[slotIndex].wantVdsLineFilter = uopt->wantVdsLineFilter;
-                slotsObject.slot[slotIndex].wantStepResponse = uopt->wantStepResponse;
-                slotsObject.slot[slotIndex].wantPeaking = uopt->wantPeaking;
-
-                File slotsBinaryOutputFile = LittleFS.open(SLOTS_FILE, "w");
-                size_t written = slotsBinaryOutputFile.write((byte *)&slotsObject, sizeof(slotsObject));
-                if (written != sizeof(slotsObject)) {
-                    SerialM.println(F("Error: Failed to write slots.bin!"));
-                    result = false;
-                } else {
-                    result = true;
-                }
-                slotsBinaryOutputFile.close();
-            }
+            result = saveSlotSettingsAt(slotIndex, slotName.c_str());
         }
 
-        fail:
         request->send(200, "application/json", result ? "true" : "false");
     });
 
@@ -10062,22 +10133,23 @@ void startWebserver()
                     SerialM.println("Wait...");
                     result = true;
                 } else {
+                    // Soft delete: mark slot as empty, remove preset files, no shift
                     Ascii8 slot = uopt->presetSlot;
-                    Ascii8 nextSlot;
                     auto currentSlot = slotIndexMap.indexOf(slot);
 
-                    SlotMetaArray slotsObject;
-                    File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
-                    if (!slotsBinaryFileRead) {
+                    // Read only the slot to delete (47 bytes vs 940+ for full array)
+                    SlotMeta slotData;
+                    File slotsBinaryFile = LittleFS.open(SLOTS_FILE, "r+");
+                    if (!slotsBinaryFile) {
                         SerialM.println(F("Error: slots.bin not found!"));
                         request->send(500, "application/json", "false");
                         return;
                     }
-                    slotsBinaryFileRead.read((byte *)&slotsObject, sizeof(slotsObject));
-                    slotsBinaryFileRead.close();
-                    String slotName = slotsObject.slot[currentSlot].name;
+                    slotsBinaryFile.seek(currentSlot * sizeof(SlotMeta));
+                    slotsBinaryFile.read((byte *)&slotData, sizeof(SlotMeta));
+                    String slotName = slotData.name;
 
-                    // remove preset files
+                    // Remove preset files for this slot
                     LittleFS.remove("/preset_ntsc." + String((char)slot));
                     LittleFS.remove("/preset_pal." + String((char)slot));
                     LittleFS.remove("/preset_ntsc_480p." + String((char)slot));
@@ -10088,37 +10160,13 @@ void startWebserver()
                     LittleFS.remove("/preset_vga_upscale." + String((char)slot));
                     LittleFS.remove("/preset_unknown." + String((char)slot));
 
-                    uint8_t loopCount = 0;
-                    uint8_t flag = 1;
-                    while (flag != 0 && (currentSlot + loopCount + 1) < SLOTS_TOTAL) {
-                        slot = slotIndexMap[currentSlot + loopCount];
-                        nextSlot = slotIndexMap[currentSlot + loopCount + 1];
-                        flag = 0;
-                        flag += LittleFS.rename("/preset_ntsc." + String((char)(nextSlot)), "/preset_ntsc." + String((char)slot));
-                        flag += LittleFS.rename("/preset_pal." + String((char)(nextSlot)), "/preset_pal." + String((char)slot));
-                        flag += LittleFS.rename("/preset_ntsc_480p." + String((char)(nextSlot)), "/preset_ntsc_480p." + String((char)slot));
-                        flag += LittleFS.rename("/preset_pal_576p." + String((char)(nextSlot)), "/preset_pal_576p." + String((char)slot));
-                        flag += LittleFS.rename("/preset_ntsc_720p." + String((char)(nextSlot)), "/preset_ntsc_720p." + String((char)slot));
-                        flag += LittleFS.rename("/preset_ntsc_1080p." + String((char)(nextSlot)), "/preset_ntsc_1080p." + String((char)slot));
-                        flag += LittleFS.rename("/preset_medium_res." + String((char)(nextSlot)), "/preset_medium_res." + String((char)slot));
-                        flag += LittleFS.rename("/preset_vga_upscale." + String((char)(nextSlot)), "/preset_vga_upscale." + String((char)slot));
-                        flag += LittleFS.rename("/preset_unknown." + String((char)(nextSlot)), "/preset_unknown." + String((char)slot));
+                    // Mark slot as empty (soft delete)
+                    strncpy(slotData.name, EMPTY_SLOT_NAME, 25);
+                    slotsBinaryFile.seek(currentSlot * sizeof(SlotMeta));
+                    size_t written = slotsBinaryFile.write((byte *)&slotData, sizeof(SlotMeta));
+                    slotsBinaryFile.close();
 
-                        slotsObject.slot[currentSlot + loopCount].slot = slotsObject.slot[currentSlot + loopCount + 1].slot;
-                        slotsObject.slot[currentSlot + loopCount].presetID = slotsObject.slot[currentSlot + loopCount + 1].presetID;
-                        slotsObject.slot[currentSlot + loopCount].scanlines = slotsObject.slot[currentSlot + loopCount + 1].scanlines;
-                        slotsObject.slot[currentSlot + loopCount].scanlinesStrength = slotsObject.slot[currentSlot + loopCount + 1].scanlinesStrength;
-                        slotsObject.slot[currentSlot + loopCount].wantVdsLineFilter = slotsObject.slot[currentSlot + loopCount + 1].wantVdsLineFilter;
-                        slotsObject.slot[currentSlot + loopCount].wantStepResponse = slotsObject.slot[currentSlot + loopCount + 1].wantStepResponse;
-                        slotsObject.slot[currentSlot + loopCount].wantPeaking = slotsObject.slot[currentSlot + loopCount + 1].wantPeaking;
-                        strncpy(slotsObject.slot[currentSlot + loopCount].name, slotsObject.slot[currentSlot + loopCount + 1].name, 25);
-                        loopCount++;
-                    }
-
-                    File slotsBinaryFileWrite = LittleFS.open(SLOTS_FILE, "w");
-                    size_t written = slotsBinaryFileWrite.write((byte *)&slotsObject, sizeof(slotsObject));
-                    slotsBinaryFileWrite.close();
-                    if (written != sizeof(slotsObject)) {
+                    if (written != sizeof(SlotMeta)) {
                         SerialM.println(F("Error: Failed to write slots.bin!"));
                         result = false;
                     } else {
@@ -10200,38 +10248,16 @@ void startWebserver()
     });
 
     server.on("/gbs/restore-filters", HTTP_GET, [](AsyncWebServerRequest *request) {
-        SlotMetaArray slotsObject;
-        File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
-        bool result = false;
-        if (slotsBinaryFileRead) {
-            slotsBinaryFileRead.read((byte *)&slotsObject, sizeof(slotsObject));
-            slotsBinaryFileRead.close();
-            auto currentSlot = slotIndexMap.indexOf(uopt->presetSlot);
-            if (currentSlot == -1) {
-                goto fail;
-            }
-
-            uopt->wantScanlines = slotsObject.slot[currentSlot].scanlines;
-
-            SerialM.print(F("slot: "));
-            SerialM.println(uopt->presetSlot);
-            SerialM.print(F("scanlines: "));
-            if (uopt->wantScanlines) {
-                SerialM.println(F("on (Line Filter recommended)"));
-            } else {
+        bool result = loadSlotSettings();
+        if (result) {
+            // Apply settings that can be changed without re-applying full preset
+            if (!uopt->wantScanlines) {
                 disableScanlines();
-                SerialM.println("off");
             }
+            ADV_applySlotSettings();
+            applyRGBtoYUVConversion();
             saveUserPrefs();
-
-            uopt->scanlineStrength = slotsObject.slot[currentSlot].scanlinesStrength;
-            uopt->wantVdsLineFilter = slotsObject.slot[currentSlot].wantVdsLineFilter;
-            uopt->wantStepResponse = slotsObject.slot[currentSlot].wantStepResponse;
-            uopt->wantPeaking = slotsObject.slot[currentSlot].wantPeaking;
-            result = true;
         }
-
-        fail:
         request->send(200, "application/json", result ? "true" : "false");
     });
 
@@ -10280,14 +10306,14 @@ void startWebserver()
 
             if (f <= 11) {
                 // Format selection only applies to composite/s-video inputs
-                if (inputType == InputTypeAV || inputType == InputTypeSV) {
+                if (uopt->activeInputType == InputTypeAV || uopt->activeInputType == InputTypeSV) {
                     uopt->TVMODE_presetPreference = (TVMODE_PresetPreference)f;
 
                     // Update mode option
-                    if (inputType == InputTypeAV) {
-                        AVModeOption = f;
-                    } else if (inputType == InputTypeSV) {
-                        SVModeOption = f;
+                    if (uopt->activeInputType == InputTypeAV) {
+                        uopt->avVideoFormat = f;
+                    } else if (uopt->activeInputType == InputTypeSV) {
+                        uopt->svVideoFormat = f;
                     }
                     saveUserPrefs();
 
@@ -10315,14 +10341,14 @@ void startWebserver()
             uint8_t x = request->arg("x").toInt();
 
             if (x <= 1) {
-                lineOption = x;
-                if (lineOption) ADV_sendLine2X(); else ADV_sendLine1X();
-                SerialM.println(lineOption ? F("2X enabled") : F("2X disabled"));
+                advLineDouble = x;
+                ADV_sendLineDouble(advLineDouble);
+                SerialM.println(advLineDouble ? F("2X enabled") : F("2X disabled"));
 
                 // If 2X is disabled, also disable Smooth (smooth only works with 2X)
-                if (!lineOption && smoothOption) {
-                    smoothOption = 0;
-                    ADV_sendSmoothOff();
+                if (!advLineDouble && advSmooth) {
+                    advSmooth = 0;
+                    ADV_sendSmooth(false);
                     SerialM.println(F("Smooth disabled (requires 2X)"));
                 }
 
@@ -10341,14 +10367,14 @@ void startWebserver()
 
             if (s <= 1) {
                 // Force smooth off if 2X is not enabled
-                if (!lineOption && s == 1) {
-                    smoothOption = 0;
+                if (!advLineDouble && s == 1) {
+                    advSmooth = 0;
                     SerialM.println(F("Smooth not enabled (requires 2X)"));
                 } else {
-                    smoothOption = s;
-                    SerialM.println(smoothOption ? F("Smooth enabled") : F("Smooth disabled"));
+                    advSmooth = s;
+                    SerialM.println(advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
                 }
-                if (smoothOption) ADV_sendSmoothOn(); else ADV_sendSmoothOff();
+                ADV_sendSmooth(advSmooth);
                 request->send(200, "application/json", "true");
             } else {
                 request->send(400, "application/json", "false");
@@ -10711,38 +10737,20 @@ void saveUserPrefs()
     f.write(uopt->enableCalibrationADC + '0');          // #17
     f.write(uopt->scanlineStrength + '0');              // #18
     f.write(uopt->disableExternalClockGenerator + '0'); // #19
-    f.write(volume / 10 + '0');
-    f.write(volume % 10 + '0');
-    f.write(audioMuted + '0');
-    f.write(inputSource + '0');
-    f.write(SVModeOption / 10 + '0');
-    f.write(SVModeOption % 10 + '0');
-    f.write(AVModeOption / 10 + '0');
-    f.write(AVModeOption % 10 + '0');
-    f.write(smoothOption + '0');
-    f.write(lineOption + '0');
-    f.write(brightnessOrContrastOption + '0'); // 26
-    f.write(inputType + '0');     // 27
-    f.write(rgbComponentMode + '0');
-    f.write((brightness / 100) + '0');
-    f.write((brightness % 100) / 10 + '0');
-    f.write(brightness % 10 + '0');
-    f.write((contrast / 100) + '0');
-    f.write((contrast % 100) / 10 + '0');
-    f.write(contrast % 10 + '0');
-    f.write((saturation / 100) + '0');
-    f.write((saturation % 100) / 10 + '0');
-    f.write(saturation % 10 + '0');
-    f.write((R_VAL / 100) + '0');
-    f.write((R_VAL % 100) / 10 + '0');
-    f.write(R_VAL % 10 + '0');
-    f.write((G_VAL / 100) + '0');
-    f.write((G_VAL % 100) / 10 + '0');
-    f.write(G_VAL % 10 + '0');
-    f.write((B_VAL / 100) + '0');
-    f.write((B_VAL % 100) / 10 + '0');
-    f.write(B_VAL % 10 + '0');
-    f.write(osdTheme + '0');
+    // Pro global settings (not per-slot)
+    f.write(uopt->volume / 10 + '0');
+    f.write(uopt->volume % 10 + '0');
+    f.write(uopt->audioMuted + '0');
+    f.write(uopt->activeInputType + '0');
+    f.write(uopt->svVideoFormat / 10 + '0');
+    f.write(uopt->svVideoFormat % 10 + '0');
+    f.write(uopt->avVideoFormat / 10 + '0');
+    f.write(uopt->avVideoFormat % 10 + '0');
+    f.write(uopt->bcshAdjustMode + '0');
+    f.write(uopt->advCompatibility + '0');
+    f.write(uopt->osdTheme + '0');
+    // Note: advSmooth, advLineDouble, advBrightness, advContrast, advSaturation,
+    // gbsColorR, gbsColorG, gbsColorB are now stored per-slot in slots.bin
     f.close();
 }
 

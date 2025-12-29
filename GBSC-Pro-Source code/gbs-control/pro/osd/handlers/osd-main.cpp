@@ -49,7 +49,38 @@ void handle_MainMenu_Page3(void)
     OSD_writePageIcons(true, '3', false);
     OSD_writeStringAtRow(1, 1, "Firmware Version");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(2, 1, "Reset Settings");
+    OSD_writeStringAtRow(2, 1, "Factory Reset");
+}
+
+// ====================================================================================
+// Factory Reset Confirmation Screen
+// ====================================================================================
+
+// External reference to confirmation selection (0 = No selected, 1 = Yes selected)
+extern uint8_t factoryResetSelection;
+
+void handle_FactoryResetConfirm(void)
+{
+    // No row highlighting - this is a special confirmation screen
+    OSD_setMenuLineColors(0);
+
+    // Row 1-2: Warning text (no colors)
+    OSD_writeStringAtRow(1, 1, "Reset all settings to");
+    OSD_writeStringAtRow(2, 1, "factory defaults");
+
+    // Row 3: Yes / No options with selection indicator
+    // Format: "     Yes          ->No" or "  ->Yes             No"
+    if (factoryResetSelection == 1) {
+        // Yes selected
+        OSD_writeCharAtRow(3, 7, arrow_right_icon, OSD_TEXT_SELECTED);
+        OSD_writeStringAtRow(3, 8, "Yes", OSD_TEXT_SELECTED);
+        OSD_writeStringAtRow(3, 17, " No", OSD_TEXT_NORMAL);
+    } else {
+        // No selected (default)
+        OSD_writeStringAtRow(3, 7, " Yes", OSD_TEXT_NORMAL);
+        OSD_writeCharAtRow(3, 17, arrow_right_icon, OSD_TEXT_SELECTED);
+        OSD_writeStringAtRow(3, 18, "No", OSD_TEXT_SELECTED);
+    }
 }
 
 // ====================================================================================

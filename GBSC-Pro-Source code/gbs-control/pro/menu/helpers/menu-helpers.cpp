@@ -121,10 +121,10 @@ bool checkFreezeTimeout(OLEDMenuManager *manager) {
 // Profile Navigation Helpers
 // ====================================================================================
 
-// Get slot index (0-19) from menu state, or -1 if not a valid slot
+// Get slot index (0-35) from menu state, or -1 if not a valid slot
 static int getSlotIndex(int state, OLED_MenuState base) {
     int idx = state - base;
-    return (idx >= 0 && idx < 20) ? idx : -1;
+    return (idx >= 0 && idx < 36) ? idx : -1;
 }
 
 int getLoadSlotIndex(int state) {
@@ -135,9 +135,9 @@ int getSaveSlotIndex(int state) {
     return getSlotIndex(state, OLED_Profile_Save1);
 }
 
-// Navigate to slot with offset (wraps around 0-19)
+// Navigate to slot with offset (wraps around 0-35)
 static OLED_MenuState getSlotWithOffset(OLED_MenuState base, int idx, int offset) {
-    return (OLED_MenuState)(base + ((idx + offset + 20) % 20));
+    return (OLED_MenuState)(base + ((idx + offset + 36) % 36));
 }
 
 OLED_MenuState getNextSlot(OLED_MenuState base, int idx) {
@@ -149,13 +149,15 @@ OLED_MenuState getPrevSlot(OLED_MenuState base, int idx) {
 }
 
 char getSlotChar(int idx) {
-    return 'A' + idx;
+    extern String slotIndexMap;
+    return slotIndexMap[idx];
 }
 
 bool handleProfileRow(bool isLoadRow) {
     extern struct userOptions *uopt;
     extern char userCommand;
     extern void saveUserPrefs();
+    extern bool saveSlotSettingsAt(int slotIndex, const char* name);
 
     int idx = isLoadRow ? getLoadSlotIndex(oled_menuItem) : getSaveSlotIndex(oled_menuItem);
     if (idx < 0) return false;
@@ -209,7 +211,8 @@ bool handleProfileRow(bool isLoadRow) {
                 } else {
                     uopt->presetPreference = OutputCustomized;
                     saveUserPrefs();
-                    userCommand = '4';
+                    userCommand = '4';  // Save GBS preset
+                    saveSlotSettingsAt(idx, NULL); // Save ADV settings to slots.bin
                     OSD_showOkFeedback(ROW_2);
                 }
                 break;

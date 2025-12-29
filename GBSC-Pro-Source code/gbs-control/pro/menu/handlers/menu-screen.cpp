@@ -19,6 +19,7 @@ extern void shiftVerticalDownIF();
 extern void saveUserPrefs();
 extern uint8_t getVideoMode();
 extern void applyPresets(uint8_t videoMode);
+extern bool loadSlotSettings();
 
 // ====================================================================================
 // IR_handleScreenSettings - Screen Settings Menu

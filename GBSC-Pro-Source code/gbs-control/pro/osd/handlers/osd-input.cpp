@@ -48,11 +48,11 @@ void handle_InputMenu_Page2_Values(void)
     if (isSV) {
         // Pad format name to fixed width to overwrite previous text
         char padded[16];
-        snprintf(padded, sizeof(padded), "%-15s", getVideoFormatName(SVModeOption));
+        snprintf(padded, sizeof(padded), "%-15s", getVideoFormatName(uopt->svVideoFormat));
         OSD_writeStringAtRow(2, 11, padded);
     } else if (isAV) {
         char padded[16];
-        snprintf(padded, sizeof(padded), "%-15s", getVideoFormatName(AVModeOption));
+        snprintf(padded, sizeof(padded), "%-15s", getVideoFormatName(uopt->avVideoFormat));
         OSD_writeStringAtRow(3, 11, padded);
     }
 }

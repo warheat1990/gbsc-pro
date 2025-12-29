@@ -11,6 +11,7 @@ interface StructDescriptors {
 
 const Structs: StructDescriptors = {
   slots: [
+    // --- ORIGINAL GBS-CONTROL ---
     { name: "name", type: "string", size: 25 },
     { name: "presetID", type: "byte", size: 1 },
     { name: "scanlines", type: "byte", size: 1 },
@@ -19,6 +20,26 @@ const Structs: StructDescriptors = {
     { name: "wantVdsLineFilter", type: "byte", size: 1 },
     { name: "wantStepResponse", type: "byte", size: 1 },
     { name: "wantPeaking", type: "byte", size: 1 },
+    // --- PRO: GBS Processing options ---
+    { name: "wantFullHeight", type: "byte", size: 1 },
+    { name: "deintMode", type: "byte", size: 1 },
+    { name: "enableFrameTimeLock", type: "byte", size: 1 },
+    { name: "frameTimeLockMethod", type: "byte", size: 1 },
+    { name: "PalForce60", type: "byte", size: 1 },
+    { name: "enableAutoGain", type: "byte", size: 1 },
+    { name: "wantSharpness", type: "byte", size: 1 },
+    // --- PRO: GBS Color balance ---
+    { name: "gbsColorR", type: "byte", size: 1 },
+    { name: "gbsColorG", type: "byte", size: 1 },
+    { name: "gbsColorB", type: "byte", size: 1 },
+    // --- PRO: ADV7280 settings ---
+    { name: "advSmooth", type: "byte", size: 1 },
+    { name: "advLineDouble", type: "byte", size: 1 },
+    { name: "advBrightness", type: "byte", size: 1 },
+    { name: "advContrast", type: "byte", size: 1 },
+    { name: "advSaturation", type: "byte", size: 1 },
+    // --- Reserved for future expansion ---
+    { name: "reserved", type: "byte", size: 80 },
   ],
 };
 
@@ -115,7 +136,7 @@ const GBSControl = {
   },
   dataQueued: 0,
   isWsActive: false,
-  maxSlots: 72,
+  maxSlots: 36,  // A-Z, 0-9
   queuedText: "",
   scanSSIDDone: false,
   serverIP: "",

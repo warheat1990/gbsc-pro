@@ -51,25 +51,6 @@
 #define COMPATIBILITY_ON  1
 
 // ====================================================================================
-// Constants - Input Source Category
-// ====================================================================================
-
-#define InputSourceRGBs 1
-#define InputSourceVGA  2
-#define InputSourceYUV  3
-
-// ====================================================================================
-// Constants - Input Type (specific input within category)
-// ====================================================================================
-
-#define InputTypeRGBs 1
-#define InputTypeRGsB 2
-#define InputTypeVGA  3
-#define InputTypeYUV  4
-#define InputTypeSV   5
-#define InputTypeAV   6
-
-// ====================================================================================
 // Video Format Names
 // ====================================================================================
 
@@ -99,7 +80,7 @@ typedef enum {
     OLED_ScreenSettings,
     OLED_ColorSettings,
     OLED_SystemSettings,
-    OLED_ResetSettings,
+    OLED_FactoryReset,
 
     // Input submenu
     OLED_Input_RGBs,
@@ -172,6 +153,9 @@ typedef enum {
     OLED_FirmwareVersion,
     OLED_FirmwareVersion_Info,  // Info screen (read-only)
 
+    // Factory Reset confirmation screen
+    OLED_FactoryReset_Confirm,
+
     // Special screens
     OLED_Mute_Display,
     OLED_Volume_Adjust,
@@ -191,7 +175,7 @@ typedef enum {
     // OLED_Developer_FreezeCapture,
 
     // Profile/Slot Management
-    // Row 1: Load profile slots (1-20 = A-T)
+    // Row 1: Load profile slots (1-36 = A-Z, 0-9)
     OLED_Profile_Load1,
     OLED_Profile_Load2,
     OLED_Profile_Load3,
@@ -212,7 +196,23 @@ typedef enum {
     OLED_Profile_Load18,
     OLED_Profile_Load19,
     OLED_Profile_Load20,
-    // Row 2: Save profile slots (1-20 = A-T)
+    OLED_Profile_Load21,
+    OLED_Profile_Load22,
+    OLED_Profile_Load23,
+    OLED_Profile_Load24,
+    OLED_Profile_Load25,
+    OLED_Profile_Load26,
+    OLED_Profile_Load27,
+    OLED_Profile_Load28,
+    OLED_Profile_Load29,
+    OLED_Profile_Load30,
+    OLED_Profile_Load31,
+    OLED_Profile_Load32,
+    OLED_Profile_Load33,
+    OLED_Profile_Load34,
+    OLED_Profile_Load35,
+    OLED_Profile_Load36,
+    // Row 2: Save profile slots (1-36 = A-Z, 0-9)
     OLED_Profile_Save1,
     OLED_Profile_Save2,
     OLED_Profile_Save3,
@@ -233,6 +233,22 @@ typedef enum {
     OLED_Profile_Save18,
     OLED_Profile_Save19,
     OLED_Profile_Save20,
+    OLED_Profile_Save21,
+    OLED_Profile_Save22,
+    OLED_Profile_Save23,
+    OLED_Profile_Save24,
+    OLED_Profile_Save25,
+    OLED_Profile_Save26,
+    OLED_Profile_Save27,
+    OLED_Profile_Save28,
+    OLED_Profile_Save29,
+    OLED_Profile_Save30,
+    OLED_Profile_Save31,
+    OLED_Profile_Save32,
+    OLED_Profile_Save33,
+    OLED_Profile_Save34,
+    OLED_Profile_Save35,
+    OLED_Profile_Save36,
 } OLED_MenuState;
 
 // ====================================================================================
@@ -260,7 +276,7 @@ typedef struct {
     MENU_ITEM(OLED_ColorSettings,    OSD_CMD_MAIN_PAGE2, 2) \
     MENU_ITEM(OLED_Preferences,      OSD_CMD_MAIN_PAGE2, 3) \
     MENU_ITEM(OLED_FirmwareVersion,  OSD_CMD_MAIN_PAGE3, 1) \
-    MENU_ITEM(OLED_ResetSettings,    OSD_CMD_MAIN_PAGE3, 2)
+    MENU_ITEM(OLED_FactoryReset,     OSD_CMD_MAIN_PAGE3, 2)
 
 // Preferences Menu Mappings
 #define MENU_ITEMS_PREFERENCES \

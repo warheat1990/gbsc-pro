@@ -127,6 +127,9 @@ typedef enum : uint8_t {
     // Firmware Version
     OSD_CMD_FIRMWARE_VERSION,
 
+    // Factory Reset Confirmation
+    OSD_CMD_FACTORY_RESET_CONFIRM,
+
     OSD_CMD_COUNT
 } OsdCommand;
 
@@ -241,6 +244,12 @@ void handle_InfoDisplay_Source(void);
 void handle_FirmwareVersion(void);
 
 // ====================================================================================
+// Handler Function Declarations - Factory Reset Confirmation
+// ====================================================================================
+
+void handle_FactoryResetConfirm(void);
+
+// ====================================================================================
 // OSD Dispatch Table X-Macro
 // Format: DISPATCH_ENTRY(command, handler)
 // ====================================================================================
@@ -323,7 +332,10 @@ void handle_FirmwareVersion(void);
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values) \
     \
     /* Firmware Version */ \
-    DISPATCH_ENTRY(OSD_CMD_FIRMWARE_VERSION, handle_FirmwareVersion)
+    DISPATCH_ENTRY(OSD_CMD_FIRMWARE_VERSION, handle_FirmwareVersion) \
+    \
+    /* Factory Reset Confirmation */ \
+    DISPATCH_ENTRY(OSD_CMD_FACTORY_RESET_CONFIRM, handle_FactoryResetConfirm)
 
 // ====================================================================================
 // Dispatch Table and Command Handler Declarations

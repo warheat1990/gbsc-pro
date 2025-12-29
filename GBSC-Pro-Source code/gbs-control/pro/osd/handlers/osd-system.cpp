@@ -13,9 +13,7 @@ void handle_SVAVInput_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    // Line 2 (Smooth) disabled when lineOption is false
-    uint8_t line2Color = lineOption ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, line2Color);
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, advLineDouble ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
     OSD_drawDashRange(1, 14, 22);
     OSD_writeStringAtRow(2, 1, "Smooth");
@@ -27,9 +25,9 @@ void handle_SVAVInput_Page1(void)
 
 void handle_SVAVInput_Page1_Values(void)
 {
-    OSD_writeOnOff(1, lineOption);
-    OSD_writeOnOff(2, smoothOption);
-    OSD_displayNumber3DigitAtRow(3, brightness, 25, 24, 23);
+    OSD_writeOnOff(1, advLineDouble);
+    OSD_writeOnOff(2, advSmooth);
+    OSD_displayNumber3DigitAtRow(3, advBrightness, 25, 24, 23);
 }
 
 void handle_SVAVInput_Page2(void)
@@ -45,8 +43,8 @@ void handle_SVAVInput_Page2(void)
 
 void handle_SVAVInput_Page2_Values(void)
 {
-    OSD_displayNumber3DigitAtRow(1, contrast, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(2, saturation, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(1, advContrast, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(2, advSaturation, 25, 24, 23);
 }
 
 // ====================================================================================
@@ -55,10 +53,9 @@ void handle_SVAVInput_Page2_Values(void)
 
 void handle_SysSettings_Page1(void)
 {
-    // Line 1 (SV/AV Input Settings) disabled when not SV/AV input
-    bool isSvAvInput = (inputType == InputTypeSV) || (inputType == InputTypeAV);
-    uint8_t line1Color = isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED;
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 1, line1Color);
+    // SV/AV Input Settings disabled when not SV/AV input
+    bool isSvAvInput = (uopt->activeInputType == InputTypeSV) || (uopt->activeInputType == InputTypeAV);
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 1, isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_writeCharAtRow(1, 21, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "AV/SV Input Settings");
@@ -70,7 +67,7 @@ void handle_SysSettings_Page1(void)
 
 void handle_SysSettings_Page1_Values(void)
 {
-    OSD_writeOnOff(2, rgbComponentMode == 1);
+    OSD_writeOnOff(2, uopt->advCompatibility == 1);
     OSD_writeOnOff(3, uopt->matchPresetSource);
 }
 

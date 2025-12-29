@@ -14,6 +14,7 @@
 
 typedef TV5725<GBS_ADDR> GBS;
 extern void applyPresets(uint8_t videoMode);
+extern bool loadSlotSettings();
 extern void setOutModeHdBypass(bool bypass);
 extern void saveUserPrefs();
 extern float getOutputFrameRate();
@@ -122,14 +123,10 @@ bool presetSelectionMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OL
     display->display();
     uopt->presetSlot = 'A' + item->tag; // ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~()!*:,
     uopt->presetPreference = PresetPreference::OutputCustomized;
-    saveUserPrefs();
-    if (rto->videoStandardInput == 14) {
-        // vga upscale path: let synwatcher handle it
-        rto->videoStandardInput = 15;
-    } else {
-        // normal path
-        applyPresets(rto->videoStandardInput);
-    }
+
+    // Load slot settings and apply preset (doPostPresetLoadSteps applies ADV/GBS colors)
+    loadSlotSettings();
+    applyPresets(rto->videoStandardInput);
     saveUserPrefs();
     manager->freeze();
     oledMenuFreezeTimeoutInMS = 2000;
@@ -139,15 +136,14 @@ bool presetSelectionMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OL
 }
 bool presetsCreationMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMenuNav, bool)
 {
-    SlotMetaArray slotsObject;
-    File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
     manager->clearSubItems(item);
+    File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
     int curNumSlot = 0;
     if (slotsBinaryFileRead) {
-        slotsBinaryFileRead.read((byte *)&slotsObject, sizeof(slotsObject));
-        slotsBinaryFileRead.close();
+        SlotMeta slot;  // Read one slot at a time (47 bytes vs 940+ for full array)
         for (int i = 0; i < SLOTS_TOTAL; ++i) {
-            const SlotMeta &slot = slotsObject.slot[i];
+            slotsBinaryFileRead.seek(i * sizeof(SlotMeta));
+            slotsBinaryFileRead.read((byte *)&slot, sizeof(SlotMeta));
             if (strcmp(EMPTY_SLOT_NAME, slot.name) == 0 || !strlen(slot.name)) {
                 continue;
             }
@@ -157,6 +153,7 @@ bool presetsCreationMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OL
             }
             manager->registerItem(item, slot.slot, slot.name, presetSelectionMenuHandler);
         }
+        slotsBinaryFileRead.close();
     }
 
     if (curNumSlot > OLED_MENU_MAX_SUBITEMS_NUM) {

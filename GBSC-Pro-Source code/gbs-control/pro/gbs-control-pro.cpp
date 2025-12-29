@@ -50,6 +50,7 @@ extern SSD1306Wire display;
 
 extern uint8_t getVideoMode();
 extern void applyPresets(uint8_t videoMode);
+extern bool loadSlotSettings();
 extern void setOutModeHdBypass(bool);
 extern void saveUserPrefs();
 extern void resetSyncProcessor();
@@ -62,14 +63,6 @@ extern float getOutputFrameRate();
 static const int kRecvPin = 2;
 IRrecv irrecv(kRecvPin);
 decode_results results;
-
-// ====================================================================================
-// Global Variables - Input/Output State
-// ====================================================================================
-
-uint8_t inputSource = 0;
-uint8_t inputType = 0;
-uint8_t rgbComponentMode = 0;
 
 // ====================================================================================
 // Global Variables - Timing
@@ -105,29 +98,24 @@ uint16_t horizontalBlankStart = 0;
 uint16_t horizontalBlankStop = 0;
 
 // ====================================================================================
-// Global Variables - Picture Settings
+// Global Variables - Picture Settings (per-slot, stored in SlotMeta)
 // ====================================================================================
 
-unsigned char R_VAL = 128;
-unsigned char G_VAL = 128;
-unsigned char B_VAL = 128;
-uint8_t brightness = 128;
-uint8_t contrast = 128;
-uint8_t saturation = 128;
-uint8_t brightnessOrContrastOption = 0;
+uint8_t gbsColorR = 128;       // GBS TV5725 color balance R
+uint8_t gbsColorG = 128;       // GBS TV5725 color balance G
+uint8_t gbsColorB = 128;       // GBS TV5725 color balance B
+uint8_t advBrightness = 128;   // ADV7280 brightness
+uint8_t advContrast = 128;     // ADV7280 contrast
+uint8_t advSaturation = 128;   // ADV7280 saturation
 
 // ====================================================================================
 // Global Variables - Video Mode Options
 // ====================================================================================
 
-uint8_t SVModeOption = 0;
-uint8_t AVModeOption = 0;
-uint8_t SVModeOptionChanged = 0;
-uint8_t AVModeOptionChanged = 0;
-uint8_t smoothOption = 0;
-uint8_t lineOption = 0;
-bool settingLineOptionChanged = false;
-bool settingSmoothOptionChanged = false;
+uint8_t svVideoFormatChanged = 0;       // Flag: S-Video format changed, needs ADV update
+uint8_t avVideoFormatChanged = 0;       // Flag: Composite format changed, needs ADV update
+uint8_t advSmooth = 0;                  // ADV7280 smooth interpolation (per-slot)
+uint8_t advLineDouble = 0;              // ADV7280 line doubler 2X (per-slot)
 
 // ====================================================================================
 // Global Variables - Resolution Settings
@@ -137,17 +125,10 @@ uint8_t keepSettings = 0;
 uint8_t tentativeResolution = 0;
 
 // ====================================================================================
-// Global Variables - Audio
+// Global Variables - Factory Reset
 // ====================================================================================
 
-uint8_t volume = 12;        // Default: -12dB attenuation (display shows 38/50)
-boolean audioMuted = false;  // Default: unmuted
-
-// ====================================================================================
-// Global Variables - OSD Theme
-// ====================================================================================
-
-uint8_t osdTheme = 0;       // Default: Classic theme (OSD_THEME_CLASSIC)
+uint8_t factoryResetSelection = 0;  // 0 = No (default), 1 = Yes
 
 // ====================================================================================
 // ADV Communication - Packet Sender Instance
@@ -159,17 +140,24 @@ static ADVController advController;
 // ADV Packet Wrappers
 // ====================================================================================
 
-// Send packet and save preferences (common pattern)
+// Send packet only (no save)
+static void ADV_send(const unsigned char* packet) {
+    advController.send(packet);
+}
+
+// Send packet and save preferences
 static void ADV_sendAndSave(const unsigned char* packet) {
     advController.send(packet);
     saveUserPrefs();
 }
 
-// Public wrappers for line doubling and smoothing
-void ADV_sendLine1X()    { ADV_sendAndSave(ADV_Line1X); }
-void ADV_sendLine2X()    { ADV_sendAndSave(ADV_Line2X); }
-void ADV_sendSmoothOff() { ADV_sendAndSave(ADV_SmoothOff); }
-void ADV_sendSmoothOn()  { ADV_sendAndSave(ADV_SmoothOn); }
+void ADV_sendLineDouble(bool enable) {
+    ADV_sendAndSave(enable ? ADV_Line2X : ADV_Line1X);
+}
+
+void ADV_sendSmooth(bool enable) {
+    ADV_sendAndSave(enable ? ADV_SmoothOn : ADV_SmoothOff);
+}
 
 void ADV_sendCompatibility(bool mode) {
     ADV_sendAndSave(mode ? ADV_CompatibilityOff : ADV_CompatibilityOn);
@@ -189,27 +177,42 @@ void ADV_sendCustomI2C(const unsigned char* data, size_t size) {
 }
 
 // Apply video format option with bounds checking
-static void ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
+// Returns true if format was changed (triggers picture settings re-apply)
+static bool ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
     static const uint8_t max_index = sizeof(ADV_VideoFormats) / sizeof(ADV_VideoFormats[0]) - 1;
     if (*changed) {
         *changed = 0;
         uint8_t idx = (option <= max_index) ? option : 1;  // Default to PAL if invalid
         ADV_sendVideoFormat(ADV_VideoFormats[idx]);
+        return true;
     }
+    return false;
+}
+
+// Apply per-slot ADV settings (line double, smooth, BCSH)
+// These are loaded from SlotMeta and stored in global variables
+// Only applies when input is SV or AV (ADV7280 is only used for these inputs)
+void ADV_applySlotSettings(void) {
+    if (uopt->activeInputType != InputTypeSV && uopt->activeInputType != InputTypeAV) {
+        return;  // ADV7280 not in use for this input type
+    }
+    ADV_send(advLineDouble ? ADV_Line2X : ADV_Line1X);
+    ADV_send(advSmooth ? ADV_SmoothOn : ADV_SmoothOff);
+    advController.writeReg(ADV_BCSH, 0x0A, advBrightness - 128);
+    advController.writeReg(ADV_BCSH, 0x08, advContrast);
+    advController.writeReg(ADV_BCSH, 0xE3, advSaturation);
 }
 
 void ADV_applyPendingOptions(void)
 {
-    ADV_applyVideoFormatOption(&SVModeOptionChanged, SVModeOption);
-    ADV_applyVideoFormatOption(&AVModeOptionChanged, AVModeOption);
+    // Check if video format changed (ADV reinitializes, need to re-apply picture settings)
+    bool formatChanged = false;
+    formatChanged |= ADV_applyVideoFormatOption(&svVideoFormatChanged, uopt->svVideoFormat);
+    formatChanged |= ADV_applyVideoFormatOption(&avVideoFormatChanged, uopt->avVideoFormat);
 
-    if (settingLineOptionChanged) {
-        settingLineOptionChanged = 0;
-        ADV_sendAndSave(lineOption ? ADV_Line2X : ADV_Line1X);
-    }
-    if (settingSmoothOptionChanged) {
-        settingSmoothOptionChanged = 0;
-        ADV_sendAndSave(smoothOption ? ADV_SmoothOn : ADV_SmoothOff);
+    // After format change, re-apply per-slot ADV settings
+    if (formatChanged) {
+        ADV_applySlotSettings();
     }
 }
 
@@ -225,22 +228,21 @@ void ADV_applyPendingOptions(void)
 
 struct InputConfig {
     const unsigned char* packet;
-    uint8_t source;
-    uint8_t type;
-    uint8_t brightness;     // brightnessOrContrastOption value
+    uint8_t type;           // InputType value (stored in uopt->activeInputType)
+    uint8_t bcshMode;       // bcshAdjustMode value (stored in uopt->bcshAdjustMode)
     uint8_t adcValue;       // ADC_SOGEN/ADC_INPUT_SEL value (RGB1 or YUV0)
     uint8_t flags;
 };
 
 // Input configuration lookup table (indexed by InputType - 1)
 static const InputConfig inputConfigs[] = {
-    // packet,         source,          type,          brightness, adc,  flags
-    {ADV_InputRGBs,  InputSourceRGBs, InputTypeRGBs, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 0: RGBs
-    {ADV_InputRGsB,  InputSourceRGBs, InputTypeRGsB, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 1: RGsB
-    {ADV_InputVGA,   InputSourceVGA,  InputTypeVGA,  0, RGB1, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_HV_ENABLE},       // 2: VGA
-    {ADV_InputYpbpr, InputSourceYUV,  InputTypeYUV,  1, 0,    INPUT_FLAG_NONE},                                    // 3: YPbPr
-    {ADV_InputSV,    InputSourceYUV,  InputTypeSV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 4: SV
-    {ADV_InputAV,    InputSourceYUV,  InputTypeAV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 5: AV
+    // packet,         type,          bcshMode, adc,  flags
+    {ADV_InputRGBs,  InputTypeRGBs, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 0: RGBs
+    {ADV_InputRGsB,  InputTypeRGsB, 0, RGB1, INPUT_FLAG_CONFIG_ADC},                              // 1: RGsB
+    {ADV_InputVGA,   InputTypeVGA,  0, RGB1, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_HV_ENABLE},       // 2: VGA
+    {ADV_InputYpbpr, InputTypeYUV,  1, 0,    INPUT_FLAG_NONE},                                    // 3: YPbPr
+    {ADV_InputSV,    InputTypeSV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 4: SV
+    {ADV_InputAV,    InputTypeAV,   2, YUV0, INPUT_FLAG_CONFIG_ADC | INPUT_FLAG_LOW_POWER},       // 5: AV
 };
 
 // Config indices for clarity
@@ -261,9 +263,8 @@ static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
         advController.sendWithMode(cfg.packet, mode);
     }
 
-    // Set input state
-    inputSource = cfg.source;
-    inputType = cfg.type;
+    // Set input state (using uopt->activeInputType)
+    uopt->activeInputType = cfg.type;
     resetSyncProcessor();
 
     // Configure ADC if needed
@@ -273,8 +274,8 @@ static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
         GBS::ADC_INPUT_SEL::write(cfg.adcValue);
     }
 
-    // Set brightness option and disconnect state
-    brightnessOrContrastOption = cfg.brightness;
+    // Set BCSH mode and disconnect state
+    uopt->bcshAdjustMode = cfg.bcshMode;
     rto->sourceDisconnected = true;
 
     // Clear low power mode if needed
@@ -316,17 +317,17 @@ static void applyInputHardwareConfig(const InputConfig& cfg) {
         GBS::SP_EXT_SYNC_SEL::write((cfg.flags & INPUT_FLAG_HV_ENABLE) ? HV_Enable : HV_Disable);
         GBS::ADC_INPUT_SEL::write(cfg.adcValue);
     }
-    brightnessOrContrastOption = cfg.brightness;
+    uopt->bcshAdjustMode = cfg.bcshMode;
     rto->sourceDisconnected = true;
 }
 
 void applySavedInputSource(void) {
     // Apply saved input source configuration to hardware at startup
-    // inputType is already loaded from preferences
+    // uopt->activeInputType is already loaded from preferences
 
-    // Validate inputType and get config index
+    // Validate activeInputType and get config index
     uint8_t cfgIndex;
-    switch (inputType) {
+    switch (uopt->activeInputType) {
         case InputTypeRGBs: cfgIndex = INPUT_CFG_RGBS; break;
         case InputTypeRGsB: cfgIndex = INPUT_CFG_RGSB; break;
         case InputTypeVGA:  cfgIndex = INPUT_CFG_VGA;  break;
@@ -334,9 +335,8 @@ void applySavedInputSource(void) {
         case InputTypeSV:   cfgIndex = INPUT_CFG_SV;   break;
         case InputTypeAV:   cfgIndex = INPUT_CFG_AV;   break;
         default:
-            // Invalid inputType, default to RGBs
-            inputSource = InputSourceRGBs;
-            inputType = InputTypeRGBs;
+            // Invalid activeInputType, default to RGBs
+            uopt->activeInputType = InputTypeRGBs;
             cfgIndex = INPUT_CFG_RGBS;
             break;
     }
@@ -344,7 +344,7 @@ void applySavedInputSource(void) {
     const InputConfig& cfg = inputConfigs[cfgIndex];
 
     // SV/AV need ADV packet at boot (ADV controller needs to know input type)
-    if (inputType == InputTypeSV || inputType == InputTypeAV) {
+    if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
         advController.send(cfg.packet);
     }
 
@@ -365,16 +365,16 @@ void resetOLEDScreenSaverTimer() {
 
 void applyRGBtoYUVConversion(void)
 {
-    GBS::VDS_Y_OFST::write((signed char)((0.299f * (R_VAL - 128)) + (0.587f * (G_VAL - 128)) + (0.114f * (B_VAL - 128))));
-    GBS::VDS_U_OFST::write((signed char)((-0.14713f * (R_VAL - 128)) - (0.28886f * (G_VAL - 128)) + (0.436f * (B_VAL - 128))));
-    GBS::VDS_V_OFST::write((signed char)((0.615f * (R_VAL - 128)) - (0.51499f * (G_VAL - 128)) - (0.10001f * (B_VAL - 128))));
+    GBS::VDS_Y_OFST::write((signed char)((0.299f * (gbsColorR - 128)) + (0.587f * (gbsColorG - 128)) + (0.114f * (gbsColorB - 128))));
+    GBS::VDS_U_OFST::write((signed char)((-0.14713f * (gbsColorR - 128)) - (0.28886f * (gbsColorG - 128)) + (0.436f * (gbsColorB - 128))));
+    GBS::VDS_V_OFST::write((signed char)((0.615f * (gbsColorR - 128)) - (0.51499f * (gbsColorG - 128)) - (0.10001f * (gbsColorB - 128))));
 }
 
 void readYUVtoRGBConversion(void)
 {
-    R_VAL = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
-    G_VAL = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
-    B_VAL = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;
+    gbsColorR = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
+    gbsColorG = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
+    gbsColorB = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;
 }
 
 // ====================================================================================
@@ -436,17 +436,10 @@ void broadcastProStatus(WebSocketsServer& ws)
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
-    uint8_t currentInputType = 1;
-    if (inputSource == InputSourceRGBs) {
-        currentInputType = (inputType == InputTypeRGsB) ? 2 : 1;
-    }
-    else if (inputSource == InputSourceVGA) {
-        currentInputType = 3;
-    }
-    else if (inputSource == InputSourceYUV) {
-        if (inputType == InputTypeYUV) currentInputType = 4;
-        else if (inputType == InputTypeSV) currentInputType = 5;
-        else if (inputType == InputTypeAV) currentInputType = 6;
+    // activeInputType is already 1-6, use it directly
+    uint8_t currentInputType = uopt->activeInputType;
+    if (currentInputType < 1 || currentInputType > 6) {
+        currentInputType = 1;  // Default to RGBs if invalid
     }
 
     buffer[1] = '0' + currentInputType;
@@ -463,8 +456,8 @@ void broadcastProStatus(WebSocketsServer& ws)
         buffer[2] = 'B';
     }
 
-    buffer[3] = '0' + (lineOption ? 1 : 0);
-    buffer[4] = '0' + (smoothOption ? 1 : 0);
+    buffer[3] = '0' + (advLineDouble ? 1 : 0);
+    buffer[4] = '0' + (advSmooth ? 1 : 0);
     buffer[5] = isPeakingLocked() ? '1' : '0';
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);

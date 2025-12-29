@@ -23,21 +23,21 @@ bool IR_handleMuteDisplay()
         return false;
     }
 
-    showMenuCentered(audioMuted ? "MUTE ON" : "MUTE OFF");
+    showMenuCentered(uopt->audioMuted ? "MUTE ON" : "MUTE OFF");
 
     // TV OSD display (delegated to osd-misc.cpp)
-    OSD_renderMuteDisplay(audioMuted);
+    OSD_renderMuteDisplay(uopt->audioMuted);
 
     if (irDecode()) {
         switch (results.value) {
             case IR_KEY_MUTE:
                 // Toggle mute again
-                if (audioMuted) {
+                if (uopt->audioMuted) {
                     PT2257_mute(false);
-                    audioMuted = 0;
+                    uopt->audioMuted = 0;
                 } else {
                     PT2257_mute(true);
-                    audioMuted = 1;
+                    uopt->audioMuted = 1;
                 }
                 lastMenuItemTime = millis();  // Reset timeout
                 break;
@@ -67,13 +67,13 @@ void Volume_setInitialKey(uint32_t key)
     volumeLastKey = key;
     volumeLastRepeatTime = millis();
 
-    // Apply volume change immediately
+    // Apply volume change immediately (volume: 0=mute, 50=max)
     if (key == IR_KEY_VOL_UP) {
-        volume = MAX(volume - 1, 0);
-        PT2257_setAttenuation(volume);
+        uopt->volume = MIN(uopt->volume + 1, 50);
+        PT2257_setVolume(uopt->volume);
     } else if (key == IR_KEY_VOL_DN) {
-        volume = MIN(volume + 1, 50);
-        PT2257_setAttenuation(volume);
+        uopt->volume = MAX(uopt->volume - 1, 0);
+        PT2257_setVolume(uopt->volume);
     }
 }
 
@@ -82,7 +82,7 @@ bool IR_handleMiscSettings()
     // OLED_Volume_Adjust
     if (oled_menuItem == OLED_Volume_Adjust) {
         showMenuCentered("Volume - / + dB");
-        OSD_updateVolumeDisplay(50 - volume);
+        OSD_updateVolumeDisplay(uopt->volume);  // volume: 0=mute, 50=max
 
         if (irDecode()) {
             bool isRepeat = results.repeat;
@@ -107,14 +107,14 @@ bool IR_handleMiscSettings()
 
             switch (key) {
                 case IR_KEY_VOL_UP:
-                    volume = MAX(volume - 1, 0);
-                    PT2257_setAttenuation(volume);
+                    uopt->volume = MIN(uopt->volume + 1, 50);
+                    PT2257_setVolume(uopt->volume);
                     volumeLastKey = IR_KEY_VOL_UP;
                     volumeLastRepeatTime = millis();
                     break;
                 case IR_KEY_VOL_DN:
-                    volume = MIN(volume + 1, 50);
-                    PT2257_setAttenuation(volume);
+                    uopt->volume = MAX(uopt->volume - 1, 0);
+                    PT2257_setVolume(uopt->volume);
                     volumeLastKey = IR_KEY_VOL_DN;
                     volumeLastRepeatTime = millis();
                     break;
