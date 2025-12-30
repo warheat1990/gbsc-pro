@@ -578,9 +578,7 @@ section[name="alert"] {
   width: 100%;
 }
 
-.gbs-button[gbs-name="Empty"] ~ .gbs-button[gbs-name="Empty"] {
-  display: none;
-}
+/* PRO: Slot visibility is now controlled by JavaScript in updateSlotNames() */
 
 .gbs-help {
   color: var(--color-scorpion);

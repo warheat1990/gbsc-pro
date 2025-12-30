@@ -301,6 +301,7 @@
               >
                 480p 576p
               </button>
+              <!-- PRO: 15KHz Downscale and Pass Through not supported
               <button
                 gbs-message="L"
                 gbs-message-type="user"
@@ -325,6 +326,7 @@
                   Pass Through
                 </div>
               </button>
+              -->
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset presets">
@@ -1018,10 +1020,10 @@
                   toggle_off
                 </td>
               </tr>
+              <!-- PRO: Low Res Upscaling and Output Component not supported
               <tr>
                 <td>
                   Low Res: Use Upscaling
-                  <!-- prettier-ignore -->
                   <ul class="gbs-help">
                     <li>Low Resolution VGA input: Pass-through or Upscale</li>
                     <li>Low resolution sources can be either passed on directly or get upscaled.</li>
@@ -1043,7 +1045,6 @@
               <tr>
                 <td>
                   Output RGBHV/Component
-                  <!-- prettier-ignore -->
                   <ul class="gbs-help">
                     <li>The default output mode is RGBHV, suitable for use with VGA cables or HDMI converters.</li>
                     <li>An experimental YPbPr mode can also be selected. Compatibility is still spotty.</li>
@@ -1059,6 +1060,7 @@
                   toggle_off
                 </td>
               </tr>
+              -->
               <tr>
                 <td>
                   Output Frame Rate: Force PAL 50Hz to 60Hz

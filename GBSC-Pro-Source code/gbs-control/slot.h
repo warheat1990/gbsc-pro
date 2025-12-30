@@ -33,8 +33,11 @@ typedef struct
     uint8_t advContrast;         // 0-255 (default 128)
     uint8_t advSaturation;       // 0-255 (default 128)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[80];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[81];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
+
+// Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)
+static_assert(sizeof(SlotMeta) == 128, "SlotMeta must be exactly 128 bytes");
 
 typedef struct
 {

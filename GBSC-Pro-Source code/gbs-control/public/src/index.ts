@@ -39,7 +39,7 @@ const Structs: StructDescriptors = {
     { name: "advContrast", type: "byte", size: 1 },
     { name: "advSaturation", type: "byte", size: 1 },
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 80 },
+    { name: "reserved", type: "byte", size: 81 },
   ],
 };
 
@@ -71,7 +71,9 @@ const StructParser = {
   getValue(buff: any[], structItem: { type: "byte" | "string"; size: number }) {
     switch (structItem.type) {
       case "byte":
-        return buff[this.pos++];
+        const byteValue = buff[this.pos];
+        this.pos += structItem.size;  // Skip all bytes (handles reserved fields)
+        return byteValue;
 
       case "string":
         const currentPos = this.pos;
@@ -106,8 +108,7 @@ const GBSControl = {
     3: "button1280x720",
     4: "button720x480",
     5: "button1920x1080",
-    6: "button15kHzScaleDown",
-    8: "buttonSourcePassThrough",
+    // PRO: 6 (15kHzScaleDown) and 8 (PassThrough) not supported
     9: "buttonLoadCustomPreset",
   },
   controlKeysMobileMode: "move",
@@ -441,9 +442,10 @@ const createWebSocket = () => {
             case "palForce60":
               toggleMethod(button, (optionByte0 & 0x10) == 0x10);
               break;
-            case "wantOutputComponent":
-              toggleMethod(button, (optionByte0 & 0x20) == 0x20);
-              break;
+            // PRO: wantOutputComponent not supported
+            // case "wantOutputComponent":
+            //   toggleMethod(button, (optionByte0 & 0x20) == 0x20);
+            //   break;
             /** 1 */
 
             case "matched":
@@ -471,9 +473,10 @@ const createWebSocket = () => {
             case "enableCalibrationADC":
               toggleMethod(button, (optionByte2 & 0x01) == 0x01);
               break;
-            case "preferScalingRgbhv":
-              toggleMethod(button, (optionByte2 & 0x02) == 0x02);
-              break;
+            // PRO: preferScalingRgbhv not supported
+            // case "preferScalingRgbhv":
+            //   toggleMethod(button, (optionByte2 & 0x02) == 0x02);
+            //   break;
             case "disableExternalClockGenerator":
               toggleMethod(button, (optionByte2 & 0x04) == 0x04);
               break;
@@ -606,10 +609,10 @@ const removePreset = () => {
 
 const getSlotsHTML = () => {
   // prettier-ignore
+  // PRO: 36 slots only (A-Z = 0-25, 0-9 = 26-35)
   return [
     'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-    '0','1','2','3','4','5','6','7','8','9','-','.','_','~','(',')','!','*',':',','
+    '0','1','2','3','4','5','6','7','8','9'
   ].map((chr,idx)=>{
 
     return `<button
@@ -632,14 +635,36 @@ const setSlot = (slot: string) => {
 };
 
 const updateSlotNames = () => {
-  for (let i = 0; i < GBSControl.maxSlots; i++) {
-    const el = document.querySelector(`[gbs-slot-id="${i}"]`);
+  const structs = GBSControl.structs as { slots: any[] } | null;
+  if (!structs) return;
 
-    el.setAttribute("gbs-name", GBSControl.structs.slots[i].name);
+  // Find the last non-Empty slot (scanning from the end)
+  let lastUsedSlotIndex = -1;
+  for (let i = GBSControl.maxSlots - 1; i >= 0; i--) {
+    if (structs.slots[i].name.trim() !== "Empty") {
+      lastUsedSlotIndex = i;
+      break;
+    }
+  }
+
+  // Show slots up to lastUsedSlotIndex + 1 extra Empty slot for new saves
+  const visibleSlots = lastUsedSlotIndex + 2; // +1 for index, +1 for extra Empty
+
+  for (let i = 0; i < GBSControl.maxSlots; i++) {
+    const el = document.querySelector(`[gbs-slot-id="${i}"]`) as HTMLElement;
+
+    el.setAttribute("gbs-name", structs.slots[i].name);
     el.setAttribute(
       "gbs-meta",
-      getSlotPresetName(parseInt(GBSControl.structs.slots[i].presetID, 10))
+      getSlotPresetName(parseInt(structs.slots[i].presetID, 10))
     );
+
+    // Hide slots beyond the visible range
+    if (i < visibleSlots) {
+      el.style.display = "";
+    } else {
+      el.style.display = "none";
+    }
   }
 };
 
@@ -674,16 +699,18 @@ const getSlotPresetName = (presetID: number) => {
     case 0x05:
     case 0x015:
       return "1920x1080";
-    case 0x06:
-    case 0x016:
-      return "DOWNSCALE";
+    // PRO: DOWNSCALE not supported
+    // case 0x06:
+    // case 0x016:
+    //   return "DOWNSCALE";
     case 0x04:
       return "720x480";
     case 0x14:
       return "768x576";
-    case 0x21: // bypass 1
-    case 0x22: // bypass 2
-      return "BYPASS";
+    // PRO: BYPASS not supported
+    // case 0x21: // bypass 1
+    // case 0x22: // bypass 2
+    //   return "BYPASS";
     default:
       return "CUSTOM";
   }
