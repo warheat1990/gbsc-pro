@@ -14,19 +14,19 @@ void handle_Developer_Memory(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "MEM left/right");
-    OSD_drawDashRange(1, 15, 22);
+    OSD_drawDashRange(1, 15, 23);
     OSD_writeStringAtRow(2, 1, "HS left/right");
-    OSD_drawDashRange(2, 14, 22);
+    OSD_drawDashRange(2, 14, 23);
     OSD_writeStringAtRow(3, 1, "HTotal");
     OSD_drawDashRange(3, 7, 22);
 }
 
 void handle_Developer_Memory_Values(void)
 {
-    OSD_writeCharAtRow(1, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
-    OSD_writeCharAtRow(1, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
-    OSD_writeCharAtRow(2, 23, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
-    OSD_writeCharAtRow(2, 24, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 24, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(1, 25, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 24, horizontal_scale_part1_icon, OSD_CURSOR_ACTIVE);
+    OSD_writeCharAtRow(2, 25, horizontal_scale_part2_icon, OSD_CURSOR_ACTIVE);
     OSD_displayNumber3DigitAtRow(3, GBS::VDS_HSYNC_RST::read(), 25, 24, 23);
 }
 
@@ -37,7 +37,7 @@ void handle_Developer_Memory_Values(void)
 void handle_Developer_Debug(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(false, '2', false);
+    OSD_writePageIcons(true, '2', false);
     OSD_writeStringAtRow(1, 1, "Debug view");
     OSD_drawDashRange(1, 11, 22);
     OSD_writeStringAtRow(2, 1, "ADC filter");

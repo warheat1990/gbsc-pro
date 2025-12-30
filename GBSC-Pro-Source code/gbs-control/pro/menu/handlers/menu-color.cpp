@@ -36,6 +36,10 @@ bool IR_handleColorSettings()
                         IR_clearRepeatKey();
                         exitMenu();
                         break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_ColorSettings_DefaultColor);
+                        break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings_RGB_G);
@@ -480,6 +484,9 @@ bool IR_handleColorSettings()
                     break;
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_ColorSettings_Color);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_ColorSettings_RGB_R);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'U';

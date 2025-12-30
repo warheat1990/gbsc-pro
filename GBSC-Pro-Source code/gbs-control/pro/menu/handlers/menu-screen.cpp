@@ -36,6 +36,9 @@ bool IR_handleScreenSettings(void)
                 case IR_KEY_MENU:
                     exitMenu();
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_ScreenSettings_FullHeight);
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ScreenSettings_Scale);
                     break;
@@ -284,6 +287,9 @@ bool IR_handleScreenSettings(void)
                     break;
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_ScreenSettings_Borders);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_ScreenSettings_Move);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:

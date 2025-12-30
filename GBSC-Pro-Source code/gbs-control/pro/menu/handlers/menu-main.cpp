@@ -28,6 +28,9 @@ bool IR_handleMainMenu()
                 case IR_KEY_MENU:
                     exitMenu();
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Restart);
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_OutputResolution);
                     break;
@@ -308,9 +311,10 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE3);
-                    oled_menuItem = OLED_FactoryReset;
+                    Menu_navigateTo(OLED_FactoryReset);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_Input);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'a';

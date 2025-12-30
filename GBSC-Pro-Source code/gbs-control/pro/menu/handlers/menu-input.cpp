@@ -32,6 +32,9 @@ bool IR_handleInputSelection()
                 case IR_KEY_MENU:
                     exitMenu();
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Input_AV);
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_Input_RGsB);
                     break;
@@ -188,6 +191,9 @@ bool IR_handleInputSelection()
                     break;
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_Input_SV);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_Input_RGBs);
                     break;
                 case IR_KEY_LEFT:
                     if (uopt->avVideoFormat <= MODEOPTION_MIN)

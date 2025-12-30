@@ -55,6 +55,9 @@ bool IR_handleDeveloperMenu()
                 case IR_KEY_MENU:
                     Menu_navigateTo(OLED_Developer);
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Developer_FreezeCapture);
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_Developer_HSyncAdjust);
                     break;

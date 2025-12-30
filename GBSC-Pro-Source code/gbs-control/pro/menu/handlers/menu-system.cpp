@@ -40,6 +40,9 @@ bool IR_handleSystemSettings()
                 case IR_KEY_MENU:
                     exitMenu();
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_Compatibility);
                     break;
@@ -293,6 +296,9 @@ bool IR_handleSystemSettings()
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_SystemSettings_FrameTimeLock);
                     break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
@@ -316,6 +322,9 @@ bool IR_handleSystemSettings()
             switch (results.value) {
                 case IR_KEY_MENU:
                     exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
@@ -531,6 +540,9 @@ bool IR_handleSystemSettings()
                     break;
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_DoubleLine);
                     break;
                 case IR_KEY_OK:
                     ADV_sendBCSH('D', 'E');
