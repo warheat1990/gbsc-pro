@@ -50,8 +50,7 @@ void handle_ColorSettings_Page2_Values(void)
     OSD_displayNumber3DigitAtRow(1, 255 - GBS::ADC_RGCTRL::read(), 21, 20, 19);
     OSD_writeOnOff(1, uopt->enableAutoGain != 0);
     OSD_drawDashRange(2, 10, 19, areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
-    OSD_writeCharAtRow(2, 21, '0', areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
-    OSD_writeCharAtRow(2, 20, '0' + (uopt->scanlineStrength >> 4), areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
+    OSD_displayNumber2DigitAtRow(2, (uopt->scanlineStrength >> 4) * 10, 21, 20, areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_drawDashRange(2, 22, 22, areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_writeOnOff(2, uopt->wantScanlines, areScanLinesAllowed() ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_writeOnOff(3, uopt->wantVdsLineFilter);

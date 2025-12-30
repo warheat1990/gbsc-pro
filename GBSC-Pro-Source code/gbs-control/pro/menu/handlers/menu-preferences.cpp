@@ -134,8 +134,9 @@ bool IR_handlePreferencesMenu()
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_Preferences_Volume);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    // Toggle mute
                     uopt->audioMuted = !uopt->audioMuted;
                     PT2257_mute(uopt->audioMuted);
                     saveUserPrefs();

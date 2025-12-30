@@ -46,10 +46,19 @@ void handle_MainMenu_Page2(void)
 void handle_MainMenu_Page3(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '3', false);
-    OSD_writeStringAtRow(1, 1, "Firmware Version");
+    OSD_writePageIcons(true, '3', true);
+    OSD_writeStringAtRow(1, 1, "Developer");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(2, 1, "Factory Reset");
+    OSD_writeStringAtRow(2, 1, "Firmware Version");
+    OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(3, 1, "Factory Reset");
+}
+
+void handle_MainMenu_Page4(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '4', false);
+    OSD_writeStringAtRow(1, 1, "Restart");
 }
 
 // ====================================================================================

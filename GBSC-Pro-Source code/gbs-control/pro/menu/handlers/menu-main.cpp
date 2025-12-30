@@ -166,7 +166,7 @@ bool IR_handleMainMenu()
                     Menu_navigateTo(OLED_ColorSettings);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_FirmwareVersion);
+                    Menu_navigateTo(OLED_Developer);
                     break;
                 case IR_KEY_OK:
                     Menu_navigateTo(OLED_Preferences_Theme);
@@ -182,7 +182,7 @@ bool IR_handleMainMenu()
 
     // ==================== Main Menu Page 3 ====================
 
-    // OLED_FirmwareVersion - Main menu entry (row 1, page 3)
+    // OLED_FirmwareVersion - Main menu entry (row 2, page 3)
     else if (oled_menuItem == OLED_FirmwareVersion) {
         showMenu("Menu->>>", "Firmware Version");
 
@@ -192,13 +192,12 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_Preferences);
+                    Menu_navigateTo(OLED_Developer);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_FactoryReset);
                     break;
                 case IR_KEY_OK:
-                    // Show firmware version info screen
                     OSD_fillBackground();
                     OSD_handleCommand(OSD_CMD_FIRMWARE_VERSION);
                     oled_menuItem = OLED_FirmwareVersion_Info;
@@ -232,7 +231,7 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_FactoryReset - Main menu entry (row 2, page 3)
+    // OLED_FactoryReset - Main menu entry (row 3, page 3)
     else if (oled_menuItem == OLED_FactoryReset) {
         showMenu("Menu->>>", "Factory Reset");
 
@@ -244,8 +243,10 @@ bool IR_handleMainMenu()
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_FirmwareVersion);
                     break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_Restart);
+                    break;
                 case IR_KEY_OK:
-                    // Show confirmation screen with "No" selected by default
                     factoryResetSelection = 0;
                     OSD_fillBackground();
                     OSD_handleCommand(OSD_CMD_FACTORY_RESET_CONFIRM);
@@ -297,10 +298,9 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_Restart
+    // OLED_Restart - Main menu entry (row 1, page 4)
     else if (oled_menuItem == OLED_Restart) {
-        showMenu("Menu-", "Restart");
-        OSD_handleCommand(OSD_CMD_SYS_PAGE5_VALUES);
+        showMenu("Menu->>>", "Restart");
 
         if (irDecode()) {
             switch (results.value) {
@@ -308,22 +308,15 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    selectedMenuLine = 1;
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE5);
-                    oled_menuItem = OLED_EnableOTA;
-                    break;
-                case IR_KEY_DOWN:
                     selectedMenuLine = 3;
-                    OSD_handleCommand(OSD_CMD_SYS_PAGE5);
-                    oled_menuItem = OLED_ResetDefaults;
+                    OSD_handleCommand(OSD_CMD_MAIN_PAGE3);
+                    oled_menuItem = OLED_FactoryReset;
                     break;
                 case IR_KEY_OK:
                     userCommand = 'a';
                     break;
                 case IR_KEY_EXIT:
-                    OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
-                    OSD_handleCommand(OSD_CMD_MAIN_PAGE3);
-                    oled_menuItem = OLED_FactoryReset;
+                    exitMenu();
                     break;
             }
             irResume();

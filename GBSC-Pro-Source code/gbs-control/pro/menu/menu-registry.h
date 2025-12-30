@@ -124,7 +124,6 @@ typedef enum {
     // System Settings submenu
     OLED_SystemSettings_MatchedPresets,
     OLED_ScreenSettings_FullHeight,
-    OLED_SystemSettings_UseUpscaling,
     OLED_SystemSettings_Force5060Hz,
     OLED_SystemSettings_ClockGenerator,
     OLED_SystemSettings_ADCCalibration,
@@ -165,14 +164,14 @@ typedef enum {
     OLED_Restart,
     OLED_ResetDefaults,
 
-    // Developer submenu (disabled)
-    // OLED_Developer,
-    // OLED_Developer_MemoryAdjust,
-    // OLED_Developer_HSyncAdjust,
-    // OLED_Developer_HTotalAdjust,
-    // OLED_Developer_DebugView,
-    // OLED_Developer_ADCFilter,
-    // OLED_Developer_FreezeCapture,
+    // Developer submenu
+    OLED_Developer,
+    OLED_Developer_MemoryAdjust,
+    OLED_Developer_HSyncAdjust,
+    OLED_Developer_HTotalAdjust,
+    OLED_Developer_DebugView,
+    OLED_Developer_ADCFilter,
+    OLED_Developer_FreezeCapture,
 
     // Profile/Slot Management
     // Row 1: Load profile slots (1-36 = A-Z, 0-9)
@@ -275,8 +274,10 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings,   OSD_CMD_MAIN_PAGE2, 1) \
     MENU_ITEM(OLED_ColorSettings,    OSD_CMD_MAIN_PAGE2, 2) \
     MENU_ITEM(OLED_Preferences,      OSD_CMD_MAIN_PAGE2, 3) \
-    MENU_ITEM(OLED_FirmwareVersion,  OSD_CMD_MAIN_PAGE3, 1) \
-    MENU_ITEM(OLED_FactoryReset,     OSD_CMD_MAIN_PAGE3, 2)
+    MENU_ITEM(OLED_Developer,        OSD_CMD_MAIN_PAGE3, 1) \
+    MENU_ITEM(OLED_FirmwareVersion,  OSD_CMD_MAIN_PAGE3, 2) \
+    MENU_ITEM(OLED_FactoryReset,     OSD_CMD_MAIN_PAGE3, 3) \
+    MENU_ITEM(OLED_Restart,          OSD_CMD_MAIN_PAGE4, 1)
 
 // Preferences Menu Mappings
 #define MENU_ITEMS_PREFERENCES \
@@ -344,6 +345,15 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation, OSD_CMD_SVAVINPUT_PAGE2, 2) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,    OSD_CMD_SVAVINPUT_PAGE2, 3)
 
+// Developer Menu Mappings
+#define MENU_ITEMS_DEVELOPER \
+    MENU_ITEM(OLED_Developer_MemoryAdjust,  OSD_CMD_DEV_MEMORY, 1) \
+    MENU_ITEM(OLED_Developer_HSyncAdjust,   OSD_CMD_DEV_MEMORY, 2) \
+    MENU_ITEM(OLED_Developer_HTotalAdjust,  OSD_CMD_DEV_MEMORY, 3) \
+    MENU_ITEM(OLED_Developer_DebugView,     OSD_CMD_DEV_DEBUG, 1) \
+    MENU_ITEM(OLED_Developer_ADCFilter,     OSD_CMD_DEV_DEBUG, 2) \
+    MENU_ITEM(OLED_Developer_FreezeCapture, OSD_CMD_DEV_DEBUG, 3)
+
 // All Mapped Menu Items (for generating oledToOsdMap[])
 #define ALL_MAPPED_MENU_ITEMS \
     MENU_ITEMS_MAIN \
@@ -353,7 +363,8 @@ typedef struct {
     MENU_ITEMS_COLOR \
     MENU_ITEMS_SYSTEM \
     MENU_ITEMS_SVAVINPUT \
-    MENU_ITEMS_PREFERENCES
+    MENU_ITEMS_PREFERENCES \
+    MENU_ITEMS_DEVELOPER
 
 // ====================================================================================
 // IR Menu Handler Function Declarations
@@ -370,6 +381,7 @@ bool IR_handleProfileManagement();
 bool IR_handleMuteDisplay();
 bool IR_handleMiscSettings();
 bool IR_handleInfoDisplay();
+bool IR_handleDeveloperMenu();
 
 // Volume repeat support (called from IR_handleInput when volume menu opens)
 void Volume_setInitialKey(uint32_t key);

@@ -68,6 +68,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     uopt->advCompatibility = !uopt->advCompatibility;
                     if (uopt->advCompatibility > 1)
@@ -101,6 +103,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_Deinterlace);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     serialCommand = 'Z';
                     break;
@@ -168,6 +172,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_LockMethod);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     if (uopt->PalForce60 == 0) {
                         uopt->PalForce60 = 1;
@@ -230,6 +236,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_FrameTimeLock);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = 'w';
                     break;
@@ -258,6 +266,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = '5';
                     break;
@@ -283,33 +293,10 @@ bool IR_handleSystemSettings()
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_SystemSettings_FrameTimeLock);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = 'X';
-                    break;
-                case IR_KEY_EXIT:
-                    Menu_navigateTo(OLED_SystemSettings);
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_SystemSettings_UseUpscaling (unused but kept for compatibility)
-    else if (oled_menuItem == OLED_SystemSettings_UseUpscaling) {
-        showMenuToggle("Menu->System", "Use upscaling", uopt->preferScalingRgbhv);
-        OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_Deinterlace);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings);
@@ -333,6 +320,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     advLineDouble = !advLineDouble;
                     if(!advLineDouble) {
@@ -365,6 +354,8 @@ bool IR_handleSystemSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     if (advLineDouble) {
                         advSmooth = !advSmooth;

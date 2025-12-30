@@ -61,6 +61,7 @@ typedef enum : uint8_t {
     OSD_CMD_MAIN_PAGE1,
     OSD_CMD_MAIN_PAGE2,
     OSD_CMD_MAIN_PAGE3,
+    OSD_CMD_MAIN_PAGE4,
 
     // Preferences Menu
     OSD_CMD_PREFERENCES_PAGE1,
@@ -94,17 +95,12 @@ typedef enum : uint8_t {
     OSD_CMD_SYS_PAGE2_VALUES,
     OSD_CMD_SYS_PAGE4,
     OSD_CMD_SYS_PAGE4_VALUES,
-    OSD_CMD_SYS_PAGE5,
-    OSD_CMD_SYS_PAGE5_VALUES,
 
     // Developer
     OSD_CMD_DEV_MEMORY,
     OSD_CMD_DEV_MEMORY_VALUES,
     OSD_CMD_DEV_DEBUG,
     OSD_CMD_DEV_DEBUG_VALUES,
-
-    // Restart
-    OSD_CMD_RESTART,
 
     // Profile
     OSD_CMD_PROFILE_SAVELOAD,
@@ -155,6 +151,7 @@ void handle_OSD_Init(void);
 void handle_MainMenu_Page1(void);
 void handle_MainMenu_Page2(void);
 void handle_MainMenu_Page3(void);
+void handle_MainMenu_Page4(void);
 void handle_HighlightRow1(void);
 void handle_HighlightRow2(void);
 void handle_HighlightRow3(void);
@@ -207,17 +204,19 @@ void handle_SysSettings_Page2(void);
 void handle_SysSettings_Page2_Values(void);
 void handle_SysSettings_Page4(void);
 void handle_SysSettings_Page4_Values(void);
-void handle_SysSettings_Page5(void);
-void handle_SysSettings_Page5_Values(void);
-void handle_Developer_Memory(void);
-void handle_Developer_Memory_Values(void);
-void handle_Developer_Debug(void);
-void handle_Developer_Debug_Values(void);
-void handle_Restart(void);
 void handle_SVAVInput_Page1(void);
 void handle_SVAVInput_Page1_Values(void);
 void handle_SVAVInput_Page2(void);
 void handle_SVAVInput_Page2_Values(void);
+
+// ====================================================================================
+// Handler Function Declarations - Developer
+// ====================================================================================
+
+void handle_Developer_Memory(void);
+void handle_Developer_Memory_Values(void);
+void handle_Developer_Debug(void);
+void handle_Developer_Debug_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Profile
@@ -267,6 +266,7 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE1, handle_MainMenu_Page1) \
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE2, handle_MainMenu_Page2) \
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE3, handle_MainMenu_Page3) \
+    DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE4, handle_MainMenu_Page4) \
     \
     /* Output Resolution */ \
     DISPATCH_ENTRY(OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960) \
@@ -295,8 +295,6 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2_VALUES, handle_SysSettings_Page2_Values) \
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4,        handle_SysSettings_Page4) \
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4_VALUES, handle_SysSettings_Page4_Values) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5) \
-    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values) \
     \
     /* Preferences Menu (Theme, Volume, Mute) */ \
     DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1,        handle_Preferences_Page1) \
@@ -307,9 +305,6 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values) \
     DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG,         handle_Developer_Debug) \
     DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG_VALUES,  handle_Developer_Debug_Values) \
-    \
-    /* Restart */ \
-    DISPATCH_ENTRY(OSD_CMD_RESTART, handle_Restart) \
     \
     /* Profile */ \
     DISPATCH_ENTRY(OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad) \

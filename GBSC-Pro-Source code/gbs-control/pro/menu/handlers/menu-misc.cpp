@@ -139,8 +139,6 @@ bool IR_handleMiscSettings()
         volumeLastKey = 0;
     }
 
-    // NOTE: EnableOTA, ResetDefaults handlers moved to menu-unused.cpp
-
     return false;
 }
 

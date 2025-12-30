@@ -269,6 +269,8 @@ bool IR_handleColorSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ColorSettings_Sharpness);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = 'm';
                     break;
@@ -297,6 +299,8 @@ bool IR_handleColorSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ColorSettings_Peaking);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = 'W';
                     break;
@@ -330,6 +334,8 @@ bool IR_handleColorSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ColorSettings_StepResponse);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     if (!isPeakingLocked()) {
                         serialCommand = 'f';
@@ -360,6 +366,8 @@ bool IR_handleColorSettings()
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ColorSettings_Y_Gain);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     serialCommand = 'V';
                     break;

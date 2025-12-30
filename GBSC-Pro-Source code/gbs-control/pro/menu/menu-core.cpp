@@ -207,6 +207,7 @@ void IR_handleMenuSelection(void)
     IR_handleColorSettings() ||
     IR_handleSystemSettings() ||
     IR_handlePreferencesMenu() ||
+    IR_handleDeveloperMenu() ||
     IR_handleInputSelection() ||
     IR_handleProfileManagement() ||
     IR_handleMainMenu() ||

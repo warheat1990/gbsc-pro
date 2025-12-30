@@ -285,6 +285,8 @@ bool IR_handleScreenSettings(void)
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_ScreenSettings_Borders);
                     break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
                 case IR_KEY_OK: {
                     uopt->wantFullHeight = !uopt->wantFullHeight;
                     saveUserPrefs();
