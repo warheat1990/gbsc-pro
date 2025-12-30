@@ -96,11 +96,19 @@ typedef enum : uint8_t {
     OSD_CMD_SYS_PAGE4,
     OSD_CMD_SYS_PAGE4_VALUES,
 
-    // Developer
-    OSD_CMD_DEV_MEMORY,
-    OSD_CMD_DEV_MEMORY_VALUES,
-    OSD_CMD_DEV_DEBUG,
-    OSD_CMD_DEV_DEBUG_VALUES,
+    // Developer (6 pages)
+    OSD_CMD_DEV_PAGE1,          // MEM, HS, HTotal
+    OSD_CMD_DEV_PAGE1_VALUES,
+    OSD_CMD_DEV_PAGE2,          // Debug, ADC, Freeze
+    OSD_CMD_DEV_PAGE2_VALUES,
+    OSD_CMD_DEV_PAGE3,          // Resync, SDRAM, PLL
+    OSD_CMD_DEV_PAGE3_VALUES,
+    OSD_CMD_DEV_PAGE4,          // Invert, SyncWatch, SyncProc
+    OSD_CMD_DEV_PAGE4_VALUES,
+    OSD_CMD_DEV_PAGE5,          // Oversamp, SnapFR, IFOffset
+    OSD_CMD_DEV_PAGE5_VALUES,
+    OSD_CMD_DEV_PAGE6,          // SOG, Reset
+    OSD_CMD_DEV_PAGE6_VALUES,
 
     // Profile
     OSD_CMD_PROFILE_SAVELOAD,
@@ -213,10 +221,18 @@ void handle_SVAVInput_Page2_Values(void);
 // Handler Function Declarations - Developer
 // ====================================================================================
 
-void handle_Developer_Memory(void);
-void handle_Developer_Memory_Values(void);
-void handle_Developer_Debug(void);
-void handle_Developer_Debug_Values(void);
+void handle_Developer_Page1(void);
+void handle_Developer_Page1_Values(void);
+void handle_Developer_Page2(void);
+void handle_Developer_Page2_Values(void);
+void handle_Developer_Page3(void);
+void handle_Developer_Page3_Values(void);
+void handle_Developer_Page4(void);
+void handle_Developer_Page4_Values(void);
+void handle_Developer_Page5(void);
+void handle_Developer_Page5_Values(void);
+void handle_Developer_Page6(void);
+void handle_Developer_Page6_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Profile
@@ -300,11 +316,19 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1,        handle_Preferences_Page1) \
     DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1_VALUES, handle_Preferences_Page1_Values) \
     \
-    /* Developer */ \
-    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY,        handle_Developer_Memory) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_MEMORY_VALUES, handle_Developer_Memory_Values) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG,         handle_Developer_Debug) \
-    DISPATCH_ENTRY(OSD_CMD_DEV_DEBUG_VALUES,  handle_Developer_Debug_Values) \
+    /* Developer (6 pages) */ \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE1,        handle_Developer_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE1_VALUES, handle_Developer_Page1_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE2,        handle_Developer_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE2_VALUES, handle_Developer_Page2_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE3,        handle_Developer_Page3) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE3_VALUES, handle_Developer_Page3_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE4,        handle_Developer_Page4) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE4_VALUES, handle_Developer_Page4_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE5,        handle_Developer_Page5) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE5_VALUES, handle_Developer_Page5_Values) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE6,        handle_Developer_Page6) \
+    DISPATCH_ENTRY(OSD_CMD_DEV_PAGE6_VALUES, handle_Developer_Page6_Values) \
     \
     /* Profile */ \
     DISPATCH_ENTRY(OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad) \

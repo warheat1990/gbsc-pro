@@ -56,7 +56,9 @@ void handle_SysSettings_Page1(void)
     // SV/AV Input Settings disabled when not SV/AV input
     bool isSvAvInput = (uopt->activeInputType == InputTypeSV) || (uopt->activeInputType == InputTypeAV);
     OSD_setMenuLineColorsCustom(selectedMenuLine, 1, isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
-    OSD_writeCharAtRow(1, 21, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    // Arrow also disabled when not SV/AV input
+    uint8_t arrowColor = isSvAvInput ? ((selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE) : OSD_TEXT_DISABLED;
+    OSD_writeCharAtRow(1, 21, arrow_right_icon, arrowColor);
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "AV/SV Input Settings");
     OSD_writeStringAtRow(2, 1, "Compatibility Mode");

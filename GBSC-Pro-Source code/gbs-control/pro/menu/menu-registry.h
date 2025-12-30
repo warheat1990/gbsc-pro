@@ -172,6 +172,17 @@ typedef enum {
     OLED_Developer_DebugView,
     OLED_Developer_ADCFilter,
     OLED_Developer_FreezeCapture,
+    OLED_Developer_ResyncHTotal,
+    OLED_Developer_CycleSDRAM,
+    OLED_Developer_PLLDivider,
+    OLED_Developer_InvertSync,
+    OLED_Developer_SyncWatcher,
+    OLED_Developer_SyncProcessor,
+    OLED_Developer_Oversampling,
+    OLED_Developer_SnapFrameRate,
+    OLED_Developer_IFAutoOffset,
+    OLED_Developer_SOGLevel,
+    OLED_Developer_ResetChip,
 
     // Profile/Slot Management
     // Row 1: Load profile slots (1-36 = A-Z, 0-9)
@@ -345,14 +356,25 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation, OSD_CMD_SVAVINPUT_PAGE2, 2) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,    OSD_CMD_SVAVINPUT_PAGE2, 3)
 
-// Developer Menu Mappings
+// Developer Menu Mappings (6 pages, 3 items each = 17 items total)
 #define MENU_ITEMS_DEVELOPER \
-    MENU_ITEM(OLED_Developer_MemoryAdjust,  OSD_CMD_DEV_MEMORY, 1) \
-    MENU_ITEM(OLED_Developer_HSyncAdjust,   OSD_CMD_DEV_MEMORY, 2) \
-    MENU_ITEM(OLED_Developer_HTotalAdjust,  OSD_CMD_DEV_MEMORY, 3) \
-    MENU_ITEM(OLED_Developer_DebugView,     OSD_CMD_DEV_DEBUG, 1) \
-    MENU_ITEM(OLED_Developer_ADCFilter,     OSD_CMD_DEV_DEBUG, 2) \
-    MENU_ITEM(OLED_Developer_FreezeCapture, OSD_CMD_DEV_DEBUG, 3)
+    MENU_ITEM(OLED_Developer_MemoryAdjust,  OSD_CMD_DEV_PAGE1, 1) \
+    MENU_ITEM(OLED_Developer_HSyncAdjust,   OSD_CMD_DEV_PAGE1, 2) \
+    MENU_ITEM(OLED_Developer_HTotalAdjust,  OSD_CMD_DEV_PAGE1, 3) \
+    MENU_ITEM(OLED_Developer_DebugView,     OSD_CMD_DEV_PAGE2, 1) \
+    MENU_ITEM(OLED_Developer_ADCFilter,     OSD_CMD_DEV_PAGE2, 2) \
+    MENU_ITEM(OLED_Developer_FreezeCapture, OSD_CMD_DEV_PAGE2, 3) \
+    MENU_ITEM(OLED_Developer_ResyncHTotal,  OSD_CMD_DEV_PAGE3, 1) \
+    MENU_ITEM(OLED_Developer_CycleSDRAM,    OSD_CMD_DEV_PAGE3, 2) \
+    MENU_ITEM(OLED_Developer_PLLDivider,    OSD_CMD_DEV_PAGE3, 3) \
+    MENU_ITEM(OLED_Developer_InvertSync,    OSD_CMD_DEV_PAGE4, 1) \
+    MENU_ITEM(OLED_Developer_SyncWatcher,   OSD_CMD_DEV_PAGE4, 2) \
+    MENU_ITEM(OLED_Developer_SyncProcessor, OSD_CMD_DEV_PAGE4, 3) \
+    MENU_ITEM(OLED_Developer_Oversampling,  OSD_CMD_DEV_PAGE5, 1) \
+    MENU_ITEM(OLED_Developer_SnapFrameRate, OSD_CMD_DEV_PAGE5, 2) \
+    MENU_ITEM(OLED_Developer_IFAutoOffset,  OSD_CMD_DEV_PAGE5, 3) \
+    MENU_ITEM(OLED_Developer_SOGLevel,      OSD_CMD_DEV_PAGE6, 1) \
+    MENU_ITEM(OLED_Developer_ResetChip,     OSD_CMD_DEV_PAGE6, 2)
 
 // All Mapped Menu Items (for generating oledToOsdMap[])
 #define ALL_MAPPED_MENU_ITEMS \

@@ -28,6 +28,9 @@ bool IR_handlePreferencesMenu()
                 case IR_KEY_MENU:
                     exitMenu();
                     break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Preferences_Mute);  // Wrap to last
+                    break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_Preferences_Volume);
                     break;
@@ -133,6 +136,9 @@ bool IR_handlePreferencesMenu()
                     break;
                 case IR_KEY_UP:
                     Menu_navigateTo(OLED_Preferences_Volume);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_Preferences_Theme);  // Wrap to first
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:

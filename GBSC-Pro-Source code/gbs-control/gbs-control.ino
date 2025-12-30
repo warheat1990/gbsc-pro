@@ -9371,6 +9371,12 @@ void handleType2Command(char argument)
             }
             saveUserPrefs();
         } break;
+        case '^': // load slot from webapp (deferred from HTTP handler)
+        {
+            loadSlotSettings();
+            applyPresets(rto->videoStandardInput);
+            saveUserPrefs();
+        } break;
         case '4': // save custom preset
             savePresetToLittleFS();
             uopt->presetPreference = OutputCustomized; // custom
@@ -10092,10 +10098,8 @@ void startWebserver()
                 uopt->presetSlot = (uint8_t)slotValue[0];
                 uopt->presetPreference = OutputCustomized;
 
-                // Load slot settings and apply preset (doPostPresetLoadSteps applies ADV/GBS colors)
-                loadSlotSettings();
-                applyPresets(rto->videoStandardInput);
-                saveUserPrefs();
+                // Defer heavy work to main loop to avoid stack overflow/watchdog in async context
+                userCommand = '^';
                 result = true;
             }
         }

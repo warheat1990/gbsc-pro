@@ -25,9 +25,9 @@ void handle_MainMenu_Page1(void)
     OSD_writePageIcons(false, '1', true);
     OSD_writeStringAtRow(1, 1, "Input");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(2, 1, "Output Resolution");
+    OSD_writeStringAtRow(2, 1, "Output resolution");
     OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(3, 1, "Screen Settings");
+    OSD_writeStringAtRow(3, 1, "Screen settings");
     OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
@@ -35,9 +35,9 @@ void handle_MainMenu_Page2(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '2', true);
-    OSD_writeStringAtRow(1, 1, "System Settings");
+    OSD_writeStringAtRow(1, 1, "System settings");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(2, 1, "Picture Settings");
+    OSD_writeStringAtRow(2, 1, "Picture settings");
     OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
     OSD_writeStringAtRow(3, 1, "Preferences");
     OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
@@ -49,9 +49,9 @@ void handle_MainMenu_Page3(void)
     OSD_writePageIcons(true, '3', true);
     OSD_writeStringAtRow(1, 1, "Developer");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(2, 1, "Firmware Version");
+    OSD_writeStringAtRow(2, 1, "Firmware version");
     OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(3, 1, "Factory Reset");
+    OSD_writeStringAtRow(3, 1, "Factory reset");
 }
 
 void handle_MainMenu_Page4(void)
