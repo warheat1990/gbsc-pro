@@ -972,8 +972,6 @@ void applyYuvPatches()
     if (uopt->wantOutputComponent) {
         applyComponentColorMixing();
     }
-
-    readYUVtoRGBConversion();
 }
 
 // blue only mode: t0t44t1 t0t44t4
@@ -998,8 +996,6 @@ void applyRGBPatches()
     if (uopt->wantOutputComponent) {
         applyComponentColorMixing();
     }
-
-    readYUVtoRGBConversion();
 }
 
 /// Write ADC gain registers, and save in adco->r_gain to properly transfer it

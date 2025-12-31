@@ -121,7 +121,12 @@ bool presetSelectionMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OL
     display->drawString(OLED_MENU_WIDTH / 2, 16, item->str);
     display->drawXbm((OLED_MENU_WIDTH - TEXT_LOADED_WIDTH) / 2, OLED_MENU_HEIGHT / 2, IMAGE_ITEM(TEXT_LOADED));
     display->display();
-    uopt->presetSlot = 'A' + item->tag; // ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~()!*:,
+    // Convert tag to slot character: 0-25 → A-Z, 26-35 → 0-9
+    if (item->tag < 26) {
+        uopt->presetSlot = 'A' + item->tag;
+    } else {
+        uopt->presetSlot = '0' + (item->tag - 26);
+    }
     uopt->presetPreference = PresetPreference::OutputCustomized;
 
     // Load slot settings and apply preset (doPostPresetLoadSteps applies ADV/GBS colors)

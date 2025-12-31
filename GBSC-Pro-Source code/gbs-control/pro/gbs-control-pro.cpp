@@ -283,6 +283,16 @@ static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
         rto->isInLowPowerMode = false;
     }
 
+    // Reset colors to defaults for input type (RGB vs YUV/Component)
+    if (cfg.bcshMode == 0) {
+        gbsColorR = gbsColorG = gbsColorB = 128;
+    } else {
+        gbsColorR = 146;
+        gbsColorG = 138;
+        gbsColorB = 148;
+    }
+    applyRGBtoYUVConversion();
+
     saveUserPrefs();
 }
 
@@ -365,16 +375,24 @@ void resetOLEDScreenSaverTimer() {
 
 void applyRGBtoYUVConversion(void)
 {
-    GBS::VDS_Y_OFST::write((signed char)((0.299f * (gbsColorR - 128)) + (0.587f * (gbsColorG - 128)) + (0.114f * (gbsColorB - 128))));
-    GBS::VDS_U_OFST::write((signed char)((-0.14713f * (gbsColorR - 128)) - (0.28886f * (gbsColorG - 128)) + (0.436f * (gbsColorB - 128))));
-    GBS::VDS_V_OFST::write((signed char)((0.615f * (gbsColorR - 128)) - (0.51499f * (gbsColorG - 128)) - (0.10001f * (gbsColorB - 128))));
+    int r = gbsColorR - 128;
+    int g = gbsColorG - 128;
+    int b = gbsColorB - 128;
+
+    GBS::VDS_Y_OFST::write(constrain(0.299f * r + 0.587f * g + 0.114f * b, -128, 127));
+    GBS::VDS_U_OFST::write(constrain(-0.14713f * r - 0.28886f * g + 0.436f * b, -128, 127));
+    GBS::VDS_V_OFST::write(constrain(0.615f * r - 0.51499f * g - 0.10001f * b, -128, 127));
 }
 
 void readYUVtoRGBConversion(void)
 {
-    gbsColorR = GBS::VDS_Y_OFST::read() + (1.13983f * GBS::VDS_V_OFST::read()) + 128;
-    gbsColorG = GBS::VDS_Y_OFST::read() - (0.39465f * GBS::VDS_U_OFST::read()) - (0.58060f * GBS::VDS_V_OFST::read()) + 128;
-    gbsColorB = GBS::VDS_Y_OFST::read() + (2.03211f * GBS::VDS_U_OFST::read()) + 128;
+    int8_t y = (int8_t)GBS::VDS_Y_OFST::read();
+    int8_t u = (int8_t)GBS::VDS_U_OFST::read();
+    int8_t v = (int8_t)GBS::VDS_V_OFST::read();
+
+    gbsColorR = constrain(y + 1.13983f * v + 128, 0, 255);
+    gbsColorG = constrain(y - 0.39465f * u - 0.58060f * v + 128, 0, 255);
+    gbsColorB = constrain(y + 2.03211f * u + 128, 0, 255);
 }
 
 // ====================================================================================

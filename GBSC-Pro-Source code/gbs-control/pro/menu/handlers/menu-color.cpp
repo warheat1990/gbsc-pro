@@ -476,6 +476,7 @@ bool IR_handleColorSettings()
     // OLED_ColorSettings_DefaultColor
     else if (oled_menuItem == OLED_ColorSettings_DefaultColor) {
         showMenu("Menu->Color", "Default Color");
+        OSD_handleCommand(OSD_CMD_COLOR_PAGE4_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
