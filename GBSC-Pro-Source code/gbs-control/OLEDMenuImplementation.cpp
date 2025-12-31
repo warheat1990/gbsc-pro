@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
 #include "pro/options-pro.h"  // GBSC-PRO extensions
+#include "pro/menu/menu-presets.h"  // Virtual preset menu
 #include "OLEDMenuImplementation.h"
 #include "options.h"
 #include "tv5725.h"
@@ -409,8 +410,8 @@ void initOLEDMenu()
     // oledMenu.registerItem(resMenu, MT_BYPASS, IMAGE_ITEM(OM_PASSTHROUGH), resolutionMenuHandler);
     OLED_initSettingsMenu(root);
 
-    // Presets
-    oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_PRESET), presetsCreationMenuHandler);
+    // Presets (virtual menu)
+    oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_PRESET), presetsVirtualMenuHandler);
 
     // WiFi
     oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_WIFI), wifiMenuHandler);
