@@ -115,7 +115,7 @@ uint8_t advSaturation = 128;   // ADV7280 saturation
 uint8_t svVideoFormatChanged = 0;       // Flag: S-Video format changed, needs ADV update
 uint8_t avVideoFormatChanged = 0;       // Flag: Composite format changed, needs ADV update
 uint8_t advSmooth = 0;                  // ADV7280 smooth interpolation (per-slot)
-uint8_t advLineDouble = 0;              // ADV7280 line doubler 2X (per-slot)
+uint8_t advI2P = 0;                     // ADV7280 I2P - interlace to progressive (per-slot)
 
 // ====================================================================================
 // Global Variables - Resolution Settings
@@ -151,16 +151,16 @@ static void ADV_sendAndSave(const unsigned char* packet) {
     saveUserPrefs();
 }
 
-void ADV_sendLineDouble(bool enable) {
-    ADV_sendAndSave(enable ? ADV_Line2X : ADV_Line1X);
+void ADV_sendI2P(bool enable) {
+    ADV_sendAndSave(enable ? ADV_I2P_On : ADV_I2P_Off);
 }
 
 void ADV_sendSmooth(bool enable) {
-    ADV_sendAndSave(enable ? ADV_SmoothOn : ADV_SmoothOff);
+    ADV_sendAndSave(enable ? ADV_Smooth_On : ADV_Smooth_Off);
 }
 
 void ADV_sendCompatibility(bool mode) {
-    ADV_sendAndSave(mode ? ADV_CompatibilityOff : ADV_CompatibilityOn);
+    ADV_sendAndSave(mode ? ADV_Compatibility_Off : ADV_Compatibility_On);
 }
 
 void ADV_sendVideoFormat(uint8_t format) {
@@ -196,8 +196,8 @@ void ADV_applySlotSettings(void) {
     if (uopt->activeInputType != InputTypeSV && uopt->activeInputType != InputTypeAV) {
         return;  // ADV7280 not in use for this input type
     }
-    ADV_send(advLineDouble ? ADV_Line2X : ADV_Line1X);
-    ADV_send(advSmooth ? ADV_SmoothOn : ADV_SmoothOff);
+    ADV_send(advI2P ? ADV_I2P_On : ADV_I2P_Off);
+    ADV_send(advSmooth ? ADV_Smooth_On : ADV_Smooth_Off);
     advController.writeReg(ADV_BCSH, 0x0A, advBrightness - 128);
     advController.writeReg(ADV_BCSH, 0x08, advContrast);
     advController.writeReg(ADV_BCSH, 0xE3, advSaturation);
@@ -474,7 +474,7 @@ void broadcastProStatus(WebSocketsServer& ws)
         buffer[2] = 'B';
     }
 
-    buffer[3] = '0' + (advLineDouble ? 1 : 0);
+    buffer[3] = '0' + (advI2P ? 1 : 0);
     buffer[4] = '0' + (advSmooth ? 1 : 0);
     buffer[5] = isPeakingLocked() ? '1' : '0';
 

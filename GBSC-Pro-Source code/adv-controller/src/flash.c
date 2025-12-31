@@ -36,7 +36,7 @@ void FLASH_LoadSettings(void)
 
     // Load settings with validation
     adv_input  = (u8_buf[1] < 2)  ? u8_buf[1] : 0;
-    adv_double = (u8_buf[2] < 2)  ? u8_buf[2] : 0;
+    adv_i2p    = (u8_buf[2] < 2)  ? u8_buf[2] : 0;
     adv_smooth = (u8_buf[3] < 2)  ? u8_buf[3] : 0;
     adv_ace    = (u8_buf[4] < 2)  ? u8_buf[4] : 0;
     adv_sw     = (u8_buf[5] < 2)  ? u8_buf[5] : 0;
@@ -77,7 +77,7 @@ static void FLASH_SaveSettingsNow(void)
     // Prepare buffer
     u8_buf[0]  = 0xbc;
     u8_buf[1]  = adv_input;
-    u8_buf[2]  = adv_double;
+    u8_buf[2]  = adv_i2p;
     u8_buf[3]  = adv_smooth;
     u8_buf[4]  = adv_ace;
     u8_buf[5]  = adv_sw;

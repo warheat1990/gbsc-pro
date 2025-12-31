@@ -4025,7 +4025,7 @@ void doPostPresetLoadSteps()
         activeFrameTimeLockInitialSteps();
     }
 
-    // Pro: Apply ADV7280 settings (brightness, contrast, saturation, smooth, lineDouble)
+    // Pro: Apply ADV7280 settings (brightness, contrast, saturation, smooth, I2P)
     ADV_applySlotSettings();
 
     // Pro: Apply GBS color balance
@@ -4180,7 +4180,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.gbsColorB = gbsColorB;
     // ADV7280 settings
     slotData.advSmooth = advSmooth;
-    slotData.advLineDouble = advLineDouble;
+    slotData.advI2P = advI2P;
     slotData.advBrightness = advBrightness;
     slotData.advContrast = advContrast;
     slotData.advSaturation = advSaturation;
@@ -4250,7 +4250,7 @@ bool loadSlotSettings()
 
     // Load ADV7280 settings
     advSmooth = slotData.advSmooth;
-    advLineDouble = slotData.advLineDouble;
+    advI2P = slotData.advI2P;
     advBrightness = slotData.advBrightness;
     advContrast = slotData.advContrast;
     advSaturation = slotData.advSaturation;
@@ -7356,7 +7356,7 @@ void loadDefaultUserOptions()
     uopt->bcshAdjustMode = 0;       // Default: 0
     uopt->advCompatibility = 0;     // Default: off
     uopt->osdTheme = 0;             // Default: Classic theme
-    // Note: advSmooth, advLineDouble, advBrightness, advContrast, advSaturation,
+    // Note: advSmooth, advI2P, advBrightness, advContrast, advSaturation,
     // gbsColorR, gbsColorG, gbsColorB have defaults in SlotMeta initialization
 }
 
@@ -10341,15 +10341,15 @@ void startWebserver()
             uint8_t x = request->arg("x").toInt();
 
             if (x <= 1) {
-                advLineDouble = x;
-                ADV_sendLineDouble(advLineDouble);
-                SerialM.println(advLineDouble ? F("2X enabled") : F("2X disabled"));
+                advI2P = x;
+                ADV_sendI2P(advI2P);
+                SerialM.println(advI2P ? F("I2P enabled") : F("I2P disabled"));
 
-                // If 2X is disabled, also disable Smooth (smooth only works with 2X)
-                if (!advLineDouble && advSmooth) {
+                // If I2P is disabled, also disable Smooth (smooth only works with I2P)
+                if (!advI2P && advSmooth) {
                     advSmooth = 0;
                     ADV_sendSmooth(false);
-                    SerialM.println(F("Smooth disabled (requires 2X)"));
+                    SerialM.println(F("Smooth disabled (requires I2P)"));
                 }
 
                 request->send(200, "application/json", "true");
@@ -10361,15 +10361,15 @@ void startWebserver()
 
         // Handle Smooth toggle (s parameter)
         // 0=off, 1=on
-        // Note: Smooth only works when 2X is enabled
+        // Note: Smooth only works when I2P is enabled
         if (request->hasArg("s")) {
             uint8_t s = request->arg("s").toInt();
 
             if (s <= 1) {
-                // Force smooth off if 2X is not enabled
-                if (!advLineDouble && s == 1) {
+                // Force smooth off if I2P is not enabled
+                if (!advI2P && s == 1) {
                     advSmooth = 0;
-                    SerialM.println(F("Smooth not enabled (requires 2X)"));
+                    SerialM.println(F("Smooth not enabled (requires I2P)"));
                 } else {
                     advSmooth = s;
                     SerialM.println(advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
@@ -10749,7 +10749,7 @@ void saveUserPrefs()
     f.write(uopt->bcshAdjustMode + '0');
     f.write(uopt->advCompatibility + '0');
     f.write(uopt->osdTheme + '0');
-    // Note: advSmooth, advLineDouble, advBrightness, advContrast, advSaturation,
+    // Note: advSmooth, advI2P, advBrightness, advContrast, advSaturation,
     // gbsColorR, gbsColorG, gbsColorB are now stored per-slot in slots.bin
     f.close();
 }

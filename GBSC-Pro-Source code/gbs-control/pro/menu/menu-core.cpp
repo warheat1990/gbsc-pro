@@ -520,10 +520,10 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
 
     switch (preset) {
         case SETTING_PresetPreference::MT_7391_1X:
-            ADV_sendLineDouble(false);
+            ADV_sendI2P(false);
             break;
         case SETTING_PresetPreference::MT_7391_2X:
-            ADV_sendLineDouble(true);
+            ADV_sendI2P(true);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
             ADV_sendSmooth(false);

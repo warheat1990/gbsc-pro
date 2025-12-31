@@ -69,7 +69,7 @@
 extern uint8_t led_state;
 extern uint8_t led_sw;
 extern uint8_t adv_input;
-extern uint8_t adv_double;
+extern uint8_t adv_i2p;
 extern uint8_t adv_smooth;
 extern uint8_t adv_ace;
 extern uint8_t adv_sw;

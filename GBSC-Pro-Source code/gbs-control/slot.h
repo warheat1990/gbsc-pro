@@ -28,7 +28,7 @@ typedef struct
     uint8_t gbsColorB;           // 0-255 (default 128)
     // --- PRO: ADV7280 settings (directly expandable) ---
     uint8_t advSmooth;           // 0=off, 1=on
-    uint8_t advLineDouble;       // 0=1X, 1=2X
+    uint8_t advI2P;              // 0=off, 1=on (interlace to progressive)
     uint8_t advBrightness;       // 0-255 (default 128)
     uint8_t advContrast;         // 0-255 (default 128)
     uint8_t advSaturation;       // 0-255 (default 128)

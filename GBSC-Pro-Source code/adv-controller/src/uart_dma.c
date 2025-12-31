@@ -438,7 +438,7 @@ void UART_ProcessCommand(void)
                 }
                 else if (dma_au8RxBuf[3] == 0x90)
                 {
-                    if (adv_double == true)
+                    if (adv_i2p == true)
                     {
                         adv_smooth = true;
                         FLASH_SaveSettings();
@@ -448,7 +448,7 @@ void UART_ProcessCommand(void)
                 }
                 else if (dma_au8RxBuf[3] == 0x91)
                 {
-                    if (adv_double == true)
+                    if (adv_i2p == true)
                     {
                         adv_smooth = false;
                         FLASH_SaveSettings();
@@ -458,20 +458,20 @@ void UART_ProcessCommand(void)
                 }
                 else if (dma_au8RxBuf[3] == 0x30)
                 {
-                    adv_double = true;
+                    adv_i2p = true;
                     FLASH_SaveSettings();
-                    ADV_SetI2P(adv_double);
+                    ADV_SetI2P(adv_i2p);
                     c_state = 1;
                     ADV_ResetStatus();
                 }
                 else if (dma_au8RxBuf[3] == 0x31)
                 {
-                    adv_double = false;
+                    adv_i2p = false;
                     adv_smooth = false;
                     FLASH_SaveSettings();
                     ADV_SetSmooth(adv_smooth);
                     DDL_DelayMS(50);
-                    ADV_SetI2P(adv_double);
+                    ADV_SetI2P(adv_i2p);
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0xa0)

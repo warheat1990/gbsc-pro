@@ -156,7 +156,7 @@ extern uint8_t advSaturation;    // ADV7280 saturation (0-255, default 128)
 extern uint8_t svVideoFormatChanged;   // Flag: S-Video format changed, needs ADV update
 extern uint8_t avVideoFormatChanged;   // Flag: Composite format changed, needs ADV update
 extern uint8_t advSmooth;              // ADV7280 smooth interpolation (per-slot)
-extern uint8_t advLineDouble;          // ADV7280 line doubler 2X (per-slot)
+extern uint8_t advI2P;                 // ADV7280 I2P - interlace to progressive (per-slot)
 
 // ====================================================================================
 // External Variables - Resolution Settings
@@ -176,7 +176,7 @@ extern uint8_t factoryResetSelection;  // 0 = No (default), 1 = Yes
 // ====================================================================================
 
 // ADV packet wrappers
-void ADV_sendLineDouble(bool enable);
+void ADV_sendI2P(bool enable);
 void ADV_sendSmooth(bool enable);
 void ADV_sendCompatibility(bool mode);
 void ADV_sendVideoFormat(uint8_t format);

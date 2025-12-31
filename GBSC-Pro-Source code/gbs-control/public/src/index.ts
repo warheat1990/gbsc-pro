@@ -34,7 +34,7 @@ const Structs: StructDescriptors = {
     { name: "gbsColorB", type: "byte", size: 1 },
     // --- PRO: ADV7280 settings ---
     { name: "advSmooth", type: "byte", size: 1 },
-    { name: "advLineDouble", type: "byte", size: 1 },
+    { name: "advI2P", type: "byte", size: 1 },
     { name: "advBrightness", type: "byte", size: 1 },
     { name: "advContrast", type: "byte", size: 1 },
     { name: "advSaturation", type: "byte", size: 1 },

@@ -19,7 +19,7 @@ uint8_t btn_flag;
 static uint8_t status = 0;
 uint8_t Adv_7391_sw = 0;
 uint8_t adv_input;
-uint8_t adv_double = true;
+uint8_t adv_i2p = true;
 uint8_t adv_smooth = false;
 uint8_t adv_ace = false;
 uint8_t adv_sw = false;
@@ -323,8 +323,8 @@ void ADV_Init(void)
     ADV_SetBCSH();
 
     /* Configure I2P based on settings */
-    if (adv_double) {
-        ADV_SetI2P(adv_double);
+    if (adv_i2p) {
+        ADV_SetI2P(adv_i2p);
         if (adv_smooth)
             ADV_SetSmooth(adv_smooth);
     } else {
@@ -332,7 +332,7 @@ void ADV_Init(void)
         ADV_SetSmooth(true);
         adv_smooth = false;
         ADV_SetSmooth(adv_smooth);
-        ADV_SetI2P(adv_double);
+        ADV_SetI2P(adv_i2p);
     }
 
     DDL_DelayMS(200);
@@ -387,11 +387,11 @@ void ADV_SetInput(uint8_t input)
 
 /**
  * @brief Enable/disable I2P (Interlace to Progressive) conversion
- * @param doubleline true to enable, false to disable
+ * @param enable true to enable, false to disable
  */
-void ADV_SetI2P(uint8_t doubleline)
+void ADV_SetI2P(uint8_t enable)
 {
-    if (doubleline) {
+    if (enable) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_I2P_ON,
                                   sizeof(I2C_COMMANDS_I2P_ON) / 3, TIMEOUT);
         printf("I2pOn\n");

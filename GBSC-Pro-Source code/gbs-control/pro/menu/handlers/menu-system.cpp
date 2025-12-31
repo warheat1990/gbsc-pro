@@ -313,9 +313,9 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_SVAVInput_DoubleLine
+    // OLED_SystemSettings_SVAVInput_DoubleLine (I2P)
     else if (oled_menuItem == OLED_SystemSettings_SVAVInput_DoubleLine) {
-        showMenuValue("M>Sys>SvAv Set", "DoubleLine", advLineDouble ? "2X" : "1X");
+        showMenuValue("M>Sys>SvAv Set", "I2P", advI2P ? "ON" : "OFF");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -332,11 +332,11 @@ bool IR_handleSystemSettings()
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    advLineDouble = !advLineDouble;
-                    if(!advLineDouble) {
+                    advI2P = !advI2P;
+                    if(!advI2P) {
                         advSmooth = false;
                     }
-                    ADV_sendLineDouble(advLineDouble);
+                    ADV_sendI2P(advI2P);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
@@ -366,7 +366,7 @@ bool IR_handleSystemSettings()
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    if (advLineDouble) {
+                    if (advI2P) {
                         advSmooth = !advSmooth;
                         ADV_sendSmooth(advSmooth);
                     }

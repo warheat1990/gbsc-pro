@@ -53,14 +53,14 @@ static const unsigned char ADV_InputAV[4]    = {ADV_HEADER_0, ADV_HEADER_1, ADV_
 // Packet Constants - Video Options
 // ====================================================================================
 
-static const unsigned char ADV_TvMode[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_TVMODE, 0x00};
-static const unsigned char ADV_Line2X[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x30};
-static const unsigned char ADV_Line1X[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x31};
-static const unsigned char ADV_SmoothOn[4]         = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x90};
-static const unsigned char ADV_SmoothOff[4]        = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x91};
-static const unsigned char ADV_CompatibilityOn[4]  = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA0};
-static const unsigned char ADV_CompatibilityOff[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA1};
-static const unsigned char ADV_BCSH[4]             = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_BCSH, 0x00};
+static const unsigned char ADV_TvMode[4]            = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_TVMODE, 0x00};
+static const unsigned char ADV_I2P_On[4]            = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x30};
+static const unsigned char ADV_I2P_Off[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x31};
+static const unsigned char ADV_Smooth_On[4]         = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x90};
+static const unsigned char ADV_Smooth_Off[4]        = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x91};
+static const unsigned char ADV_Compatibility_On[4]  = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA0};
+static const unsigned char ADV_Compatibility_Off[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA1};
+static const unsigned char ADV_BCSH[4]              = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_BCSH, 0x00};
 
 // ====================================================================================
 // Video Format Mapping Table

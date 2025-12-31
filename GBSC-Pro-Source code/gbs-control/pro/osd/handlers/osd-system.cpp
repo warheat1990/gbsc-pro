@@ -13,7 +13,7 @@ void handle_SVAVInput_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, advLineDouble ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
+    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, advI2P ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
     OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
     OSD_drawDashRange(1, 14, 22);
     OSD_writeStringAtRow(2, 1, "Smooth");
@@ -25,7 +25,7 @@ void handle_SVAVInput_Page1(void)
 
 void handle_SVAVInput_Page1_Values(void)
 {
-    OSD_writeOnOff(1, advLineDouble);
+    OSD_writeOnOff(1, advI2P);
     OSD_writeOnOff(2, advSmooth);
     OSD_displayNumber3DigitAtRow(3, advBrightness, 25, 24, 23);
 }

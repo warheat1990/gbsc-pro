@@ -44,7 +44,7 @@ void ADV_Enable(uint8_t sw);
 
 /* Video settings */
 void ADV_SetInput(uint8_t input);
-void ADV_SetI2P(uint8_t doubleline);
+void ADV_SetI2P(uint8_t enable);
 void ADV_SetSmooth(uint8_t smooth);
 void ADV_SetBCSH(void);
 void ADV_SetOutput(uint8_t output);
