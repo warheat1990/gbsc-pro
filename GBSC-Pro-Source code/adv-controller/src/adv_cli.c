@@ -191,12 +191,14 @@ void ADVCLI_Task(void)
     else if (ch == 8 && cli_idx > 0)  // Backspace
     {
         cli_idx--;
-        printf("\b \b");
+        DebugUart_SendChar('\b');
+        DebugUart_SendChar(' ');
+        DebugUart_SendChar('\b');
     }
     else if (ch >= 32 && cli_idx < CLI_BUF_SIZE - 1)
     {
         cli_buf[cli_idx++] = ch;
-        printf("%c", ch);
+        DebugUart_SendChar(ch);
     }
 }
 

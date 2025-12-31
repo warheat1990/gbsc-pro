@@ -63,7 +63,7 @@ Simply flash the **debugprobe_on_pico.uf2** on the Raspberry Pico.
 The **GBS-C Pro** has a connector called **J15**. Looking at the connector as shown in the photo, we need to make the following connections:
 * **1 GND** -> **GND** of the Raspberry Pico (e.g., **Pin 3**, Pin 8, Pin 13, etc.)
 * **2 TX** -> **RX** of the Raspberry Pico (**GP4 / Pin 6**)
-* **3 RX** -> **TX** of the Raspberry Pico (G**P3 / Pin 5**)
+* **3 RX** -> **TX** of the Raspberry Pico (**GP5 / Pin 7**)
 
 Let's start with the hardware modification required for the GBS-C Pro:
 
