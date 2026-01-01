@@ -127,6 +127,8 @@ typedef enum : uint8_t {
     OSD_CMD_SVAVINPUT_PAGE1_VALUES,
     OSD_CMD_SVAVINPUT_PAGE2,
     OSD_CMD_SVAVINPUT_PAGE2_VALUES,
+    OSD_CMD_SVAVINPUT_PAGE3,
+    OSD_CMD_SVAVINPUT_PAGE3_VALUES,
 
     // Firmware Version
     OSD_CMD_FIRMWARE_VERSION,
@@ -212,10 +214,17 @@ void handle_SysSettings_Page2(void);
 void handle_SysSettings_Page2_Values(void);
 void handle_SysSettings_Page4(void);
 void handle_SysSettings_Page4_Values(void);
+
+// ====================================================================================
+// Handler Function Declarations - ADV7280 Settings (SV/AV Input)
+// ====================================================================================
+
 void handle_SVAVInput_Page1(void);
 void handle_SVAVInput_Page1_Values(void);
 void handle_SVAVInput_Page2(void);
 void handle_SVAVInput_Page2_Values(void);
+void handle_SVAVInput_Page3(void);
+void handle_SVAVInput_Page3_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Developer
@@ -338,6 +347,10 @@ void handle_FactoryResetConfirm(void);
     /* SV/AV Input Settings - Page 2 */ \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2,        handle_SVAVInput_Page2) \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2_VALUES, handle_SVAVInput_Page2_Values) \
+    \
+    /* SV/AV Input Settings - Page 3 */ \
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE3,        handle_SVAVInput_Page3) \
+    DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE3_VALUES, handle_SVAVInput_Page3_Values) \
     \
     /* Input Menu */ \
     DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE1,        handle_InputMenu_Page1) \

@@ -116,6 +116,7 @@ uint8_t svVideoFormatChanged = 0;       // Flag: S-Video format changed, needs A
 uint8_t avVideoFormatChanged = 0;       // Flag: Composite format changed, needs ADV update
 uint8_t advSmooth = 0;                  // ADV7280 smooth interpolation (per-slot)
 uint8_t advI2P = 0;                     // ADV7280 I2P - interlace to progressive (per-slot)
+uint8_t advACE = 0;                     // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
 
 // ====================================================================================
 // Global Variables - Resolution Settings
@@ -163,6 +164,10 @@ void ADV_sendCompatibility(bool mode) {
     ADV_sendAndSave(mode ? ADV_Compatibility_Off : ADV_Compatibility_On);
 }
 
+void ADV_sendACE(bool enable) {
+    ADV_sendAndSave(enable ? ADV_ACE_On : ADV_ACE_Off);
+}
+
 void ADV_sendVideoFormat(uint8_t format) {
     unsigned char packet[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_TVMODE, format};
     ADV_sendAndSave(packet);
@@ -198,6 +203,7 @@ void ADV_applySlotSettings(void) {
     }
     ADV_send(advI2P ? ADV_I2P_On : ADV_I2P_Off);
     ADV_send(advSmooth ? ADV_Smooth_On : ADV_Smooth_Off);
+    ADV_send(advACE ? ADV_ACE_On : ADV_ACE_Off);
     advController.writeReg(ADV_BCSH, 0x0A, advBrightness - 128);
     advController.writeReg(ADV_BCSH, 0x08, advContrast);
     advController.writeReg(ADV_BCSH, 0xE3, advSaturation);
@@ -450,7 +456,7 @@ bool isPeakingLocked(void) {
 
 void broadcastProStatus(WebSocketsServer& ws)
 {
-    constexpr size_t MESSAGE_LEN = 6;
+    constexpr size_t MESSAGE_LEN = 7;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -477,6 +483,7 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[3] = '0' + (advI2P ? 1 : 0);
     buffer[4] = '0' + (advSmooth ? 1 : 0);
     buffer[5] = isPeakingLocked() ? '1' : '0';
+    buffer[6] = '0' + (advACE ? 1 : 0);
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

@@ -38,8 +38,9 @@ const Structs: StructDescriptors = {
     { name: "advBrightness", type: "byte", size: 1 },
     { name: "advContrast", type: "byte", size: 1 },
     { name: "advSaturation", type: "byte", size: 1 },
+    { name: "advACE", type: "byte", size: 1 },
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 81 },
+    { name: "reserved", type: "byte", size: 80 },
   ],
 };
 
@@ -269,12 +270,13 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth][sharpness] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness are 0/1
+      // Pro status: $[inputType][format][2x][smooth][sharpness][ace] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness/ace are 0/1
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
       const smoothChar: string = messageDataAt4;
       const sharpnessChar: string = messageDataAt5;
+      const aceChar: string = message.data[6] || "0";
 
       // Update input source buttons
       const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
@@ -339,6 +341,16 @@ const createWebSocket = () => {
           btnSmooth.setAttribute("active", "");
         } else {
           btnSmooth.removeAttribute("active");
+        }
+      }
+
+      // Update ACE button
+      const btnACE = document.getElementById("gbs-pro-ace");
+      if (btnACE) {
+        if (aceChar === "1") {
+          btnACE.setAttribute("active", "");
+        } else {
+          btnACE.removeAttribute("active");
         }
       }
 
@@ -1416,6 +1428,38 @@ const initProButtons = () => {
         })
         .catch((error) => {
           console.error("Pro API Smooth error:", error);
+        });
+    });
+  }
+
+  // Handle ACE toggle
+  const btnACE = document.getElementById("gbs-pro-ace");
+  if (btnACE) {
+    btnACE.addEventListener("click", () => {
+      const isActive = btnACE.hasAttribute("active");
+      const newState = isActive ? "0" : "1";
+
+      const formData = new URLSearchParams();
+      formData.append("a", newState);
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "true") {
+            if (newState === "1") {
+              btnACE.setAttribute("active", "");
+            } else {
+              btnACE.removeAttribute("active");
+            }
+          } else {
+            console.error("Pro API ACE error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API ACE error:", error);
         });
     });
   }

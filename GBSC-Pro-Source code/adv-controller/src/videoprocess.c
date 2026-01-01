@@ -321,6 +321,7 @@ void ADV_Init(void)
     /* Configure encoder and BCSH */
     ADV_ConfigureEncoder();
     ADV_SetBCSH();
+    ADV_SetACE(adv_ace);
 
     /* Configure I2P based on settings */
     if (adv_i2p) {

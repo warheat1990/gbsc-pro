@@ -206,6 +206,7 @@ void IR_handleMenuSelection(void)
     IR_handleScreenSettings() ||
     IR_handleColorSettings() ||
     IR_handleSystemSettings() ||
+    IR_handleADVSettings() ||
     IR_handlePreferencesMenu() ||
     IR_handleDeveloperMenu() ||
     IR_handleInputSelection() ||
@@ -400,7 +401,6 @@ void OLED_initInputMenu(OLEDMenuItem *root) {
 void OLED_initSettingsMenu(OLEDMenuItem *root) {
     OLEDMenuItem *settingMenu = oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_SETTING));
 
-#ifdef ACE
     const char *settingLabels[6] = {
         "Smooth_Off", "Smooth_On ",
         "Compatibility_Off", "Compatibility_On ",
@@ -411,20 +411,8 @@ void OLED_initSettingsMenu(OLEDMenuItem *root) {
         MT_COMPATIBILITY_OFF, MT_COMPATIBILITY_ON,
         MT_ACE_OFF, MT_ACE_ON
     };
-    const size_t settingCount = 6;
-#else
-    const char *settingLabels[4] = {
-        "Smooth_Off", "Smooth_On ",
-        "Compatibility_Off", "Compatibility_On "
-    };
-    uint8_t settingTags[4] = {
-        MT_SMOOTH_OFF, MT_SMOOTH_ON,
-        MT_COMPATIBILITY_OFF, MT_COMPATIBILITY_ON
-    };
-    const size_t settingCount = 4;
-#endif
 
-    for (size_t i = 0; i < settingCount; ++i) {
+    for (size_t i = 0; i < 6; ++i) {
         oledMenu.registerItem(settingMenu, settingTags[i], settingLabels[i], OLED_handleSettingSelection);
     }
 
@@ -503,16 +491,14 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
     SETTING_PresetPreference preset = SETTING_PresetPreference::MT_I2P_OFF;
 
     switch (item->tag) {
-        case MT_I2P_OFF:          preset = SETTING_PresetPreference::MT_I2P_OFF;          break;
-        case MT_I2P_ON:           preset = SETTING_PresetPreference::MT_I2P_ON;           break;
-        case MT_SMOOTH_OFF:       preset = SETTING_PresetPreference::MT_SMOOTH_OFF;       break;
-        case MT_SMOOTH_ON:        preset = SETTING_PresetPreference::MT_SMOOTH_ON;        break;
+        case MT_I2P_OFF:           preset = SETTING_PresetPreference::MT_I2P_OFF;           break;
+        case MT_I2P_ON:            preset = SETTING_PresetPreference::MT_I2P_ON;            break;
+        case MT_SMOOTH_OFF:        preset = SETTING_PresetPreference::MT_SMOOTH_OFF;        break;
+        case MT_SMOOTH_ON:         preset = SETTING_PresetPreference::MT_SMOOTH_ON;         break;
         case MT_COMPATIBILITY_OFF: preset = SETTING_PresetPreference::MT_COMPATIBILITY_OFF; break;
         case MT_COMPATIBILITY_ON:  preset = SETTING_PresetPreference::MT_COMPATIBILITY_ON;  break;
-#ifdef ACE
-        case MT_ACE_OFF:          preset = SETTING_PresetPreference::MT_ACE_OFF;          break;
-        case MT_ACE_ON:           preset = SETTING_PresetPreference::MT_ACE_ON;           break;
-#endif
+        case MT_ACE_OFF:           preset = SETTING_PresetPreference::MT_ACE_OFF;           break;
+        case MT_ACE_ON:            preset = SETTING_PresetPreference::MT_ACE_ON;            break;
         default: break;
     }
 
@@ -539,20 +525,14 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
             uopt->advCompatibility = COMPATIBILITY_ON;
             ADV_sendCompatibility(uopt->advCompatibility);
             break;
-#ifdef ACE
         case SETTING_PresetPreference::MT_ACE_OFF:
-            {
-                unsigned char Adv_ACE_OFF[7] = {0x41, 0x44, 'S', 0x81};
-                Serial.write(Adv_ACE_OFF, 7);
-            }
+            advACE = 0;
+            ADV_sendACE(false);
             break;
         case SETTING_PresetPreference::MT_ACE_ON:
-            {
-                unsigned char Adv_ACE_ON[7] = {0x41, 0x44, 'S', 0x80};
-                Serial.write(Adv_ACE_ON, 7);
-            }
+            advACE = 1;
+            ADV_sendACE(true);
             break;
-#endif
         default:
             break;
     }

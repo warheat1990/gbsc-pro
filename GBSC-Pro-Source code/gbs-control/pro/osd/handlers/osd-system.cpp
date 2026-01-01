@@ -6,48 +6,6 @@
 #include "../osd-core.h"
 
 // ====================================================================================
-// System Settings - SV/AV Input
-// ====================================================================================
-
-void handle_SVAVInput_Page1(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(false, '1', true);
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 2, advI2P ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
-    OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
-    OSD_drawDashRange(1, 14, 22);
-    OSD_writeStringAtRow(2, 1, "Smooth");
-    OSD_drawDashRange(2, 7, 22);
-    OSD_writeStringAtRow(3, 1, "Bright");
-    OSD_drawDashRange(3, 7, 22);
-
-}
-
-void handle_SVAVInput_Page1_Values(void)
-{
-    OSD_writeOnOff(1, advI2P);
-    OSD_writeOnOff(2, advSmooth);
-    OSD_displayNumber3DigitAtRow(3, advBrightness, 25, 24, 23);
-}
-
-void handle_SVAVInput_Page2(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '2', false);
-    OSD_writeStringAtRow(1, 1, "Contrast");
-    OSD_drawDashRange(1, 9, 22);
-    OSD_writeStringAtRow(2, 1, "Saturation");
-    OSD_drawDashRange(2, 11, 22);
-    OSD_writeStringAtRow(3, 1, "Default");
-}
-
-void handle_SVAVInput_Page2_Values(void)
-{
-    OSD_displayNumber3DigitAtRow(1, advContrast, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(2, advSaturation, 25, 24, 23);
-}
-
-// ====================================================================================
 // System Settings - General Pages
 // ====================================================================================
 

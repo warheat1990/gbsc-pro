@@ -27,8 +27,9 @@ const Structs = {
         { name: "advBrightness", type: "byte", size: 1 },
         { name: "advContrast", type: "byte", size: 1 },
         { name: "advSaturation", type: "byte", size: 1 },
+        { name: "advACE", type: "byte", size: 1 },
         // --- Reserved for future expansion ---
-        { name: "reserved", type: "byte", size: 81 },
+        { name: "reserved", type: "byte", size: 80 },
     ],
 };
 const StructParser = {
@@ -225,12 +226,13 @@ const createWebSocket = () => {
         GBSControl.isWsActive = true;
         const [messageDataAt0, messageDataAt1, messageDataAt2, messageDataAt3, messageDataAt4, messageDataAt5,] = message.data;
         if (messageDataAt0 === "$") {
-            // Pro status: $[inputType][format][2x][smooth][sharpness] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness are 0/1
+            // Pro status: $[inputType][format][2x][smooth][sharpness][ace] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness/ace are 0/1
             const inputType = messageDataAt1;
             const formatChar = messageDataAt2;
             const line2xChar = messageDataAt3;
             const smoothChar = messageDataAt4;
             const sharpnessChar = messageDataAt5;
+            const aceChar = message.data[6] || "0";
             // Update input source buttons
             const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
             allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -291,6 +293,16 @@ const createWebSocket = () => {
                 }
                 else {
                     btnSmooth.removeAttribute("active");
+                }
+            }
+            // Update ACE button
+            const btnACE = document.getElementById("gbs-pro-ace");
+            if (btnACE) {
+                if (aceChar === "1") {
+                    btnACE.setAttribute("active", "");
+                }
+                else {
+                    btnACE.removeAttribute("active");
                 }
             }
             // Update Sharpness & Peaking Lock
@@ -1156,6 +1168,37 @@ const initProButtons = () => {
             })
                 .catch((error) => {
                 console.error("Pro API Smooth error:", error);
+            });
+        });
+    }
+    // Handle ACE toggle
+    const btnACE = document.getElementById("gbs-pro-ace");
+    if (btnACE) {
+        btnACE.addEventListener("click", () => {
+            const isActive = btnACE.hasAttribute("active");
+            const newState = isActive ? "0" : "1";
+            const formData = new URLSearchParams();
+            formData.append("a", newState);
+            fetch("/pro", {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.text())
+                .then((data) => {
+                if (data === "true") {
+                    if (newState === "1") {
+                        btnACE.setAttribute("active", "");
+                    }
+                    else {
+                        btnACE.removeAttribute("active");
+                    }
+                }
+                else {
+                    console.error("Pro API ACE error:", data);
+                }
+            })
+                .catch((error) => {
+                console.error("Pro API ACE error:", error);
             });
         });
     }

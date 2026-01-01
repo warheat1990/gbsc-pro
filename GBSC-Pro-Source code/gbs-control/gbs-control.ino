@@ -4184,6 +4184,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.advBrightness = advBrightness;
     slotData.advContrast = advContrast;
     slotData.advSaturation = advSaturation;
+    slotData.advACE = advACE;
 
     // Update name if provided
     if (name != NULL) {
@@ -4254,6 +4255,7 @@ bool loadSlotSettings()
     advBrightness = slotData.advBrightness;
     advContrast = slotData.advContrast;
     advSaturation = slotData.advSaturation;
+    advACE = slotData.advACE;
 
     return true;
 }
@@ -10375,6 +10377,22 @@ void startWebserver()
                     SerialM.println(advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
                 }
                 ADV_sendSmooth(advSmooth);
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE toggle (a parameter)
+        // 0=off, 1=on
+        if (request->hasArg("a")) {
+            uint8_t a = request->arg("a").toInt();
+
+            if (a <= 1) {
+                advACE = a;
+                ADV_sendACE(advACE);
+                SerialM.println(advACE ? F("ACE enabled") : F("ACE disabled"));
                 request->send(200, "application/json", "true");
             } else {
                 request->send(400, "application/json", "false");

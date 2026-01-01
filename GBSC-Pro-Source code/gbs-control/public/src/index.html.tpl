@@ -228,12 +228,22 @@
                 <div class="gbs-icon">blur_on</div>
                 <div>Smooth</div>
               </button>
+              <button
+                id="gbs-pro-ace"
+                gbs-pro-toggle="ace"
+                class="gbs-button gbs-button__control gbs-button__secondary"
+                style="flex: 1;"
+              >
+                <div class="gbs-icon">wb_sunny</div>
+                <div>ACE</div>
+              </button>
             </div>
             <!-- prettier-ignore -->
             <ul class="gbs-help">
               <li><strong>Format</strong>: Video format/standard for the input signal (Auto recommended)</li>
               <li><strong>2X</strong>: Enable 2X line multiplication for sharper image</li>
               <li><strong>Smooth</strong>: Enable smooth scaling for softer image</li>
+              <li><strong>ACE</strong>: Adaptive Contrast Enhancement for improved picture quality</li>
             </ul>
           </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">

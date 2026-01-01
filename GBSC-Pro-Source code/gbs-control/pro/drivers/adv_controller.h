@@ -60,6 +60,8 @@ static const unsigned char ADV_Smooth_On[4]         = {ADV_HEADER_0, ADV_HEADER_
 static const unsigned char ADV_Smooth_Off[4]        = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x91};
 static const unsigned char ADV_Compatibility_On[4]  = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA0};
 static const unsigned char ADV_Compatibility_Off[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA1};
+static const unsigned char ADV_ACE_On[4]            = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x80};
+static const unsigned char ADV_ACE_Off[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x81};
 static const unsigned char ADV_BCSH[4]              = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_BCSH, 0x00};
 
 // ====================================================================================

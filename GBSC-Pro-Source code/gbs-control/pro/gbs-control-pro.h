@@ -157,6 +157,7 @@ extern uint8_t svVideoFormatChanged;   // Flag: S-Video format changed, needs AD
 extern uint8_t avVideoFormatChanged;   // Flag: Composite format changed, needs ADV update
 extern uint8_t advSmooth;              // ADV7280 smooth interpolation (per-slot)
 extern uint8_t advI2P;                 // ADV7280 I2P - interlace to progressive (per-slot)
+extern uint8_t advACE;                 // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
 
 // ====================================================================================
 // External Variables - Resolution Settings
@@ -179,6 +180,7 @@ extern uint8_t factoryResetSelection;  // 0 = No (default), 1 = Yes
 void ADV_sendI2P(bool enable);
 void ADV_sendSmooth(bool enable);
 void ADV_sendCompatibility(bool mode);
+void ADV_sendACE(bool enable);
 void ADV_sendVideoFormat(uint8_t format);
 void ADV_sendBCSH(unsigned char reg, unsigned char val);
 void ADV_sendCustomI2C(const unsigned char* data, size_t size);

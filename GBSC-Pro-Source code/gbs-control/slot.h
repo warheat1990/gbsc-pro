@@ -32,8 +32,9 @@ typedef struct
     uint8_t advBrightness;       // 0-255 (default 128)
     uint8_t advContrast;         // 0-255 (default 128)
     uint8_t advSaturation;       // 0-255 (default 128)
+    uint8_t advACE;              // 0=off, 1=on (Adaptive Contrast Enhancement)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[81];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[80];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)
