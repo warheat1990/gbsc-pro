@@ -1693,9 +1693,6 @@ uint8_t inputAndSyncDetect()
         resetDebugPort();
         applyRGBPatches();
         LEDON;
-        if (uopt->activeInputType == InputTypeRGBs || uopt->activeInputType == InputTypeRGsB) {
-            rto->HdmiHoldDetection = false;
-        }
         return 1;
     } else if (syncFound == 2 && isInfoDisplayActive == 0) {
         rto->inputIsYpBpR = 1;
@@ -1704,9 +1701,6 @@ uint8_t inputAndSyncDetect()
         resetDebugPort();
         applyYuvPatches();
         LEDON;
-        if (uopt->activeInputType == InputTypeYUV || uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
-            rto->HdmiHoldDetection = false;
-        }
         return 2;
     } else if (syncFound == 3 && isInfoDisplayActive == 0) { // input is RGBHV
         //already applied
@@ -1715,9 +1709,6 @@ uint8_t inputAndSyncDetect()
         rto->sourceDisconnected = false;
         rto->videoStandardInput = 15;
         resetDebugPort();
-        if (uopt->activeInputType == InputTypeVGA && rto->HdmiHoldDetection) {
-            rto->HdmiHoldDetection = false;
-        }
         LEDON;
         return 3;
     }
@@ -3998,7 +3989,7 @@ void doPostPresetLoadSteps()
     GBS::INTERRUPT_CONTROL_00::write(0xff); // reset irq status
     GBS::INTERRUPT_CONTROL_00::write(0x00);
 
-    //OutputComponentOrVGA();
+    OutputComponentOrVGA();
 
     // presetPreference 10 means the user prefers bypass mode at startup
     // it's best to run a normal format detect > apply preset loop, then enter bypass mode
@@ -9236,39 +9227,26 @@ void loop()
                 GBS::ADC_SOGCTRL::write(rto->currentLevelSOG);
             }
         }
-    } else if ((rto->syncWatcherEnabled == true && rto->sourceDisconnected == false && rto->boardHasPower)) {
-        if ((millis() - lastTimeSourceCheck) >= 500) {
-            // if (hasOutputFrequencyChanged() && rto->HdmiHoldDetection)
-            if (hasOutputFrequencyChanged()) {
-                uint8_t videoMode = getVideoMode();
-                if (videoMode == 0 && GBS::STATUS_SYNC_PROC_HSACT::read()) {
-                    videoMode = rto->videoStandardInput;
-                }
-                if (uopt->presetPreference != 2) // 
-                {
-                    rto->useHdmiSyncFix = 1;
-                    if (rto->videoStandardInput == 14) {
-                        rto->videoStandardInput = 15;
-                    } else {
-                        applyPresets(videoMode);
-                    }
-                } else {
-                    // printf("out off-1\n");
-                    setOutModeHdBypass(false); //    false
-                    if (rto->videoStandardInput != 15) {
-                        rto->autoBestHtotalEnabled = 0;
-                        if (rto->applyPresetDoneStage == 11) {
-                            rto->applyPresetDoneStage = 1;
-                        } else {
-                            rto->applyPresetDoneStage = 10;
-                        }
-                    } else {
-                        rto->applyPresetDoneStage = 1;
-                    }
-                }
-            }
+    } else if (rto->syncWatcherEnabled && !rto->sourceDisconnected && rto->boardHasPower) {
+        // Fix for HDMI scaler not re-syncing properly after PAL/NTSC format change
+        static uint8_t pendingFixStage = 0;  // 0=idle, 1=wait preset done, 2=wait stable
+        static uint16_t stableCounterTarget = 0;
 
+        if ((millis() - lastTimeSourceCheck) >= 500) {
+            if (hasOutputFrequencyChanged() && pendingFixStage == 0) {
+                pendingFixStage = 1;
+            }
             lastTimeSourceCheck = millis();
+        }
+
+        if (pendingFixStage == 1 && rto->applyPresetDoneStage == 0) {
+            pendingFixStage = 2;
+            stableCounterTarget = rto->continousStableCounter + 50;
+        } else if (pendingFixStage == 2 && rto->continousStableCounter >= stableCounterTarget) {
+            pendingFixStage = 0;
+            // Re-apply current output preset to force HDMI re-sync
+            rto->useHdmiSyncFix = 1;
+            applyPresets(getVideoMode());
         }
     }
 

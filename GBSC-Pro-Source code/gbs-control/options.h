@@ -90,8 +90,6 @@ struct runTimeOptions
     bool isValidForScalingRGBHV;
     bool useHdmiSyncFix;
     bool extClockGenDetected;
-    // GBSC-PRO additions:
-    bool HdmiHoldDetection;
 };
 // remember adc options across presets
 struct adcOptions
