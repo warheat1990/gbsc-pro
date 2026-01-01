@@ -30,8 +30,8 @@ enum INPUT_PresetPreference : uint8_t {
 // ====================================================================================
 
 enum SETTING_PresetPreference : uint8_t {
-    MT_7391_1X,
-    MT_7391_2X,
+    MT_I2P_OFF,
+    MT_I2P_ON,
     MT_SMOOTH_OFF,
     MT_SMOOTH_ON,
     MT_COMPATIBILITY_OFF,

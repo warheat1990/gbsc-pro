@@ -500,11 +500,11 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
     showSelectionFeedback(manager, item->str);
 
     // Apply setting
-    SETTING_PresetPreference preset = SETTING_PresetPreference::MT_7391_1X;
+    SETTING_PresetPreference preset = SETTING_PresetPreference::MT_I2P_OFF;
 
     switch (item->tag) {
-        case MT_7391_1X:          preset = SETTING_PresetPreference::MT_7391_1X;          break;
-        case MT_7391_2X:          preset = SETTING_PresetPreference::MT_7391_2X;          break;
+        case MT_I2P_OFF:          preset = SETTING_PresetPreference::MT_I2P_OFF;          break;
+        case MT_I2P_ON:           preset = SETTING_PresetPreference::MT_I2P_ON;           break;
         case MT_SMOOTH_OFF:       preset = SETTING_PresetPreference::MT_SMOOTH_OFF;       break;
         case MT_SMOOTH_ON:        preset = SETTING_PresetPreference::MT_SMOOTH_ON;        break;
         case MT_COMPATIBILITY_OFF: preset = SETTING_PresetPreference::MT_COMPATIBILITY_OFF; break;
@@ -519,10 +519,10 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
     uopt->SETTING_presetPreference = preset;
 
     switch (preset) {
-        case SETTING_PresetPreference::MT_7391_1X:
+        case SETTING_PresetPreference::MT_I2P_OFF:
             ADV_sendI2P(false);
             break;
-        case SETTING_PresetPreference::MT_7391_2X:
+        case SETTING_PresetPreference::MT_I2P_ON:
             ADV_sendI2P(true);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
