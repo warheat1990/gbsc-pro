@@ -7695,16 +7695,16 @@ void setup()
                 uopt->disableExternalClockGenerator = 0;
 
             // Pro global settings from uopt
-            uopt->INPUT_presetPreference = (uint8_t)(f.read() - '0');
+            uopt->INPUT_presetPreference = (INPUT_PresetPreference)(f.read() - '0');
             if (uopt->INPUT_presetPreference > MT_AV)
                 uopt->INPUT_presetPreference = MT_RGBs;
 
-            uopt->SETTING_presetPreference = (uint8_t)(f.read() - '0');
+            uopt->SETTING_presetPreference = (SETTING_PresetPreference)(f.read() - '0');
             if (uopt->SETTING_presetPreference > MT_I2P_ON)
                 uopt->SETTING_presetPreference = MT_I2P_OFF;
 
-            uopt->TVMODE_presetPreference = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
-            if (uopt->TVMODE_presetPreference > MT_MODE_576I)
+            uopt->TVMODE_presetPreference = (TVMODE_PresetPreference)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->TVMODE_presetPreference > MT_MODE_SECAM)
                 uopt->TVMODE_presetPreference = MT_MODE_AUTO;
 
             uopt->volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');

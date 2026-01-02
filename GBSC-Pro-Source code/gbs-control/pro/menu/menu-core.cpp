@@ -372,18 +372,20 @@ void OLED_initInputMenu(OLEDMenuItem *root) {
 void OLED_initSettingsMenu(OLEDMenuItem *root) {
     OLEDMenuItem *settingMenu = oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_SETTING));
 
-    const char *settingLabels[6] = {
+    const char *settingLabels[8] = {
+        "I2P_Off", "I2P_On ",
         "Smooth_Off", "Smooth_On ",
         "Compatibility_Off", "Compatibility_On ",
         "ACE_Off", "ACE_On "
     };
-    uint8_t settingTags[6] = {
+    uint8_t settingTags[8] = {
+        MT_I2P_OFF, MT_I2P_ON,
         MT_SMOOTH_OFF, MT_SMOOTH_ON,
         MT_COMPATIBILITY_OFF, MT_COMPATIBILITY_ON,
         MT_ACE_OFF, MT_ACE_ON
     };
 
-    for (size_t i = 0; i < 6; ++i) {
+    for (size_t i = 0; i < 8; ++i) {
         oledMenu.registerItem(settingMenu, settingTags[i], settingLabels[i], OLED_handleSettingSelection);
     }
 
@@ -477,23 +479,30 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
 
     switch (preset) {
         case SETTING_PresetPreference::MT_I2P_OFF:
+            advI2P = 0;
+            advSmooth = 0;  // Smooth requires I2P
             ADV_sendI2P(false);
             break;
         case SETTING_PresetPreference::MT_I2P_ON:
+            advI2P = 1;
             ADV_sendI2P(true);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
+            advSmooth = 0;
             ADV_sendSmooth(false);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_ON:
-            ADV_sendSmooth(true);
+            if (advI2P) {  // Smooth only works with I2P enabled
+                advSmooth = 1;
+                ADV_sendSmooth(true);
+            }
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_OFF:
-            uopt->advCompatibility = COMPATIBILITY_OFF;
+            uopt->advCompatibility = 0;
             ADV_sendCompatibility(uopt->advCompatibility);
             break;
         case SETTING_PresetPreference::MT_COMPATIBILITY_ON:
-            uopt->advCompatibility = COMPATIBILITY_ON;
+            uopt->advCompatibility = 1;
             ADV_sendCompatibility(uopt->advCompatibility);
             break;
         case SETTING_PresetPreference::MT_ACE_OFF:
