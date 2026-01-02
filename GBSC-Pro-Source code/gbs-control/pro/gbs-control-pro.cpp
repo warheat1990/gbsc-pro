@@ -73,8 +73,6 @@ unsigned long lastSignalTime = 0;
 unsigned long lastSystemTime = 0;
 unsigned long lastWebUpdateTime = 0;
 unsigned long lastMenuItemTime = 0;
-unsigned long lastResolutionTime = 0;
-unsigned long resolutionStartTime = 0;
 
 // ====================================================================================
 // Global Variables - OLED Menu State
@@ -117,13 +115,6 @@ uint8_t avVideoFormatChanged = 0;       // Flag: Composite format changed, needs
 uint8_t advSmooth = 0;                  // ADV7280 smooth interpolation (per-slot)
 uint8_t advI2P = 0;                     // ADV7280 I2P - interlace to progressive (per-slot)
 uint8_t advACE = 0;                     // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
-
-// ====================================================================================
-// Global Variables - Resolution Settings
-// ====================================================================================
-
-uint8_t keepSettings = 0;
-uint8_t tentativeResolution = 0;
 
 // ====================================================================================
 // Global Variables - Factory Reset

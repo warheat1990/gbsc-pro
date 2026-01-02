@@ -31,24 +31,6 @@ void OSD_renderMuteDisplay(bool muted)
 }
 
 // ====================================================================================
-// Resolution Countdown Display
-// ====================================================================================
-
-// Display resolution confirmation countdown timer on TV OSD
-void OSD_renderResolutionCountdown(uint8_t secondsRemaining)
-{
-    if (secondsRemaining >= 10) {
-        OSD_writeCharAtRow(2, 11, (secondsRemaining / 10) + '0');
-        OSD_writeCharAtRow(2, 12, (secondsRemaining % 10) + '0');
-        OSD_writeStringAtRow(2, 14, " s ");
-    } else {
-        OSD_writeCharAtRow(2, 12, ' ', OSD_BACKGROUND);  // Clear tens digit
-        OSD_writeCharAtRow(2, 11, secondsRemaining + '0');
-        OSD_writeStringAtRow(2, 13, " s ");
-    }
-}
-
-// ====================================================================================
 // Volume Display
 // ====================================================================================
 

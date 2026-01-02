@@ -105,34 +105,8 @@ void Menu_navigateTo(OLED_MenuState newItem) {
 }
 
 // ====================================================================================
-// IR Menu Timeout and Countdown Helpers (private)
+// IR Menu Timeout Helper (private)
 // ====================================================================================
-
-// Handle resolution confirmation countdown display
-static void IR_updateResolutionCountdown(void)
-{
-    if ((millis() - lastResolutionTime) < OSD_RESOLUTION_UP_TIME ||
-        oled_menuItem != OLED_RetainedSettings) {
-        return;
-    }
-
-    lastMenuItemTime = millis();
-    lastResolutionTime = millis();
-
-    uint8_t secondsRemaining = OSD_RESOLUTION_CLOSE_TIME / 1000 -
-                               ((lastResolutionTime - resolutionStartTime) / 1000);
-
-    // Display countdown timer (delegated to osd-misc.cpp)
-    OSD_renderResolutionCountdown(secondsRemaining);
-
-    // Countdown expired - apply resolution
-    if ((lastResolutionTime - resolutionStartTime) >= OSD_RESOLUTION_CLOSE_TIME) {
-        userCommand = IR_getResolutionCommand(tentativeResolution);
-        OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
-        OSD_handleCommand(OSD_CMD_OUTPUT_720_480);
-        oled_menuItem = OLED_OutputResolution_PassThrough;
-    }
-}
 
 // Handle menu timeout and cleanup
 static void IR_handleMenuTimeout(void)
@@ -222,9 +196,6 @@ void IR_handleMenuSelection(void)
         irDecodedFlag = 0;
         resetOLEDScreenSaverTimer();
     }
-
-    // Handle resolution confirmation countdown
-    IR_updateResolutionCountdown();
 
     // Handle menu timeout
     IR_handleMenuTimeout();

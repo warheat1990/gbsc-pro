@@ -26,8 +26,6 @@
 #define OSD_CLOSE_TIME 16000            // 16 sec
 #define OSD_MUTE_CLOSE_TIME 3000        // 3 sec (mute display timeout)
 #define OSD_VOLUME_CLOSE_TIME 3000      // 3 sec (volume adjustment timeout)
-#define OSD_RESOLUTION_UP_TIME 1000     // 1 sec
-#define OSD_RESOLUTION_CLOSE_TIME 20000 // 20 sec
 
 // ====================================================================================
 // Constants - Menu Rows
@@ -70,7 +68,6 @@ typedef enum : uint8_t {
     // Output Resolution
     OSD_CMD_OUTPUT_1080_1024_960,
     OSD_CMD_OUTPUT_720_480,
-    // OSD_CMD_OUTPUT_PASSTHROUGH,
 
     // Screen Settings
     OSD_CMD_SCREEN_PAGE1,
@@ -119,7 +116,6 @@ typedef enum : uint8_t {
     OSD_CMD_INPUT_PAGE1,
     OSD_CMD_INPUT_PAGE2,
     OSD_CMD_INPUT_PAGE2_VALUES,
-    OSD_CMD_INPUT_INFO,
     OSD_CMD_INPUT_SOURCE,
 
     // SV/AV Input Settings
@@ -179,7 +175,6 @@ void handle_Preferences_Page1_Values(void);
 
 void handle_OutputRes_1080_1024_960(void);
 void handle_OutputRes_720_480(void);
-// void handle_OutputRes_PassThrough(void);
 
 // ====================================================================================
 // Handler Function Declarations - Screen Settings
@@ -258,7 +253,6 @@ void handle_Profile_SlotRow1(void);
 void handle_InputMenu_Page1(void);
 void handle_InputMenu_Page2(void);
 void handle_InputMenu_Page2_Values(void);
-void handle_InputInfo(void);
 void handle_InfoDisplay_Source(void);
 
 // ====================================================================================
@@ -356,7 +350,6 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE1,        handle_InputMenu_Page1) \
     DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2,        handle_InputMenu_Page2) \
     DISPATCH_ENTRY(OSD_CMD_INPUT_PAGE2_VALUES, handle_InputMenu_Page2_Values) \
-    DISPATCH_ENTRY(OSD_CMD_INPUT_INFO,         handle_InputInfo) \
     DISPATCH_ENTRY(OSD_CMD_INPUT_SOURCE,       handle_InfoDisplay_Source) \
     \
     /* SV/AV Input Settings - Page 1 */ \
@@ -384,9 +377,6 @@ void OSD_handleCommand(OsdCommand cmd);
 
 // Render mute status on TV OSD (non-blocking, called each frame)
 void OSD_renderMuteDisplay(bool muted);
-
-// Display resolution confirmation countdown timer on TV OSD
-void OSD_renderResolutionCountdown(uint8_t secondsRemaining);
 
 // Display volume value on TV OSD (called during volume adjustment)
 void OSD_updateVolumeDisplay(uint8_t volumeValue);

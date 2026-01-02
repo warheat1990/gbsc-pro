@@ -44,13 +44,6 @@
 #define HV_Disable 0x01
 
 // ====================================================================================
-// Constants - Compatibility Mode
-// ====================================================================================
-
-#define COMPATIBILITY_OFF 0
-#define COMPATIBILITY_ON  1
-
-// ====================================================================================
 // Video Format Names
 // ====================================================================================
 
@@ -96,8 +89,6 @@ typedef enum {
     OLED_OutputResolution_960,
     OLED_OutputResolution_720,
     OLED_OutputResolution_480,
-    OLED_OutputResolution_PassThrough,
-    // OLED_OutputResolution_Downscale,  // disabled
 
     // Screen Settings submenu
     OLED_ScreenSettings_Move,
@@ -131,7 +122,6 @@ typedef enum {
     OLED_SystemSettings_LockMethod,
     OLED_SystemSettings_Deinterlace,
     OLED_SystemSettings_Compatibility,
-    // OLED_SystemSettings_ComponentVGA,  // disabled
 
     // SV/AV Input Settings submenu
     OLED_SystemSettings_SVAVInputSettings,
@@ -159,7 +149,6 @@ typedef enum {
     // Special screens
     OLED_Mute_Display,
     OLED_Volume_Adjust,
-    OLED_RetainedSettings,
     OLED_Info_Display,
     OLED_EnableOTA,
     OLED_Restart,

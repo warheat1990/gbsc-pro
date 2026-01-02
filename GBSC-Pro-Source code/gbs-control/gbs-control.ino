@@ -7341,6 +7341,9 @@ void loadDefaultUserOptions()
     uopt->disableExternalClockGenerator = 0; // #19
 
     // GBSC-Pro global settings (stored in uopt)
+    uopt->INPUT_presetPreference = MT_RGBs;       // Default: RGBs input
+    uopt->SETTING_presetPreference = MT_I2P_OFF;  // Default: I2P off
+    uopt->TVMODE_presetPreference = MT_MODE_AUTO; // Default: Auto TV mode
     uopt->volume = 38;              // Default: 38/50 (50=max, 0=mute)
     uopt->audioMuted = 0;           // Default: unmuted
     uopt->activeInputType = 1;      // Default: RGBs (InputTypeRGBs)
@@ -7349,8 +7352,6 @@ void loadDefaultUserOptions()
     uopt->bcshAdjustMode = 0;       // Default: 0
     uopt->advCompatibility = 0;     // Default: off
     uopt->osdTheme = 0;             // Default: Classic theme
-    // Note: advSmooth, advI2P, advBrightness, advContrast, advSaturation,
-    // gbsColorR, gbsColorG, gbsColorB have defaults in SlotMeta initialization
 }
 
 //RF_PRE_INIT() {
@@ -7694,6 +7695,18 @@ void setup()
                 uopt->disableExternalClockGenerator = 0;
 
             // Pro global settings from uopt
+            uopt->INPUT_presetPreference = (uint8_t)(f.read() - '0');
+            if (uopt->INPUT_presetPreference > MT_AV)
+                uopt->INPUT_presetPreference = MT_RGBs;
+
+            uopt->SETTING_presetPreference = (uint8_t)(f.read() - '0');
+            if (uopt->SETTING_presetPreference > MT_I2P_ON)
+                uopt->SETTING_presetPreference = MT_I2P_OFF;
+
+            uopt->TVMODE_presetPreference = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
+            if (uopt->TVMODE_presetPreference > MT_MODE_576I)
+                uopt->TVMODE_presetPreference = MT_MODE_AUTO;
+
             uopt->volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
             if (uopt->volume > 50)
                 uopt->volume = 38;
@@ -10734,6 +10747,10 @@ void saveUserPrefs()
     f.write(uopt->scanlineStrength + '0');              // #18
     f.write(uopt->disableExternalClockGenerator + '0'); // #19
     // Pro global settings (not per-slot)
+    f.write(uopt->INPUT_presetPreference + '0');
+    f.write(uopt->SETTING_presetPreference + '0');
+    f.write(uopt->TVMODE_presetPreference / 10 + '0');  // 0-11, needs 2 digits
+    f.write(uopt->TVMODE_presetPreference % 10 + '0');
     f.write(uopt->volume / 10 + '0');
     f.write(uopt->volume % 10 + '0');
     f.write(uopt->audioMuted + '0');
@@ -10745,8 +10762,6 @@ void saveUserPrefs()
     f.write(uopt->bcshAdjustMode + '0');
     f.write(uopt->advCompatibility + '0');
     f.write(uopt->osdTheme + '0');
-    // Note: advSmooth, advI2P, advBrightness, advContrast, advSaturation,
-    // gbsColorR, gbsColorG, gbsColorB are now stored per-slot in slots.bin
     f.close();
 }
 

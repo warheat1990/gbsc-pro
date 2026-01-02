@@ -114,8 +114,6 @@ extern unsigned long lastSignalTime;
 extern unsigned long lastSystemTime;
 extern unsigned long lastWebUpdateTime;
 extern unsigned long lastMenuItemTime;
-extern unsigned long lastResolutionTime;
-extern unsigned long resolutionStartTime;
 
 // ====================================================================================
 // External Variables - OLED Menu State
@@ -158,13 +156,6 @@ extern uint8_t avVideoFormatChanged;   // Flag: Composite format changed, needs 
 extern uint8_t advSmooth;              // ADV7280 smooth interpolation (per-slot)
 extern uint8_t advI2P;                 // ADV7280 I2P - interlace to progressive (per-slot)
 extern uint8_t advACE;                 // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
-
-// ====================================================================================
-// External Variables - Resolution Settings
-// ====================================================================================
-
-extern uint8_t keepSettings;
-extern uint8_t tentativeResolution;
 
 // ====================================================================================
 // External Variables - Factory Reset

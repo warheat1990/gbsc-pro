@@ -57,20 +57,6 @@ void handle_InputMenu_Page2_Values(void)
     }
 }
 
-void handle_InputInfo(void)
-{
-    // All rows normal (no selection highlight in info screen)
-    OSD_setMenuLineColors(0);
-    OSD_writeStringAtRow(1, 0, "Whether to keep the settings");
-    OSD_writeStringAtRow(2, 0, "Restore in ");
-
-    // Show checkmark on selected option (Changes or Recover)
-    OSD_writeCharAtRow(3, 2, arrow_right_icon, keepSettings ? OSD_TEXT_SELECTED : OSD_BACKGROUND);
-    OSD_writeStringAtRow(3, 3, "Changes");
-    OSD_writeCharAtRow(3, 13, arrow_right_icon, keepSettings ? OSD_BACKGROUND : OSD_TEXT_SELECTED);
-    OSD_writeStringAtRow(3, 0xFF, "    Recover");
-}
-
 void handle_InfoDisplay_Source(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
