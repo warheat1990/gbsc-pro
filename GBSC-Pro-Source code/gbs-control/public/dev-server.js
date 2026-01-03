@@ -293,6 +293,117 @@ const handleRequest = (req, res) => {
         return;
       }
 
+      // Handle ACE toggle
+      const a = parseInt(params.get('a'));
+      if (!isNaN(a)) {
+        if (a >= 0 && a <= 1) {
+          currentACE = a;
+          console.log(`  ├─ ⚡ Pro: Set ACE to ${a === 1 ? 'ON' : 'OFF'} (${a})`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Luma Gain (al parameter)
+      const al = parseInt(params.get('al'));
+      if (!isNaN(al)) {
+        if (al >= 0 && al <= 31) {
+          currentACELumaGain = al;
+          console.log(`  ├─ ⚡ Pro: Set ACE Luma Gain to ${al}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Chroma Gain (ac parameter)
+      const ac = parseInt(params.get('ac'));
+      if (!isNaN(ac)) {
+        if (ac >= 0 && ac <= 15) {
+          currentACEChromaGain = ac;
+          console.log(`  ├─ ⚡ Pro: Set ACE Chroma Gain to ${ac}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Chroma Max (am parameter)
+      const am = parseInt(params.get('am'));
+      if (!isNaN(am)) {
+        if (am >= 0 && am <= 15) {
+          currentACEChromaMax = am;
+          console.log(`  ├─ ⚡ Pro: Set ACE Chroma Max to ${am}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Gamma Gain (ag parameter)
+      const ag = parseInt(params.get('ag'));
+      if (!isNaN(ag)) {
+        if (ag >= 0 && ag <= 15) {
+          currentACEGammaGain = ag;
+          console.log(`  ├─ ⚡ Pro: Set ACE Gamma Gain to ${ag}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Response Speed (ar parameter)
+      const ar = parseInt(params.get('ar'));
+      if (!isNaN(ar)) {
+        if (ar >= 0 && ar <= 15) {
+          currentACEResponseSpeed = ar;
+          console.log(`  ├─ ⚡ Pro: Set ACE Response Speed to ${ar}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle ACE Defaults (ad parameter)
+      const ad = parseInt(params.get('ad'));
+      if (!isNaN(ad) && ad === 1) {
+        currentACELumaGain = 13;
+        currentACEChromaGain = 8;
+        currentACEChromaMax = 8;
+        currentACEGammaGain = 8;
+        currentACEResponseSpeed = 15;
+        console.log(`  ├─ ⚡ Pro: Reset ACE parameters to defaults`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
       // Handle ADV Controller - Custom I2C command
       const c = params.get('c');
       if (c) {
@@ -446,6 +557,39 @@ let currentFormat = 0; // 0-11: Auto, PAL, NTSC-M, PAL-60, NTSC443, NTSC-J, PAL-
 let current2X = 0; // 0=off, 1=on
 let currentSmooth = 0; // 0=off, 1=on
 let currentSharpness = 0; // 0=off, 1=on
+let currentACE = 0; // 0=off, 1=on
+let currentACELumaGain = 13; // 0-31, default 13 (0x0D)
+let currentACEChromaGain = 8; // 0-15, default 8
+let currentACEChromaMax = 8; // 0-15, default 8
+let currentACEGammaGain = 8; // 0-15, default 8
+let currentACEResponseSpeed = 15; // 0-15, default 15
+
+// Helper to convert value 0-31 to hex char (0-9, A-V)
+const toHexChar32 = (val) => {
+  if (val < 10) return String.fromCharCode(48 + val); // '0'-'9'
+  return String.fromCharCode(65 + val - 10); // 'A'-'V'
+};
+
+// Helper to convert value 0-15 to hex char (0-9, A-F)
+const toHexChar16 = (val) => {
+  if (val < 10) return String.fromCharCode(48 + val); // '0'-'9'
+  return String.fromCharCode(65 + val - 10); // 'A'-'F'
+};
+
+// Build Pro status message (12 chars)
+// Format: $[input][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+const buildProStatusMessage = () => {
+  let formatChar;
+  if (currentFormat <= 9) {
+    formatChar = String.fromCharCode(48 + currentFormat);
+  } else if (currentFormat === 10) {
+    formatChar = 'A';
+  } else {
+    formatChar = 'B';
+  }
+
+  return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}${toHexChar16(currentACEResponseSpeed)}`;
+};
 
 // Broadcast status to all connected WebSocket clients
 const broadcastStatus = () => {
@@ -453,17 +597,7 @@ const broadcastStatus = () => {
     if (client.readyState === 1) { // OPEN
       const statusMessage = `#${currentPreset}${currentSlot}${String.fromCharCode(optionByte0)}${String.fromCharCode(optionByte1)}${String.fromCharCode(optionByte2)}`;
       client.send(statusMessage);
-
-      let formatChar;
-      if (currentFormat <= 9) {
-        formatChar = String.fromCharCode(48 + currentFormat);
-      } else if (currentFormat === 10) {
-        formatChar = 'A';
-      } else {
-        formatChar = 'B';
-      }
-
-      client.send(`$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}`);
+      client.send(buildProStatusMessage());
     }
   });
 };
@@ -480,22 +614,12 @@ wss.on('connection', (ws) => {
       console.log(`[${ts}] 📤 WS → Status: Preset=${currentPreset}, Slot=${currentSlot}, Options=[${optionByte0.toString(16)},${optionByte1.toString(16)},${optionByte2.toString(16)}]`);
       ws.send(statusMessage);
 
-      // Pro status: 5 bytes - $[inputType][format][2x][smooth]
+      // Pro status: 12 chars - $[input][format][2x][smooth][sharpness][ace][luma][chroma][chromamax][gamma][response]
       const inputNames = ['', 'RGBs', 'RGsB', 'VGA', 'YPbPr', 'S-Video', 'Composite'];
       const formatNames = ['Auto', 'PAL', 'NTSC-M', 'PAL-60', 'NTSC443', 'NTSC-J', 'PAL-N w/ p', 'PAL-M w/o p', 'PAL-M', 'PAL Cmb -N', 'PAL Cmb -N w/ p', 'SECAM'];
 
-      // Format encoding: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'
-      let formatChar;
-      if (currentFormat <= 9) {
-        formatChar = String.fromCharCode(48 + currentFormat); // '0' + offset
-      } else if (currentFormat === 10) {
-        formatChar = 'A';
-      } else {
-        formatChar = 'B';
-      }
-
-      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}, Sharpness=${currentSharpness ? 'ON' : 'OFF'}`);
-      ws.send(`$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}`);
+      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}, Sharpness=${currentSharpness ? 'ON' : 'OFF'}, ACE=${currentACE ? 'ON' : 'OFF'}, LumaGain=${currentACELumaGain}, ChromaGain=${currentACEChromaGain}, ChromaMax=${currentACEChromaMax}, GammaGain=${currentACEGammaGain}, ResponseSpeed=${currentACEResponseSpeed}`);
+      ws.send(buildProStatusMessage());
     }
   };
 

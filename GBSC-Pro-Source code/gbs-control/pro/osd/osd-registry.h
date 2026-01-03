@@ -126,6 +126,14 @@ typedef enum : uint8_t {
     OSD_CMD_SVAVINPUT_PAGE3,
     OSD_CMD_SVAVINPUT_PAGE3_VALUES,
 
+    // ACE Settings (submenu inside SV/AV Settings)
+    OSD_CMD_ACE_PAGE1,
+    OSD_CMD_ACE_PAGE1_VALUES,
+    OSD_CMD_ACE_PAGE2,
+    OSD_CMD_ACE_PAGE2_VALUES,
+    OSD_CMD_ACE_PAGE3,
+    OSD_CMD_ACE_PAGE3_VALUES,
+
     // Firmware Version
     OSD_CMD_FIRMWARE_VERSION,
 
@@ -220,6 +228,17 @@ void handle_SVAVInput_Page2(void);
 void handle_SVAVInput_Page2_Values(void);
 void handle_SVAVInput_Page3(void);
 void handle_SVAVInput_Page3_Values(void);
+
+// ====================================================================================
+// Handler Function Declarations - ACE Settings (submenu inside SV/AV)
+// ====================================================================================
+
+void handle_ACE_Page1(void);
+void handle_ACE_Page1_Values(void);
+void handle_ACE_Page2(void);
+void handle_ACE_Page2_Values(void);
+void handle_ACE_Page3(void);
+void handle_ACE_Page3_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Developer
@@ -355,6 +374,14 @@ void handle_FactoryResetConfirm(void);
     /* SV/AV Input Settings - Page 1 */ \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1,        handle_SVAVInput_Page1) \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE1_VALUES, handle_SVAVInput_Page1_Values) \
+    \
+    /* ACE Settings (submenu inside SV/AV) */ \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE1,        handle_ACE_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE1_VALUES, handle_ACE_Page1_Values) \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE2,        handle_ACE_Page2) \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE2_VALUES, handle_ACE_Page2_Values) \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE3,        handle_ACE_Page3) \
+    DISPATCH_ENTRY(OSD_CMD_ACE_PAGE3_VALUES, handle_ACE_Page3_Values) \
     \
     /* Firmware Version */ \
     DISPATCH_ENTRY(OSD_CMD_FIRMWARE_VERSION, handle_FirmwareVersion) \

@@ -137,25 +137,11 @@ extern uint16_t horizontalBlankStart;
 extern uint16_t horizontalBlankStop;
 
 // ====================================================================================
-// External Variables - Picture Settings (per-slot, stored in SlotMeta)
-// ====================================================================================
-
-extern uint8_t gbsColorR;        // GBS TV5725 color balance R (0-255, default 128)
-extern uint8_t gbsColorG;        // GBS TV5725 color balance G (0-255, default 128)
-extern uint8_t gbsColorB;        // GBS TV5725 color balance B (0-255, default 128)
-extern uint8_t advBrightness;    // ADV7280 brightness (0-255, default 128)
-extern uint8_t advContrast;      // ADV7280 contrast (0-255, default 128)
-extern uint8_t advSaturation;    // ADV7280 saturation (0-255, default 128)
-
-// ====================================================================================
-// External Variables - Video Mode Options
+// External Variables - Video Mode Flags
 // ====================================================================================
 
 extern uint8_t svVideoFormatChanged;   // Flag: S-Video format changed, needs ADV update
 extern uint8_t avVideoFormatChanged;   // Flag: Composite format changed, needs ADV update
-extern uint8_t advSmooth;              // ADV7280 smooth interpolation (per-slot)
-extern uint8_t advI2P;                 // ADV7280 I2P - interlace to progressive (per-slot)
-extern uint8_t advACE;                 // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
 
 // ====================================================================================
 // External Variables - Factory Reset
@@ -177,6 +163,15 @@ void ADV_sendBCSH(unsigned char reg, unsigned char val);
 void ADV_sendCustomI2C(const unsigned char* data, size_t size);
 void ADV_applyPendingOptions(void);
 void ADV_applySlotSettings(void);
+
+// ACE parameter functions
+void ADV_sendACELumaGain(uint8_t gain);
+void ADV_sendACEChromaGain(uint8_t gain);
+void ADV_sendACEChromaMax(uint8_t max);
+void ADV_sendACEGammaGain(uint8_t gain);
+void ADV_sendACEResponseSpeed(uint8_t speed);
+void ADV_sendACEDefaults(void);
+void ADV_sendACEParams(void);
 
 // ====================================================================================
 // Function Declarations - Input Source Switching

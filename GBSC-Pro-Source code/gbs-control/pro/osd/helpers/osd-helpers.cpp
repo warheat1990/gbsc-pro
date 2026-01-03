@@ -50,17 +50,6 @@ void OSD_setMenuLineColors(uint8_t selectedLine) {
     }
 }
 
-// Set menu line colors with custom color for a specific line
-void OSD_setMenuLineColorsCustom(uint8_t selectedLine, uint8_t customRow, uint8_t customColor) {
-    OSD_setMenuLineColors(selectedLine);
-    if (customRow >= 1 && customRow <= OSD_MAX_MENU_ROWS) {
-        if (customRow == selectedLine && customColor != OSD_TEXT_DISABLED) {
-            return;
-        }
-        menuLineColors[customRow - 1] = customColor;
-    }
-}
-
 // ====================================================================================
 // Page Navigation Icons
 // ====================================================================================

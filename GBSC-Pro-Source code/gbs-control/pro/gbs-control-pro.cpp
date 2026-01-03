@@ -96,25 +96,11 @@ uint16_t horizontalBlankStart = 0;
 uint16_t horizontalBlankStop = 0;
 
 // ====================================================================================
-// Global Variables - Picture Settings (per-slot, stored in SlotMeta)
-// ====================================================================================
-
-uint8_t gbsColorR = 128;       // GBS TV5725 color balance R
-uint8_t gbsColorG = 128;       // GBS TV5725 color balance G
-uint8_t gbsColorB = 128;       // GBS TV5725 color balance B
-uint8_t advBrightness = 128;   // ADV7280 brightness
-uint8_t advContrast = 128;     // ADV7280 contrast
-uint8_t advSaturation = 128;   // ADV7280 saturation
-
-// ====================================================================================
-// Global Variables - Video Mode Options
+// Global Variables - Video Mode Flags (runtime only, not persisted)
 // ====================================================================================
 
 uint8_t svVideoFormatChanged = 0;       // Flag: S-Video format changed, needs ADV update
 uint8_t avVideoFormatChanged = 0;       // Flag: Composite format changed, needs ADV update
-uint8_t advSmooth = 0;                  // ADV7280 smooth interpolation (per-slot)
-uint8_t advI2P = 0;                     // ADV7280 I2P - interlace to progressive (per-slot)
-uint8_t advACE = 0;                     // ADV7280 ACE - Adaptive Contrast Enhancement (per-slot)
 
 // ====================================================================================
 // Global Variables - Factory Reset
@@ -131,37 +117,28 @@ static ADVController advController;
 // ====================================================================================
 // ADV Packet Wrappers
 // ====================================================================================
-
-// Send packet only (no save)
-static void ADV_send(const unsigned char* packet) {
-    advController.send(packet);
-}
-
-// Send packet and save preferences
-static void ADV_sendAndSave(const unsigned char* packet) {
-    advController.send(packet);
-    saveUserPrefs();
-}
+// ADV Command Functions
+// ====================================================================================
 
 void ADV_sendI2P(bool enable) {
-    ADV_sendAndSave(enable ? ADV_I2P_On : ADV_I2P_Off);
+    advController.send(enable ? ADV_I2P_On : ADV_I2P_Off);
 }
 
 void ADV_sendSmooth(bool enable) {
-    ADV_sendAndSave(enable ? ADV_Smooth_On : ADV_Smooth_Off);
+    advController.send(enable ? ADV_Smooth_On : ADV_Smooth_Off);
 }
 
 void ADV_sendCompatibility(bool mode) {
-    ADV_sendAndSave(mode ? ADV_Compatibility_Off : ADV_Compatibility_On);
+    advController.send(mode ? ADV_Compatibility_Off : ADV_Compatibility_On);
 }
 
 void ADV_sendACE(bool enable) {
-    ADV_sendAndSave(enable ? ADV_ACE_On : ADV_ACE_Off);
+    advController.send(enable ? ADV_ACE_On : ADV_ACE_Off);
 }
 
 void ADV_sendVideoFormat(uint8_t format) {
     unsigned char packet[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_TVMODE, format};
-    ADV_sendAndSave(packet);
+    advController.send(packet);
 }
 
 void ADV_sendBCSH(unsigned char reg, unsigned char val) {
@@ -170,6 +147,47 @@ void ADV_sendBCSH(unsigned char reg, unsigned char val) {
 
 void ADV_sendCustomI2C(const unsigned char* data, size_t size) {
     advController.sendCustomI2C(data, size);
+}
+
+// ====================================================================================
+// ACE Parameter Functions
+// ====================================================================================
+
+void ADV_sendACELumaGain(uint8_t gain) {
+    advController.writeReg(ADV_ACE_Param, ADV_ACE_LUMA_GAIN, gain);
+}
+
+void ADV_sendACEChromaGain(uint8_t gain) {
+    advController.writeReg(ADV_ACE_Param, ADV_ACE_CHROMA_GAIN, gain);
+}
+
+void ADV_sendACEChromaMax(uint8_t max) {
+    advController.writeReg(ADV_ACE_Param, ADV_ACE_CHROMA_MAX, max);
+}
+
+void ADV_sendACEGammaGain(uint8_t gain) {
+    advController.writeReg(ADV_ACE_Param, ADV_ACE_GAMMA_GAIN, gain);
+}
+
+void ADV_sendACEResponseSpeed(uint8_t speed) {
+    advController.writeReg(ADV_ACE_Param, ADV_ACE_RESPONSE_SPEED, speed);
+}
+
+void ADV_sendACEDefaults(void) {
+    advController.send(ADV_ACE_Defaults);
+    uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
+    uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
+    uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
+    uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
+    uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
+}
+
+void ADV_sendACEParams(void) {
+    ADV_sendACELumaGain(uopt->advACELumaGain);
+    ADV_sendACEChromaGain(uopt->advACEChromaGain);
+    ADV_sendACEChromaMax(uopt->advACEChromaMax);
+    ADV_sendACEGammaGain(uopt->advACEGammaGain);
+    ADV_sendACEResponseSpeed(uopt->advACEResponseSpeed);
 }
 
 // Apply video format option with bounds checking
@@ -185,19 +203,21 @@ static bool ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
     return false;
 }
 
-// Apply per-slot ADV settings (line double, smooth, BCSH)
-// These are loaded from SlotMeta and stored in global variables
+// Apply per-slot ADV settings (I2P, Smooth, ACE, BCSH)
+// These are loaded from SlotMeta and stored in uopt
 // Only applies when input is SV or AV (ADV7280 is only used for these inputs)
 void ADV_applySlotSettings(void) {
     if (uopt->activeInputType != InputTypeSV && uopt->activeInputType != InputTypeAV) {
         return;  // ADV7280 not in use for this input type
     }
-    ADV_send(advI2P ? ADV_I2P_On : ADV_I2P_Off);
-    ADV_send(advSmooth ? ADV_Smooth_On : ADV_Smooth_Off);
-    ADV_send(advACE ? ADV_ACE_On : ADV_ACE_Off);
-    advController.writeReg(ADV_BCSH, 0x0A, advBrightness - 128);
-    advController.writeReg(ADV_BCSH, 0x08, advContrast);
-    advController.writeReg(ADV_BCSH, 0xE3, advSaturation);
+    ADV_sendI2P(uopt->advI2P);
+    ADV_sendSmooth(uopt->advSmooth);
+    ADV_sendACE(uopt->advACE);
+    advController.writeReg(ADV_BCSH, 0x0A, uopt->advBrightness - 128);
+    advController.writeReg(ADV_BCSH, 0x08, uopt->advContrast);
+    advController.writeReg(ADV_BCSH, 0xE3, uopt->advSaturation);
+    // Apply ACE parameters
+    ADV_sendACEParams();
 }
 
 void ADV_applyPendingOptions(void)
@@ -253,11 +273,15 @@ static const InputConfig inputConfigs[] = {
 // Unified input switching function
 // mode: -1 = use send(), >= 0 = use sendWithMode(mode)
 static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
+    // SV/AV inputs trigger ADV_Init() on HC32, need longer delay (300ms)
+    // Other inputs use default 25ms delay
+    uint16_t delayMs = (cfg.type == InputTypeSV || cfg.type == InputTypeAV) ? 300 : ADV_PACKET_DELAY_MS;
+
     // Send packet to ADV
     if (mode < 0) {
-        advController.send(cfg.packet);
+        advController.send(cfg.packet, delayMs);
     } else {
-        advController.sendWithMode(cfg.packet, mode);
+        advController.sendWithMode(cfg.packet, mode, delayMs);
     }
 
     // Set input state (using uopt->activeInputType)
@@ -281,12 +305,13 @@ static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
     }
 
     // Reset colors to defaults for input type (RGB vs YUV/Component)
+    // YUV/Component defaults (129,123,132) produce Y=-2, U=3, V=3 matching applyYuvPatches()
     if (cfg.bcshMode == 0) {
-        gbsColorR = gbsColorG = gbsColorB = 128;
+        uopt->gbsColorR = uopt->gbsColorG = uopt->gbsColorB = 128;
     } else {
-        gbsColorR = 146;
-        gbsColorG = 138;
-        gbsColorB = 148;
+        uopt->gbsColorR = 129;
+        uopt->gbsColorG = 123;
+        uopt->gbsColorB = 132;
     }
     applyRGBtoYUVConversion();
 
@@ -351,8 +376,9 @@ void applySavedInputSource(void) {
     const InputConfig& cfg = inputConfigs[cfgIndex];
 
     // SV/AV need ADV packet at boot (ADV controller needs to know input type)
+    // Use 300ms delay because SV/AV trigger ADV_Init() on HC32
     if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
-        advController.send(cfg.packet);
+        advController.send(cfg.packet, 300);
     }
 
     applyInputHardwareConfig(cfg);
@@ -372,9 +398,9 @@ void resetOLEDScreenSaverTimer() {
 
 void applyRGBtoYUVConversion(void)
 {
-    int r = gbsColorR - 128;
-    int g = gbsColorG - 128;
-    int b = gbsColorB - 128;
+    int r = uopt->gbsColorR - 128;
+    int g = uopt->gbsColorG - 128;
+    int b = uopt->gbsColorB - 128;
 
     GBS::VDS_Y_OFST::write(constrain(0.299f * r + 0.587f * g + 0.114f * b, -128, 127));
     GBS::VDS_U_OFST::write(constrain(-0.14713f * r - 0.28886f * g + 0.436f * b, -128, 127));
@@ -387,9 +413,9 @@ void readYUVtoRGBConversion(void)
     int8_t u = (int8_t)GBS::VDS_U_OFST::read();
     int8_t v = (int8_t)GBS::VDS_V_OFST::read();
 
-    gbsColorR = constrain(y + 1.13983f * v + 128, 0, 255);
-    gbsColorG = constrain(y - 0.39465f * u - 0.58060f * v + 128, 0, 255);
-    gbsColorB = constrain(y + 2.03211f * u + 128, 0, 255);
+    uopt->gbsColorR = constrain(y + 1.13983f * v + 128, 0, 255);
+    uopt->gbsColorG = constrain(y - 0.39465f * u - 0.58060f * v + 128, 0, 255);
+    uopt->gbsColorB = constrain(y + 2.03211f * u + 128, 0, 255);
 }
 
 // ====================================================================================
@@ -445,9 +471,24 @@ bool isPeakingLocked(void) {
     return (GBS::VDS_PK_LB_GAIN::read() != 0x16);
 }
 
+// Helper to convert value 0-31 to hex char (0-9, A-V)
+static char toHexChar32(uint8_t val) {
+    if (val < 10) return '0' + val;
+    return 'A' + (val - 10);
+}
+
+// Helper to convert value 0-15 to hex char (0-9, A-F)
+static char toHexChar16(uint8_t val) {
+    if (val < 10) return '0' + val;
+    return 'A' + (val - 10);
+}
+
 void broadcastProStatus(WebSocketsServer& ws)
 {
-    constexpr size_t MESSAGE_LEN = 7;
+    // Extended message format:
+    // $[input][format][i2p][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+    // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
+    constexpr size_t MESSAGE_LEN = 12;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -471,10 +512,17 @@ void broadcastProStatus(WebSocketsServer& ws)
         buffer[2] = 'B';
     }
 
-    buffer[3] = '0' + (advI2P ? 1 : 0);
-    buffer[4] = '0' + (advSmooth ? 1 : 0);
+    buffer[3] = '0' + (uopt->advI2P ? 1 : 0);
+    buffer[4] = '0' + (uopt->advSmooth ? 1 : 0);
     buffer[5] = isPeakingLocked() ? '1' : '0';
-    buffer[6] = '0' + (advACE ? 1 : 0);
+    buffer[6] = '0' + (uopt->advACE ? 1 : 0);
+
+    // ACE parameters (hex encoded)
+    buffer[7] = toHexChar32(uopt->advACELumaGain);       // 0-31 -> '0'-'9','A'-'V'
+    buffer[8] = toHexChar16(uopt->advACEChromaGain);     // 0-15 -> '0'-'9','A'-'F'
+    buffer[9] = toHexChar16(uopt->advACEChromaMax);      // 0-15 -> '0'-'9','A'-'F'
+    buffer[10] = toHexChar16(uopt->advACEGammaGain);    // 0-15 -> '0'-'9','A'-'F'
+    buffer[11] = toHexChar16(uopt->advACEResponseSpeed); // 0-15 -> '0'-'9','A'-'F'
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

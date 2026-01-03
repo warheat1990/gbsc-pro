@@ -50,6 +50,22 @@ void ADV_SetBCSH(void);
 void ADV_SetOutput(uint8_t output);
 void ADV_SetACE(uint8_t ace);
 
+/* ACE (Adaptive Contrast Enhancement) parameter variables */
+extern uint8_t AceLumaGain;      /* 0-31, default 13 (0x0D) */
+extern uint8_t AceChromaGain;    /* 0-15, default 8 */
+extern uint8_t AceChromaMax;     /* 0-15, default 8 */
+extern uint8_t AceGammaGain;     /* 0-15, default 8 */
+extern uint8_t AceResponseSpeed; /* 0-15, default 15 */
+
+/* ACE (Adaptive Contrast Enhancement) parameter controls */
+void ADV_SetACELumaGain(uint8_t gain);       /* 0-31, default 13 (0x0D) */
+void ADV_SetACEChromaGain(uint8_t gain);     /* 0-15, default 8 */
+void ADV_SetACEChromaMax(uint8_t max);       /* 0-15, default 8 */
+void ADV_SetACEGammaGain(uint8_t gain);      /* 0-15, default 8 */
+void ADV_SetACEResponseSpeed(uint8_t speed); /* 0-15, default 15 */
+void ADV_SetACEParams(void);                 /* Apply all ACE parameters */
+void ADV_SetACEDefaults(void);               /* Reset ACE parameters to defaults */
+
 /* Detection and monitoring */
 void ADV_ReadKeyChange(void);
 void ADV_DetectLoop(void);

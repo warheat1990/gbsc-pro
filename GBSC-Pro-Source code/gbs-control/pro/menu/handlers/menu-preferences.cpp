@@ -113,6 +113,7 @@ bool IR_handlePreferencesMenu()
                     case IR_KEY_EXIT:
                         IR_clearRepeatKey();
                         Menu_navigateTo(OLED_Preferences);
+                        saveUserPrefs();
                         break;
                     default:
                         IR_clearRepeatKey();

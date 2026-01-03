@@ -117,7 +117,7 @@ int main(void)
     // Main loop
     for (;;)
     {
-        ADVCLI_Task();
+        UART_ProcessCommand();
 
         if (g_u16_sys_timer >= SYS_TIMEOUT_100MS)
         {
@@ -126,17 +126,13 @@ int main(void)
             g_u16_sys_timer = 0;
         }
 
-        if (g_u16_key_timer >= SYS_TIMEOUT_50MS)
-        {
-            UART_ProcessCommand();
-            g_u16_key_timer = 0;
-        }
-
         if (g_u16_mis_timer >= SYS_TIMEOUT_100MS)
         {
             LED_UpdateState();
             g_u16_mis_timer = 0;
         }
+
+        ADVCLI_Task();
 
         if (g_u16_osd_timer >= SYS_TIMEOUT_500MS)
         {

@@ -181,6 +181,7 @@ void IR_handleMenuSelection(void)
     IR_handleColorSettings() ||
     IR_handleSystemSettings() ||
     IR_handleADVSettings() ||
+    IR_handleACESettings() ||
     IR_handlePreferencesMenu() ||
     IR_handleDeveloperMenu() ||
     IR_handleInputSelection() ||
@@ -479,21 +480,21 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
 
     switch (preset) {
         case SETTING_PresetPreference::MT_I2P_OFF:
-            advI2P = 0;
-            advSmooth = 0;  // Smooth requires I2P
+            uopt->advI2P = 0;
+            uopt->advSmooth = 0;  // Smooth requires I2P
             ADV_sendI2P(false);
             break;
         case SETTING_PresetPreference::MT_I2P_ON:
-            advI2P = 1;
+            uopt->advI2P = 1;
             ADV_sendI2P(true);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_OFF:
-            advSmooth = 0;
+            uopt->advSmooth = 0;
             ADV_sendSmooth(false);
             break;
         case SETTING_PresetPreference::MT_SMOOTH_ON:
-            if (advI2P) {  // Smooth only works with I2P enabled
-                advSmooth = 1;
+            if (uopt->advI2P) {  // Smooth only works with I2P enabled
+                uopt->advSmooth = 1;
                 ADV_sendSmooth(true);
             }
             break;
@@ -506,17 +507,18 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
             ADV_sendCompatibility(uopt->advCompatibility);
             break;
         case SETTING_PresetPreference::MT_ACE_OFF:
-            advACE = 0;
+            uopt->advACE = 0;
             ADV_sendACE(false);
             break;
         case SETTING_PresetPreference::MT_ACE_ON:
-            advACE = 1;
+            uopt->advACE = 1;
             ADV_sendACE(true);
             break;
         default:
             break;
     }
 
+    saveUserPrefs();
     return false;
 }
 

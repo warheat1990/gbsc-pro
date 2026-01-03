@@ -31,6 +31,11 @@
 #define ADV_END_MARKER      0xFE
 #define ADV_PACKET_SIZE     7
 
+// Delay after packet transmission for HC32 DMA processing
+// HC32 uses USART_TIMEOUT_BITS = 250 (~6.7ms timeout) to detect frame end
+// 35ms provides margin for timeout + command processing + I2C operations
+#define ADV_PACKET_DELAY_MS 35
+
 // Command bytes
 #define ADV_CMD_SOURCE      'S'   // Input source / line mode / smooth / compatibility
 #define ADV_CMD_TVMODE      'T'   // TV mode (video format)
@@ -63,6 +68,30 @@ static const unsigned char ADV_Compatibility_Off[4] = {ADV_HEADER_0, ADV_HEADER_
 static const unsigned char ADV_ACE_On[4]            = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x80};
 static const unsigned char ADV_ACE_Off[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x81};
 static const unsigned char ADV_BCSH[4]              = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_BCSH, 0x00};
+
+// ====================================================================================
+// ACE (Adaptive Contrast Enhancement) Parameter Commands
+// Uses 'S' command with sub-commands 0x82-0x87
+// Data byte in packet[4] contains the parameter value
+// ====================================================================================
+
+#define ADV_ACE_LUMA_GAIN       0x82  // Set Luma Gain (0-31), value in packet[4]
+#define ADV_ACE_CHROMA_GAIN     0x83  // Set Chroma Gain (0-15), value in packet[4]
+#define ADV_ACE_CHROMA_MAX      0x84  // Set Chroma Max (0-15), value in packet[4]
+#define ADV_ACE_GAMMA_GAIN      0x85  // Set Gamma Gain (0-15), value in packet[4]
+#define ADV_ACE_RESPONSE_SPEED  0x86  // Set Response Speed (0-15), value in packet[4]
+#define ADV_ACE_DEFAULTS        0x87  // Reset ACE parameters to defaults
+
+// ACE parameter default values (from ADV7280 User Sub Map 2)
+#define ADV_ACE_LUMA_GAIN_DEFAULT       13  // 0x0D
+#define ADV_ACE_CHROMA_GAIN_DEFAULT     8
+#define ADV_ACE_CHROMA_MAX_DEFAULT      8
+#define ADV_ACE_GAMMA_GAIN_DEFAULT      8
+#define ADV_ACE_RESPONSE_SPEED_DEFAULT  15  // 0x0F
+
+// Packet templates for ACE parameters (use writeReg to fill value)
+static const unsigned char ADV_ACE_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x00};
+static const unsigned char ADV_ACE_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_ACE_DEFAULTS};
 
 // ====================================================================================
 // Video Format Mapping Table
@@ -129,10 +158,11 @@ public:
     /**
      * @brief Send a standard 4-byte command packet
      * @param buff 4-byte base packet [header0, header1, cmd, data]
+     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [buff[0..3]] [random] [0xFE] [checksum]
      */
-    void send(const unsigned char* buff) {
+    void send(const unsigned char* buff, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
         unsigned char packet[ADV_PACKET_SIZE];
         packet[0] = buff[0];
         packet[1] = buff[1];
@@ -142,18 +172,20 @@ public:
         packet[5] = ADV_END_MARKER;
         packet[6] = packet[0] + packet[1] + packet[2] + packet[3] + packet[4] + packet[5];
         m_serial.write(packet, ADV_PACKET_SIZE);
+        delay(delayMs);
     }
 
     /**
      * @brief Send command with mode bits merged into data byte
      * @param buff 4-byte base packet
      * @param mode Mode value (lower 4 bits OR'd into buff[3])
+     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      */
-    void sendWithMode(const unsigned char* buff, uint8_t mode) {
+    void sendWithMode(const unsigned char* buff, uint8_t mode, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
         unsigned char packet[4];
         memcpy(packet, buff, 4);
         packet[3] |= (mode & 0x0F);
-        send(packet);
+        send(packet, delayMs);
     }
 
     /**
@@ -161,10 +193,11 @@ public:
      * @param buff 4-byte base packet (buff[2] = command, buff[3] ignored)
      * @param reg Target register address
      * @param val Value to write
+     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [header0, header1, cmd, reg, val, 0xFE, checksum]
      */
-    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
+    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
         unsigned char packet[ADV_PACKET_SIZE];
         packet[0] = buff[0];
         packet[1] = buff[1];
@@ -176,17 +209,19 @@ public:
         for (int i = 0; i < 6; ++i) sum += packet[i];
         packet[6] = sum;
         m_serial.write(packet, ADV_PACKET_SIZE);
+        delay(delayMs);
     }
 
     /**
      * @brief Send custom I2C batch command
      * @param data Array of I2C triplets [addr, reg, val, addr, reg, val, ...]
      * @param size Total bytes (must be multiple of 3)
+     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [header0, header1, 'C', count, triplets..., 0xFE, checksum]
      * Each triplet: [I2C_addr, register, value]
      */
-    void sendCustomI2C(const unsigned char* data, size_t size) {
+    void sendCustomI2C(const unsigned char* data, size_t size, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
         if (size == 0 || size % 3 != 0) return;
 
         uint8_t count = size / 3;
@@ -207,6 +242,7 @@ public:
         sum += ADV_END_MARKER;
 
         m_serial.write(sum);
+        delay(delayMs);
     }
 
 private:

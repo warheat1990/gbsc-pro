@@ -7,10 +7,11 @@
  *******************************************************************************
  */
 
-#include "uart_dma.h"
 #include "main.h"
+#include "uart_dma.h"
 #include "flash.h"
 
+__IO en_flag_status_t m_enRxFrameEnd;
 uint8_t dma_au8RxBuf[APP_FRAME_LEN_MAX];
 
 static void RX_DMA_TC_IrqCallback(void)
@@ -153,6 +154,16 @@ void TMR0_Config(uint16_t u16TimeoutBits)
 
 void USART_RxTimeout_IrqCallback(void)
 {
+    /* Get remaining transfer count to calculate received bytes */
+    uint16_t remaining = DMA_GetTransCount(RX_DMA_UNIT, RX_DMA_CH);
+    uint16_t received = APP_FRAME_LEN_MAX - remaining;
+
+    printf("[RX %d] ", received);
+    for (uint16_t i = 0; i < received && i < APP_FRAME_LEN_MAX; i++) {
+        printf("%02X ", dma_au8RxBuf[i]);
+    }
+    printf("\n");
+
     if (m_enRxFrameEnd != SET)
     {
         m_enRxFrameEnd = SET;
@@ -226,6 +237,20 @@ void UART_DMA_Init(void)
     NVIC_EnableIRQ(stcIrqSigninConfig.enIRQn);
 
     TMR0_Config(USART_TIMEOUT_BITS);
+
+    /* Wait for ESP8266 bootloader garbage to finish (~100ms at 74880 baud) */
+    DDL_DelayMS(150);
+
+    /* Clear any pending errors and data from bootloader garbage */
+    USART_ClearStatus(USART_UNIT, USART_FLAG_OVERRUN | USART_FLAG_FRAME_ERR | USART_FLAG_PARITY_ERR);
+    (void)USART_ReadData(USART_UNIT);  /* Flush RX data register */
+
+    /* Reset DMA buffer and state */
+    memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
+    m_enRxFrameEnd = RESET;
+    AOS_SW_Trigger();  /* Reset DMA to buffer start */
+
+    /* Now enable RX - clean start after bootloader garbage */
     USART_FuncCmd(USART_UNIT, (USART_RX | USART_INT_RX | USART_RX_TIMEOUT | USART_INT_RX_TIMEOUT), ENABLE);
 }
 
@@ -261,7 +286,7 @@ static void UART_SetVideoMode(const uint8_t mode_byte)
         adv_tv  = video_modes[mode - 1].reg;
         buff[1] = adv_tv;
         (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
-        printf("%s\n", video_modes[mode - 1].name);
+        printf("[ADV] %s\n", video_modes[mode - 1].name);
         c_state = 1;
     }
     else
@@ -269,7 +294,7 @@ static void UART_SetVideoMode(const uint8_t mode_byte)
         adv_tv  = 0x04;
         buff[1] = adv_tv;
         (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
-        printf("Err Default Auto\n");
+        printf("[ADV] Err Default Auto\n");
         c_state = 2;
     }
 }
@@ -317,12 +342,12 @@ void UART_ProcessCommand(void)
                 {
                     uint8_t *i2c_data = &dma_au8RxBuf[4];
                     (void)I2C_TransmitBatch(i2c_data, count, TIMEOUT);
-                    printf("Custom I2C: %d cmds\n", count);
+                    printf("[ADV] Custom I2C: %d cmds\n", count);
                     c_state = 1;
                 }
                 else
                 {
-                    printf("Custom I2C: chksum err\n");
+                    printf("[ADV] Custom I2C: chksum err\n");
                 }
             }
             m_enRxFrameEnd = RESET;
@@ -348,7 +373,7 @@ void UART_ProcessCommand(void)
                 buff[0] = VID_SEL_REG;
                 buff[1] = adv_tv;
                 (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
-                printf("Tv 0x%02x\n", adv_tv);
+                printf("[ADV] Tv 0x%02x\n", adv_tv);
                 c_state = 1;
             }
             else if (dma_au8RxBuf[2] == 'N' && (dma_au8RxBuf[3] == 0x0a || dma_au8RxBuf[3] == 0x08 ||
@@ -368,12 +393,12 @@ void UART_ProcessCommand(void)
                     Saturation = 0x80;
 
                     (void)I2C_TransmitBatch(I2C_DEFAULT_BCSH, sizeof(I2C_DEFAULT_BCSH) / 3, TIMEOUT);
-                    printf("bcsh: default \n");
+                    printf("[ADV] bcsh: default\n");
                 }
                 else
                 {
                     (void)I2C_Transmit(DEVICE_ADDR, &dma_au8RxBuf[3], 2, TIMEOUT);
-                    printf("bcsh: 0x%02x \n", dma_au8RxBuf[4]);
+                    printf("[ADV] bcsh: 0x%02x\n", dma_au8RxBuf[4]);
                     if (dma_au8RxBuf[3] == 0x0a)
                         Bright = dma_au8RxBuf[4];
                     else if (dma_au8RxBuf[3] == 0x08)
@@ -415,7 +440,7 @@ void UART_ProcessCommand(void)
                     ADV_Init();
                     Input_signal = 5;
                     FLASH_SaveSettings();
-                    printf("mode 0x%02x ", dma_au8RxBuf[3]);
+                    printf("[ADV] mode 0x%02x\n", dma_au8RxBuf[3]);
                     c_state = 1;
                 }
                 else if ((dma_au8RxBuf[3] & 0xf0) == 0x20)
@@ -433,7 +458,7 @@ void UART_ProcessCommand(void)
                     ADV_Init();
                     Input_signal = 6;
                     FLASH_SaveSettings();
-                    printf("mode 0x%02x ", dma_au8RxBuf[3]);
+                    printf("[ADV] mode 0x%02x\n", dma_au8RxBuf[3]);
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0x90)
@@ -444,6 +469,10 @@ void UART_ProcessCommand(void)
                         FLASH_SaveSettings();
                         ADV_SetSmooth(adv_smooth);
                     }
+                    else
+                    {
+                        printf("[ADV] Smooth skip (I2P off)\n");
+                    }
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0x91)
@@ -453,6 +482,10 @@ void UART_ProcessCommand(void)
                         adv_smooth = false;
                         FLASH_SaveSettings();
                         ADV_SetSmooth(adv_smooth);
+                    }
+                    else
+                    {
+                        printf("[ADV] Smooth skip (I2P off)\n");
                     }
                     c_state = 1;
                 }
@@ -470,7 +503,6 @@ void UART_ProcessCommand(void)
                     adv_smooth = false;
                     FLASH_SaveSettings();
                     ADV_SetSmooth(adv_smooth);
-                    DDL_DelayMS(50);
                     ADV_SetI2P(adv_i2p);
                     c_state = 1;
                 }
@@ -479,7 +511,7 @@ void UART_ProcessCommand(void)
                     asw_02 = 1;
                     ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
                     FLASH_SaveSettings();
-                    printf("Open Compatibility \n");
+                    printf("[ADV] Open Compatibility\n");
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0xa1)
@@ -487,7 +519,7 @@ void UART_ProcessCommand(void)
                     asw_02 = 0;
                     ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
                     FLASH_SaveSettings();
-                    printf("Close Compatibility \n");
+                    printf("[ADV] Close Compatibility\n");
                     c_state = 1;
                 }
                 else if ((dma_au8RxBuf[3] & 0xf0) == 0x40)
@@ -503,8 +535,7 @@ void UART_ProcessCommand(void)
                     Input_signal = 1;
                     FLASH_SaveSettings();
                     ADV_Deinit();
-                    printf("Compatibility %d\n", (dma_au8RxBuf[3] & 0x0f));
-                    printf("RGBs\n");
+                    printf("[ADV] RGBs (Compat=%d)\n", (dma_au8RxBuf[3] & 0x0f));
                     c_state = 1;
                 }
                 else if ((dma_au8RxBuf[3] & 0xf0) == 0x50)
@@ -520,7 +551,7 @@ void UART_ProcessCommand(void)
                     Input_signal = 2;
                     FLASH_SaveSettings();
                     ADV_Deinit();
-                    printf("RGsB\n");
+                    printf("[ADV] RGsB\n");
                     c_state = 1;
                 }
                 else if ((dma_au8RxBuf[3] & 0xf0) == 0x60)
@@ -534,7 +565,7 @@ void UART_ProcessCommand(void)
                     Input_signal = 3;
                     FLASH_SaveSettings();
                     ADV_Deinit();
-                    printf("VGA\n");
+                    printf("[ADV] VGA\n");
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0x70)
@@ -548,7 +579,7 @@ void UART_ProcessCommand(void)
                     Input_signal = 4;
                     FLASH_SaveSettings();
                     ADV_Deinit();
-                    printf("Ypbpr\n");
+                    printf("[ADV] Ypbpr\n");
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0x80)
@@ -556,7 +587,6 @@ void UART_ProcessCommand(void)
                     adv_ace = true;
                     FLASH_SaveSettings();
                     ADV_SetACE(adv_ace);
-                    printf("AceOn\n");
                     c_state = 1;
                 }
                 else if (dma_au8RxBuf[3] == 0x81)
@@ -564,7 +594,49 @@ void UART_ProcessCommand(void)
                     adv_ace = false;
                     FLASH_SaveSettings();
                     ADV_SetACE(adv_ace);
-                    printf("AceOff\n");
+                    c_state = 1;
+                }
+                /* ACE Parameter Commands (0x82-0x87) */
+                else if (dma_au8RxBuf[3] == 0x82)
+                {
+                    /* ACE Luma Gain (0-31) */
+                    ADV_SetACELumaGain(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0x83)
+                {
+                    /* ACE Chroma Gain (0-15) */
+                    ADV_SetACEChromaGain(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0x84)
+                {
+                    /* ACE Chroma Max (0-15) */
+                    ADV_SetACEChromaMax(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0x85)
+                {
+                    /* ACE Gamma Gain (0-15) */
+                    ADV_SetACEGammaGain(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0x86)
+                {
+                    /* ACE Response Speed (0-15) */
+                    ADV_SetACEResponseSpeed(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0x87)
+                {
+                    /* ACE Reset to Defaults */
+                    ADV_SetACEDefaults();
+                    FLASH_SaveSettings();
                     c_state = 1;
                 }
             }

@@ -24,10 +24,9 @@ void handle_ColorSettings_Page1(void)
 
 void handle_ColorSettings_Page1_Values(void)
 {
-    // Display R, G, B values at P23-P25 on each row
-    OSD_displayNumber3DigitAtRow(1, gbsColorR, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(2, gbsColorG, 25, 24, 23);
-    OSD_displayNumber3DigitAtRow(3, gbsColorB, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(1, uopt->gbsColorR, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(2, uopt->gbsColorG, 25, 24, 23);
+    OSD_displayNumber3DigitAtRow(3, uopt->gbsColorB, 25, 24, 23);
 }
 
 // Page 2: ADC gain, Scanlines, Line filter

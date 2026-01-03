@@ -31,6 +31,13 @@ uint8_t Bright = 0x00;
 uint8_t Contrast = 0x80;
 uint8_t Saturation = 0x80;
 
+/* ACE (Adaptive Contrast Enhancement) parameters - User Sub Map 2 */
+uint8_t AceLumaGain = 13;      /* 0x83 bits 4:0, default 0x0D */
+uint8_t AceChromaGain = 8;     /* 0x84 bits 3:0, default 0x08 */
+uint8_t AceChromaMax = 8;      /* 0x84 bits 7:4, default 0x08 */
+uint8_t AceGammaGain = 8;      /* 0x85 bits 3:0, default 0x08 */
+uint8_t AceResponseSpeed = 15; /* 0x85 bits 7:4, default 0x0F */
+
 bool asw_01, asw_02, asw_03, asw_04;
 bool AVsw;
 uint8_t Input_signal = 0;
@@ -221,13 +228,13 @@ static void ADV_ConfigureEncoder(void)
     if (is_525p) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_525p_CONFIG,
                                   sizeof(I2C_COMMANDS_525p_CONFIG) / 3, TIMEOUT);
-        printf("525p format configured\n");
+        printf("[ADV] 525p format configured\n");
     }
 
     if (!is_525p) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_625p_CONFIG,
                                   sizeof(I2C_COMMANDS_625p_CONFIG) / 3, TIMEOUT);
-        printf("625p format configured\n");
+        printf("[ADV] 625p format configured\n");
     }
 }
 
@@ -260,25 +267,25 @@ static void ADV_DetectFormat(uint8_t btn_flag)
     (void)ll_nstd; /* Unused but kept for reference */
 
     if (!in_lock) {
-        printf("No signal lock.\n");
+        printf("[ADV] No signal lock\n");
         return;
     }
 
     if (!interlaced) {
         if (ad_result == 0x40) {
-            printf("288p (PAL progressive)\n");
+            printf("[ADV] 288p (PAL progressive)\n");
         } else if (ad_result == 0x00 || ad_result == 0x20) {
-            printf("240p (NTSC progressive)\n");
+            printf("[ADV] 240p (NTSC progressive)\n");
         } else {
-            printf("Unknown\n");
+            printf("[ADV] Unknown format\n");
         }
     } else {
         if (ad_result == 0x40) {
-            printf("576i (PAL interlaced)\n");
+            printf("[ADV] 576i (PAL interlaced)\n");
         } else if (ad_result == 0x00 || ad_result == 0x20) {
-            printf("480i (NTSC interlaced)\n");
+            printf("[ADV] 480i (NTSC interlaced)\n");
         } else {
-            printf("Unknown\n");
+            printf("[ADV] Unknown format\n");
         }
     }
 }
@@ -315,13 +322,14 @@ void ADV_Init(void)
     /* Set video mode */
     buff[0] = VID_SEL_REG;
     buff[1] = adv_tv;
-    printf(" Init adv_tv: 0x%02x", adv_tv);
+    printf("[ADV] Init adv_tv: 0x%02x\n", adv_tv);
     (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
 
     /* Configure encoder and BCSH */
     ADV_ConfigureEncoder();
     ADV_SetBCSH();
     ADV_SetACE(adv_ace);
+    ADV_SetACEParams();  /* Apply ACE parameters loaded from flash */
 
     /* Configure I2P based on settings */
     if (adv_i2p) {
@@ -336,10 +344,8 @@ void ADV_Init(void)
         ADV_SetI2P(adv_i2p);
     }
 
-    DDL_DelayMS(200);
-
     Adv_7391_sw = 1;
-    printf("ModuleOn\n");
+    printf("[ADV] ModuleOn\n");
 }
 
 /**
@@ -351,7 +357,7 @@ void ADV_Deinit(void)
     GPIO_ResetPins(INPUT_RESET_PORT, GPIO_PIN_INPUT_RESET);
     GPIO_ResetPins(OUTPUT_PORT, GPIO_PIN_OUTPUT_EN);
     Adv_7391_sw = 0;
-    printf("ModuleOff\n");
+    printf("[ADV] ModuleOff\n");
 }
 
 /**
@@ -378,11 +384,11 @@ void ADV_SetInput(uint8_t input)
     if (input) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_YC_INPUT,
                                   sizeof(I2C_COMMANDS_YC_INPUT) / 3, TIMEOUT);
-        printf("SvSignal\n");
+        printf("[ADV] SvSignal\n");
     } else {
         (void)I2C_TransmitBatch(I2C_COMMANDS_CVBS_INPUT,
                                   sizeof(I2C_COMMANDS_CVBS_INPUT) / 3, TIMEOUT);
-        printf("AvSignal\n");
+        printf("[ADV] AvSignal\n");
     }
 }
 
@@ -395,11 +401,11 @@ void ADV_SetI2P(uint8_t enable)
     if (enable) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_I2P_ON,
                                   sizeof(I2C_COMMANDS_I2P_ON) / 3, TIMEOUT);
-        printf("I2pOn\n");
+        printf("[ADV] I2pOn\n");
     } else {
         (void)I2C_TransmitBatch(I2C_COMMANDS_I2P_OFF_p,
                                   sizeof(I2C_COMMANDS_I2P_OFF_p) / 3, TIMEOUT);
-        printf("I2pOff\n");
+        printf("[ADV] I2pOff\n");
     }
 }
 
@@ -412,11 +418,11 @@ void ADV_SetSmooth(uint8_t smooth)
     if (smooth) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_SMOOTH_ON,
                                   sizeof(I2C_COMMANDS_SMOOTH_ON) / 3, TIMEOUT);
-        printf("SmoothOn\n");
+        printf("[ADV] SmoothOn\n");
     } else {
         (void)I2C_TransmitBatch(I2C_COMMANDS_SMOOTH_OFF,
                                   sizeof(I2C_COMMANDS_SMOOTH_OFF) / 3, TIMEOUT);
-        printf("SmoothOff\n");
+        printf("[ADV] SmoothOff\n");
     }
 }
 
@@ -429,9 +435,7 @@ void ADV_SetBCSH(void)
     I2C_COMMANDS_BCSH[8] = Contrast;
     I2C_COMMANDS_BCSH[11] = Saturation;
     (void)I2C_TransmitBatch(I2C_COMMANDS_BCSH, sizeof(I2C_COMMANDS_BCSH) / 3, TIMEOUT);
-    printf("Bright    : 0x%02x\n", Bright);
-    printf("Contrast  : 0x%02x\n", Contrast);
-    printf("Saturation: 0x%02x\n", Saturation);
+    printf("[ADV] Bright: 0x%02x Contrast: 0x%02x Sat: 0x%02x\n", Bright, Contrast, Saturation);
 }
 
 /**
@@ -442,10 +446,10 @@ void ADV_SetACE(uint8_t ace)
 {
     if (ace) {
         (void)I2C_TransmitBatch(Ace_Code_ON, sizeof(Ace_Code_ON) / 3, TIMEOUT);
-        printf("AceOn\n");
+        printf("[ADV] AceOn\n");
     } else {
         (void)I2C_TransmitBatch(Ace_Code_OFF, sizeof(Ace_Code_OFF) / 3, TIMEOUT);
-        printf("AceOff\n");
+        printf("[ADV] AceOff\n");
     }
 }
 
@@ -455,6 +459,151 @@ void ADV_SetACE(uint8_t ace)
 void ADV_SetOutput(uint8_t output)
 {
     (void)output;
+}
+
+/*******************************************************************************
+ * ACE (Adaptive Contrast Enhancement) Parameter Controls
+ * User Sub Map 2 (0x0E = 0x40): Registers 0x80-0x85
+ ******************************************************************************/
+
+/**
+ * @brief Set ACE Luma Gain (auto-contrast level)
+ * @param gain 0-31 (5 bits), default 13 (0x0D)
+ * Register 0x83, bits [4:0]
+ */
+void ADV_SetACELumaGain(uint8_t gain)
+{
+    if (gain > 31) gain = 31;
+    AceLumaGain = gain;
+
+    /* Batch: [addr, reg, val] x 3 commands */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,              /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x83, gain & 0x1F,       /* ACE Control 4: Luma Gain [4:0] */
+        DEVICE_ADDR, 0x0E, 0x00               /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] ACE LumaGain: %d\n", gain);
+}
+
+/**
+ * @brief Set ACE Chroma Gain (auto-saturation level)
+ * @param gain 0-15 (4 bits), default 8
+ * Register 0x84, bits [3:0]
+ */
+void ADV_SetACEChromaGain(uint8_t gain)
+{
+    if (gain > 15) gain = 15;
+    AceChromaGain = gain;
+
+    /* Batch: [addr, reg, val] x 3 commands */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,                              /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x84, (AceChromaMax << 4) | (gain & 0x0F), /* ACE Control 5: ChromaMax[7:4] | ChromaGain[3:0] */
+        DEVICE_ADDR, 0x0E, 0x00                                /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] ACE ChromaGain: %d\n", gain);
+}
+
+/**
+ * @brief Set ACE Chroma Max (maximum saturation threshold)
+ * @param max 0-15 (4 bits), default 8
+ * Register 0x84, bits [7:4]
+ */
+void ADV_SetACEChromaMax(uint8_t max)
+{
+    if (max > 15) max = 15;
+    AceChromaMax = max;
+
+    /* Batch: [addr, reg, val] x 3 commands */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,                              /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x84, (max << 4) | (AceChromaGain & 0x0F), /* ACE Control 5: ChromaMax[7:4] | ChromaGain[3:0] */
+        DEVICE_ADDR, 0x0E, 0x00                                /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] ACE ChromaMax: %d\n", max);
+}
+
+/**
+ * @brief Set ACE Gamma Gain (further contrast enhancement)
+ * @param gain 0-15 (4 bits), default 8
+ * Register 0x85, bits [3:0]
+ */
+void ADV_SetACEGammaGain(uint8_t gain)
+{
+    if (gain > 15) gain = 15;
+    AceGammaGain = gain;
+
+    /* Batch: [addr, reg, val] x 3 commands */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,                                   /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x85, (AceResponseSpeed << 4) | (gain & 0x0F), /* ACE Control 6: RespSpeed[7:4] | GammaGain[3:0] */
+        DEVICE_ADDR, 0x0E, 0x00                                    /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] ACE GammaGain: %d\n", gain);
+}
+
+/**
+ * @brief Set ACE Response Speed
+ * @param speed 0-15 (4 bits), default 15 (fastest)
+ * Register 0x85, bits [7:4]
+ */
+void ADV_SetACEResponseSpeed(uint8_t speed)
+{
+    if (speed > 15) speed = 15;
+    AceResponseSpeed = speed;
+
+    /* Batch: [addr, reg, val] x 3 commands */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,                                   /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x85, (speed << 4) | (AceGammaGain & 0x0F),    /* ACE Control 6: RespSpeed[7:4] | GammaGain[3:0] */
+        DEVICE_ADDR, 0x0E, 0x00                                    /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] ACE ResponseSpeed: %d\n", speed);
+}
+
+/**
+ * @brief Apply all ACE parameters to hardware
+ * Call this after loading settings from flash or changing multiple params
+ */
+void ADV_SetACEParams(void)
+{
+    /* Batch: [addr, reg, val] x 5 commands - write all ACE regs in one batch */
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x40,                                       /* Switch to User Sub Map 2 */
+        DEVICE_ADDR, 0x83, AceLumaGain & 0x1F,                         /* ACE Control 4: Luma Gain [4:0] */
+        DEVICE_ADDR, 0x84, (AceChromaMax << 4) | (AceChromaGain & 0x0F), /* ACE Control 5: ChromaMax[7:4] | ChromaGain[3:0] */
+        DEVICE_ADDR, 0x85, (AceResponseSpeed << 4) | (AceGammaGain & 0x0F), /* ACE Control 6: RespSpeed[7:4] | GammaGain[3:0] */
+        DEVICE_ADDR, 0x0E, 0x00                                        /* Return to main register map */
+    };
+    (void)I2C_TransmitBatch(batch, 5, TIMEOUT);
+
+    printf("[ADV] ACE Params: Luma=%d Chroma=%d/%d Gamma=%d Speed=%d\n",
+           AceLumaGain, AceChromaGain, AceChromaMax, AceGammaGain, AceResponseSpeed);
+}
+
+/**
+ * @brief Reset all ACE parameters to defaults
+ */
+void ADV_SetACEDefaults(void)
+{
+    AceLumaGain = 13;      /* 0x0D */
+    AceChromaGain = 8;
+    AceChromaMax = 8;
+    AceGammaGain = 8;
+    AceResponseSpeed = 15; /* 0x0F */
+
+    ADV_SetACEParams();
+    printf("[ADV] ACE Defaults restored\n");
 }
 
 /*******************************************************************************
@@ -512,14 +661,14 @@ void ADV_DetectLoop(void)
 
     if (((uint8_t)(ad_result & 0x02) == 0x02) && !status && (err_flag)) {
         status = 1;
-        printf(" Run Free Mode \n");
+        printf("[ADV] Run Free Mode\n");
         c_state = 2;
         err_flag = 0;
         led_state = LED_RED;
     } else if (status && ((uint8_t)(ad_result & 0x05) == 0x05) && (err_flag)) {
         status = 0;
         err_flag = 0;
-        printf(" Close Free Mode \n");
+        printf("[ADV] Close Free Mode\n");
         LED_SetSignal(Input_signal);
     }
 }
@@ -594,12 +743,12 @@ void ASW_SetAVConnect(uint8_t sw)
     if (sw) {
         stcGpioInit.u16PullUp = PIN_PU_OFF;
         stcGpioInit.u16PinState = PIN_STAT_RST;
-        printf("Connecte_on");
+        printf("[ADV] Connecte_on\n");
         c_state = 1;
     } else {
         stcGpioInit.u16PullUp = PIN_PU_ON;
         stcGpioInit.u16PinState = PIN_STAT_SET;
-        printf("Connecte_off");
+        printf("[ADV] Connecte_off\n");
         c_state = 2;
     }
 

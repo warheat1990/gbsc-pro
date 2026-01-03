@@ -78,6 +78,7 @@ bool IR_handleSystemSettings()
                     if (uopt->advCompatibility > 1)
                         uopt->advCompatibility = 0;
                     ADV_sendCompatibility(uopt->advCompatibility);
+                    saveUserPrefs();
                     if (GBS::ADC_INPUT_SEL::read())
                         applyVideoModePreset();
                     break;

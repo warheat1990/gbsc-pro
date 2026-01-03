@@ -13,12 +13,10 @@ void handle_SysSettings_Page1(void)
 {
     // SV/AV Input Settings disabled when not SV/AV input
     bool isSvAvInput = (uopt->activeInputType == InputTypeSV) || (uopt->activeInputType == InputTypeAV);
-    OSD_setMenuLineColorsCustom(selectedMenuLine, 1, isSvAvInput ? OSD_TEXT_NORMAL : OSD_TEXT_DISABLED);
-    // Arrow also disabled when not SV/AV input
-    uint8_t arrowColor = isSvAvInput ? ((selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE) : OSD_TEXT_DISABLED;
-    OSD_writeCharAtRow(1, 21, arrow_right_icon, arrowColor);
+    OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "AV/SV Input Settings");
+    OSD_writeStringAtRow(1, 1, "AV/SV Input Settings", isSvAvInput ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    OSD_writeCharAtRow(1, 21, arrow_right_icon, isSvAvInput ? ((selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE) : OSD_TEXT_DISABLED);
     OSD_writeStringAtRow(2, 1, "Compatibility Mode");
     OSD_drawDashRange(2, 19, 22);
     OSD_writeStringAtRow(3, 1, "Matched presets");

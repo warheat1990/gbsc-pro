@@ -127,11 +127,20 @@ typedef enum {
     OLED_SystemSettings_SVAVInputSettings,
     OLED_SystemSettings_SVAVInput_DoubleLine,
     OLED_SystemSettings_SVAVInput_Smooth,
-    OLED_SystemSettings_SVAVInput_ACE,
+    OLED_SystemSettings_SVAVInput_ACESettings,
     OLED_SystemSettings_SVAVInput_Bright,
     OLED_SystemSettings_SVAVInput_Contrast,
     OLED_SystemSettings_SVAVInput_Saturation,
     OLED_SystemSettings_SVAVInput_Default,
+
+    // ACE Settings submenu (inside SV/AV Settings)
+    OLED_ACESettings_Enable,
+    OLED_ACESettings_LumaGain,
+    OLED_ACESettings_ChromaGain,
+    OLED_ACESettings_ChromaMax,
+    OLED_ACESettings_GammaGain,
+    OLED_ACESettings_ResponseSpeed,
+    OLED_ACESettings_Default,
 
     // Preferences menu (Page 2 row 3 of main menu)
     OLED_Preferences,
@@ -339,13 +348,23 @@ typedef struct {
 
 // SV/AV Input Settings Menu Mappings
 #define MENU_ITEMS_SVAVINPUT \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_DoubleLine, OSD_CMD_SVAVINPUT_PAGE1, 1) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Smooth,     OSD_CMD_SVAVINPUT_PAGE1, 2) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACE,        OSD_CMD_SVAVINPUT_PAGE1, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,     OSD_CMD_SVAVINPUT_PAGE2, 1) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,   OSD_CMD_SVAVINPUT_PAGE2, 2) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation, OSD_CMD_SVAVINPUT_PAGE2, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,    OSD_CMD_SVAVINPUT_PAGE3, 1)
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_DoubleLine,   OSD_CMD_SVAVINPUT_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Smooth,       OSD_CMD_SVAVINPUT_PAGE1, 2) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACESettings,  OSD_CMD_SVAVINPUT_PAGE1, 3) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,       OSD_CMD_SVAVINPUT_PAGE2, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,     OSD_CMD_SVAVINPUT_PAGE2, 2) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation,   OSD_CMD_SVAVINPUT_PAGE2, 3) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,      OSD_CMD_SVAVINPUT_PAGE3, 1)
+
+// ACE Settings Menu Mappings (submenu inside SV/AV Settings)
+#define MENU_ITEMS_ACE \
+    MENU_ITEM(OLED_ACESettings_Enable,        OSD_CMD_ACE_PAGE1, 1) \
+    MENU_ITEM(OLED_ACESettings_LumaGain,      OSD_CMD_ACE_PAGE1, 2) \
+    MENU_ITEM(OLED_ACESettings_ChromaGain,    OSD_CMD_ACE_PAGE1, 3) \
+    MENU_ITEM(OLED_ACESettings_ChromaMax,     OSD_CMD_ACE_PAGE2, 1) \
+    MENU_ITEM(OLED_ACESettings_GammaGain,     OSD_CMD_ACE_PAGE2, 2) \
+    MENU_ITEM(OLED_ACESettings_ResponseSpeed, OSD_CMD_ACE_PAGE2, 3) \
+    MENU_ITEM(OLED_ACESettings_Default,       OSD_CMD_ACE_PAGE3, 1)
 
 // Developer Menu Mappings (6 pages, 3 items each = 17 items total)
 #define MENU_ITEMS_DEVELOPER \
@@ -376,6 +395,7 @@ typedef struct {
     MENU_ITEMS_COLOR \
     MENU_ITEMS_SYSTEM \
     MENU_ITEMS_SVAVINPUT \
+    MENU_ITEMS_ACE \
     MENU_ITEMS_PREFERENCES \
     MENU_ITEMS_DEVELOPER
 
@@ -390,6 +410,7 @@ bool IR_handleScreenSettings();
 bool IR_handleColorSettings();
 bool IR_handleSystemSettings();
 bool IR_handleADVSettings();
+bool IR_handleACESettings();
 bool IR_handlePreferencesMenu();
 bool IR_handleProfileManagement();
 bool IR_handleMuteDisplay();

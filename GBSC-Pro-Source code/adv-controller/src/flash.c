@@ -52,6 +52,13 @@ void FLASH_LoadSettings(void)
     Contrast   = (u8_buf[13] != 0xff) ? u8_buf[13] : 0x80;
     Saturation = (u8_buf[14] != 0xff) ? u8_buf[14] : 0x80;
 
+    /* ACE parameters (offsets 15-19) */
+    AceLumaGain      = (u8_buf[15] <= 31) ? u8_buf[15] : 13;
+    AceChromaGain    = (u8_buf[16] <= 15) ? u8_buf[16] : 8;
+    AceChromaMax     = (u8_buf[17] <= 15) ? u8_buf[17] : 8;
+    AceGammaGain     = (u8_buf[18] <= 15) ? u8_buf[18] : 8;
+    AceResponseSpeed = (u8_buf[19] <= 15) ? u8_buf[19] : 15;
+
     Input_signal = u8_buf[48];
 
     printf("[FLASH] Loaded: adv_sw=%d adv_tv=0x%02x\n", adv_sw, adv_tv);
@@ -90,6 +97,14 @@ static void FLASH_SaveSettingsNow(void)
     u8_buf[12] = Bright;
     u8_buf[13] = Contrast;
     u8_buf[14] = Saturation;
+
+    /* ACE parameters (offsets 15-19) */
+    u8_buf[15] = AceLumaGain;
+    u8_buf[16] = AceChromaGain;
+    u8_buf[17] = AceChromaMax;
+    u8_buf[18] = AceGammaGain;
+    u8_buf[19] = AceResponseSpeed;
+
     u8_buf[48] = Input_signal;
 
     // Write to flash

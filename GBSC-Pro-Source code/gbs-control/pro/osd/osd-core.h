@@ -46,9 +46,6 @@ uint8_t OSD_getMenuLineColor(uint8_t row);
 // Set menu line colors based on selection
 void OSD_setMenuLineColors(uint8_t selectedLine);
 
-// Set menu line colors with custom color for a specific line
-void OSD_setMenuLineColorsCustom(uint8_t selectedLine, uint8_t customRow, uint8_t customColor);
-
 // Write page navigation icons at position P27
 void OSD_writePageIcons(bool showUp, uint8_t pageChar, bool showDown);
 

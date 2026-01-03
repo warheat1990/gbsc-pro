@@ -46,12 +46,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        gbsColorR = MIN(gbsColorR + STEP, 255);
+                        uopt->gbsColorR = MIN(uopt->gbsColorR + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        gbsColorR = MAX(0, gbsColorR - STEP);
+                        uopt->gbsColorR = MAX(0, uopt->gbsColorR - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
@@ -61,6 +61,7 @@ bool IR_handleColorSettings()
                     case IR_KEY_EXIT:
                         IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
+                        saveUserPrefs();
                         break;
                     default:
                         IR_clearRepeatKey();
@@ -95,12 +96,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        gbsColorG = MIN(gbsColorG + STEP, 255);
+                        uopt->gbsColorG = MIN(uopt->gbsColorG + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        gbsColorG = MAX(0, gbsColorG - STEP);
+                        uopt->gbsColorG = MAX(0, uopt->gbsColorG - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
@@ -110,6 +111,7 @@ bool IR_handleColorSettings()
                     case IR_KEY_EXIT:
                         IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
+                        saveUserPrefs();
                         break;
                     default:
                         IR_clearRepeatKey();
@@ -144,12 +146,12 @@ bool IR_handleColorSettings()
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        gbsColorB = MIN(gbsColorB + STEP, 255);
+                        uopt->gbsColorB = MIN(uopt->gbsColorB + STEP, 255);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        gbsColorB = MAX(0, gbsColorB - STEP);
+                        uopt->gbsColorB = MAX(0, uopt->gbsColorB - STEP);
                         applyRGBtoYUVConversion();
                         break;
                     case IR_KEY_OK:
@@ -159,6 +161,7 @@ bool IR_handleColorSettings()
                     case IR_KEY_EXIT:
                         IR_clearRepeatKey();
                         Menu_navigateTo(OLED_ColorSettings);
+                        saveUserPrefs();
                         break;
                     default:
                         IR_clearRepeatKey();

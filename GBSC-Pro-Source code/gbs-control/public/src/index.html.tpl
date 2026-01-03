@@ -200,6 +200,13 @@
               <div class="gbs-icon">tv</div>
               <div>Composite/S-Video Options</div>
             </legend>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li><strong>Format</strong>: Video format/standard for the input signal (Auto recommended)</li>
+              <li><strong>2X</strong>: Enable 2X line multiplication for sharper image</li>
+              <li><strong>Smooth</strong>: Enable smooth scaling for softer image</li>
+              <li><strong>ACE</strong>: Adaptive Contrast Enhancement for improved picture quality</li>
+            </ul>
             <div class="gbs-flex gbs-margin__bottom--16">
               <button
                 id="gbs-pro-format"
@@ -238,13 +245,126 @@
                 <div>ACE</div>
               </button>
             </div>
+          </fieldset>
+          <fieldset id="gbs-pro-ace-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div class="gbs-icon">wb_sunny</div>
+              <div>ACE Settings</div>
+            </legend>
             <!-- prettier-ignore -->
             <ul class="gbs-help">
-              <li><strong>Format</strong>: Video format/standard for the input signal (Auto recommended)</li>
-              <li><strong>2X</strong>: Enable 2X line multiplication for sharper image</li>
-              <li><strong>Smooth</strong>: Enable smooth scaling for softer image</li>
-              <li><strong>ACE</strong>: Adaptive Contrast Enhancement for improved picture quality</li>
+              <li><strong>Luma Gain</strong>: Automatic contrast enhancement for luminance (0-31, default 13)</li>
+              <li><strong>Chroma Gain</strong>: Automatic saturation enhancement (0-15, default 8)</li>
+              <li><strong>Chroma Max</strong>: Maximum saturation threshold (0-15, default 8)</li>
+              <li><strong>Gamma Gain</strong>: Contrast enhancement via gamma (0-15, default 8)</li>
+              <li><strong>Response Speed</strong>: ACE adaptation speed (0-15, default 15)</li>
             </ul>
+            <!-- Luma Gain -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Luma Gain</span>
+              <button
+                id="gbs-pro-ace-luma-dec"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-ace-luma-value" style="width: 40px; text-align: center; padding: 8px;">13</span>
+              <button
+                id="gbs-pro-ace-luma-inc"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Chroma Gain -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Chroma Gain</span>
+              <button
+                id="gbs-pro-ace-chroma-dec"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-ace-chroma-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
+              <button
+                id="gbs-pro-ace-chroma-inc"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Chroma Max -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Chroma Max</span>
+              <button
+                id="gbs-pro-ace-chromamax-dec"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-ace-chromamax-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
+              <button
+                id="gbs-pro-ace-chromamax-inc"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Gamma Gain -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Gamma Gain</span>
+              <button
+                id="gbs-pro-ace-gamma-dec"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-ace-gamma-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
+              <button
+                id="gbs-pro-ace-gamma-inc"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Response Speed -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Response Speed</span>
+              <button
+                id="gbs-pro-ace-response-dec"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-ace-response-value" style="width: 40px; text-align: center; padding: 8px;">15</span>
+              <button
+                id="gbs-pro-ace-response-inc"
+                class="gbs-button gbs-button__control"
+                style="width: 40px; height: 42px;"
+              >
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Default button -->
+            <div class="gbs-flex">
+              <button
+                id="gbs-pro-ace-default"
+                class="gbs-button gbs-button__control gbs-button__secondary"
+                style="flex: 1;"
+              >
+                <div class="gbs-icon">restore</div>
+                <div>Reset to Defaults</div>
+              </button>
+            </div>
           </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">

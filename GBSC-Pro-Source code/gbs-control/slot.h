@@ -33,8 +33,14 @@ typedef struct
     uint8_t advContrast;         // 0-255 (default 128)
     uint8_t advSaturation;       // 0-255 (default 128)
     uint8_t advACE;              // 0=off, 1=on (Adaptive Contrast Enhancement)
+    // --- PRO: ADV7280 ACE Parameters ---
+    uint8_t advACELumaGain;      // 0-31 (default 13)
+    uint8_t advACEChromaGain;    // 0-15 (default 8)
+    uint8_t advACEChromaMax;     // 0-15 (default 8)
+    uint8_t advACEGammaGain;     // 0-15 (default 8)
+    uint8_t advACEResponseSpeed; // 0-15 (default 15)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[80];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[75];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)

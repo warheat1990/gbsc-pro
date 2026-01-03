@@ -39,8 +39,14 @@ const Structs: StructDescriptors = {
     { name: "advContrast", type: "byte", size: 1 },
     { name: "advSaturation", type: "byte", size: 1 },
     { name: "advACE", type: "byte", size: 1 },
+    // --- PRO: ADV7280 ACE Parameters ---
+    { name: "advACELumaGain", type: "byte", size: 1 },      // 0-31, default 13
+    { name: "advACEChromaGain", type: "byte", size: 1 },    // 0-15, default 8
+    { name: "advACEChromaMax", type: "byte", size: 1 },     // 0-15, default 8
+    { name: "advACEGammaGain", type: "byte", size: 1 },     // 0-15, default 8
+    { name: "advACEResponseSpeed", type: "byte", size: 1 }, // 0-15, default 15
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 80 },
+    { name: "reserved", type: "byte", size: 75 },
   ],
 };
 
@@ -270,13 +276,26 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth][sharpness][ace] where inputType is 1-6, format is 0-9/A/B, 2x/smooth/sharpness/ace are 0/1
+      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
       const smoothChar: string = messageDataAt4;
       const sharpnessChar: string = messageDataAt5;
       const aceChar: string = message.data[6] || "0";
+      const lumaGainChar: string = message.data[7] || "D";  // Default 13 (D in hex-ish)
+      const chromaGainChar: string = message.data[8] || "8";
+      const chromaMaxChar: string = message.data[9] || "8";
+      const gammaGainChar: string = message.data[10] || "8";
+      const responseSpeedChar: string = message.data[11] || "F";  // Default 15 (F in hex)
+
+      // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
+      const fromHexChar = (c: string): number => {
+        if (c >= '0' && c <= '9') return parseInt(c, 10);
+        if (c >= 'A' && c <= 'V') return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+        return 0;
+      };
 
       // Update input source buttons
       const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
@@ -293,6 +312,12 @@ const createWebSocket = () => {
       const cvSection = document.getElementById("gbs-pro-cv-section");
       if (cvSection) {
         cvSection.style.display = isCVInput ? "block" : "none";
+      }
+
+      // Show/hide ACE Settings section based on input type and ACE enabled
+      const aceSection = document.getElementById("gbs-pro-ace-section");
+      if (aceSection) {
+        aceSection.style.display = (isCVInput && aceChar === "1") ? "block" : "none";
       }
 
       // Update format button
@@ -353,6 +378,19 @@ const createWebSocket = () => {
           btnACE.removeAttribute("active");
         }
       }
+
+      // Update ACE parameter values in UI
+      const lumaValueSpan = document.getElementById("gbs-pro-ace-luma-value");
+      const chromaValueSpan = document.getElementById("gbs-pro-ace-chroma-value");
+      const chromamaxValueSpan = document.getElementById("gbs-pro-ace-chromamax-value");
+      const gammaValueSpan = document.getElementById("gbs-pro-ace-gamma-value");
+      const responseValueSpan = document.getElementById("gbs-pro-ace-response-value");
+
+      if (lumaValueSpan) lumaValueSpan.textContent = fromHexChar(lumaGainChar).toString();
+      if (chromaValueSpan) chromaValueSpan.textContent = fromHexChar(chromaGainChar).toString();
+      if (chromamaxValueSpan) chromamaxValueSpan.textContent = fromHexChar(chromaMaxChar).toString();
+      if (gammaValueSpan) gammaValueSpan.textContent = fromHexChar(gammaGainChar).toString();
+      if (responseValueSpan) responseValueSpan.textContent = fromHexChar(responseSpeedChar).toString();
 
       // Update Sharpness & Peaking Lock
       const isSharpnessActive = sharpnessChar === '1';
@@ -1434,6 +1472,7 @@ const initProButtons = () => {
 
   // Handle ACE toggle
   const btnACE = document.getElementById("gbs-pro-ace");
+  const aceSection = document.getElementById("gbs-pro-ace-section");
   if (btnACE) {
     btnACE.addEventListener("click", () => {
       const isActive = btnACE.hasAttribute("active");
@@ -1451,8 +1490,10 @@ const initProButtons = () => {
           if (data === "true") {
             if (newState === "1") {
               btnACE.setAttribute("active", "");
+              if (aceSection) aceSection.style.display = "block";
             } else {
               btnACE.removeAttribute("active");
+              if (aceSection) aceSection.style.display = "none";
             }
           } else {
             console.error("Pro API ACE error:", data);
@@ -1460,6 +1501,95 @@ const initProButtons = () => {
         })
         .catch((error) => {
           console.error("Pro API ACE error:", error);
+        });
+    });
+  }
+
+  // ACE Settings parameter handlers
+  const aceParams: { [key: string]: { param: string; max: number; default: number } } = {
+    luma: { param: "al", max: 31, default: 13 },
+    chroma: { param: "ac", max: 15, default: 8 },
+    chromamax: { param: "am", max: 15, default: 8 },
+    gamma: { param: "ag", max: 15, default: 8 },
+    response: { param: "ar", max: 15, default: 15 },
+  };
+
+  const sendACEParam = (param: string, value: number) => {
+    const formData = new URLSearchParams();
+    formData.append(param, value.toString());
+
+    fetch("/pro", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.text())
+      .then((data) => {
+        if (data !== "true") {
+          console.error("Pro API ACE param error:", data);
+        }
+      })
+      .catch((error) => {
+        console.error("Pro API ACE param error:", error);
+      });
+  };
+
+  // Setup handlers for each ACE parameter
+  const aceParamNames = ["luma", "chroma", "chromamax", "gamma", "response"];
+  aceParamNames.forEach((name) => {
+    const config = aceParams[name];
+    const incBtn = document.getElementById(`gbs-pro-ace-${name}-inc`);
+    const decBtn = document.getElementById(`gbs-pro-ace-${name}-dec`);
+    const valueSpan = document.getElementById(`gbs-pro-ace-${name}-value`);
+
+    if (incBtn && decBtn && valueSpan) {
+      incBtn.addEventListener("click", () => {
+        let val = parseInt(valueSpan.textContent || "0", 10);
+        if (val < config.max) {
+          val++;
+          valueSpan.textContent = val.toString();
+          sendACEParam(config.param, val);
+        }
+      });
+
+      decBtn.addEventListener("click", () => {
+        let val = parseInt(valueSpan.textContent || "0", 10);
+        if (val > 0) {
+          val--;
+          valueSpan.textContent = val.toString();
+          sendACEParam(config.param, val);
+        }
+      });
+    }
+  });
+
+  // ACE Reset to Defaults button
+  const aceDefaultBtn = document.getElementById("gbs-pro-ace-default");
+  if (aceDefaultBtn) {
+    aceDefaultBtn.addEventListener("click", () => {
+      const formData = new URLSearchParams();
+      formData.append("ad", "1");
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "true") {
+            // Update UI to show default values
+            aceParamNames.forEach((name) => {
+              const config = aceParams[name];
+              const valueSpan = document.getElementById(`gbs-pro-ace-${name}-value`);
+              if (valueSpan) {
+                valueSpan.textContent = config.default.toString();
+              }
+            });
+          } else {
+            console.error("Pro API ACE defaults error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API ACE defaults error:", error);
         });
     });
   }
@@ -1480,6 +1610,23 @@ const initCustomI2C = () => {
   const sendCustomI2C = () => {
     const hexStr = input.value.trim();
     if (!hexStr) return;
+
+    // Validate: count bytes, must be multiple of 3 and max 30 (10 triplets)
+    const bytes = hexStr.split(',').map(v => v.trim()).filter(v => v);
+    if (bytes.length === 0 || bytes.length % 3 !== 0) {
+      if (GBSControl.ui.terminal) {
+        GBSControl.ui.terminal.value += `> Custom I2C ERROR: must be triplets (addr,reg,val)\n`;
+        GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+      }
+      return;
+    }
+    if (bytes.length > 30) {
+      if (GBSControl.ui.terminal) {
+        GBSControl.ui.terminal.value += `> Custom I2C ERROR: max 10 triplets (30 bytes)\n`;
+        GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
+      }
+      return;
+    }
 
     const formData = new URLSearchParams();
     formData.append("c", hexStr);

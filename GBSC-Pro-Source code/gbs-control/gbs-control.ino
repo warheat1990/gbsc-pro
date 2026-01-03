@@ -2622,11 +2622,11 @@ void readEeprom()
     uint8_t readData = 0;
     uint8_t i = 0;
     while (Wire.available()) {
-        Serial.print("addr 0x");
-        Serial.print(i, HEX);
-        Serial.print(": 0x");
+        SerialM.print("addr 0x");
+        SerialM.print(i, HEX);
+        SerialM.print(": 0x");
         readData = Wire.read();
-        Serial.println(readData, HEX);
+        SerialM.println(readData, HEX);
         //addr++;
         i++;
     }
@@ -4117,6 +4117,12 @@ static File initSlotsFile()
     emptySlot.advBrightness = 128;
     emptySlot.advContrast = 128;
     emptySlot.advSaturation = 128;
+    // ADV7280 ACE parameter defaults
+    emptySlot.advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
+    emptySlot.advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
+    emptySlot.advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
+    emptySlot.advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
+    emptySlot.advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4166,16 +4172,22 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.enableAutoGain = uopt->enableAutoGain;
     slotData.wantSharpness = (GBS::VDS_PK_LB_GAIN::read() != 0x16) ? 1 : 0;
     // GBS Color balance
-    slotData.gbsColorR = gbsColorR;
-    slotData.gbsColorG = gbsColorG;
-    slotData.gbsColorB = gbsColorB;
+    slotData.gbsColorR = uopt->gbsColorR;
+    slotData.gbsColorG = uopt->gbsColorG;
+    slotData.gbsColorB = uopt->gbsColorB;
     // ADV7280 settings
-    slotData.advSmooth = advSmooth;
-    slotData.advI2P = advI2P;
-    slotData.advBrightness = advBrightness;
-    slotData.advContrast = advContrast;
-    slotData.advSaturation = advSaturation;
-    slotData.advACE = advACE;
+    slotData.advSmooth = uopt->advSmooth;
+    slotData.advI2P = uopt->advI2P;
+    slotData.advBrightness = uopt->advBrightness;
+    slotData.advContrast = uopt->advContrast;
+    slotData.advSaturation = uopt->advSaturation;
+    slotData.advACE = uopt->advACE;
+    // ADV7280 ACE parameters
+    slotData.advACELumaGain = uopt->advACELumaGain;
+    slotData.advACEChromaGain = uopt->advACEChromaGain;
+    slotData.advACEChromaMax = uopt->advACEChromaMax;
+    slotData.advACEGammaGain = uopt->advACEGammaGain;
+    slotData.advACEResponseSpeed = uopt->advACEResponseSpeed;
 
     // Update name if provided
     if (name != NULL) {
@@ -4236,17 +4248,23 @@ bool loadSlotSettings()
     }
 
     // Load GBS color balance
-    gbsColorR = slotData.gbsColorR;
-    gbsColorG = slotData.gbsColorG;
-    gbsColorB = slotData.gbsColorB;
+    uopt->gbsColorR = slotData.gbsColorR;
+    uopt->gbsColorG = slotData.gbsColorG;
+    uopt->gbsColorB = slotData.gbsColorB;
 
     // Load ADV7280 settings
-    advSmooth = slotData.advSmooth;
-    advI2P = slotData.advI2P;
-    advBrightness = slotData.advBrightness;
-    advContrast = slotData.advContrast;
-    advSaturation = slotData.advSaturation;
-    advACE = slotData.advACE;
+    uopt->advSmooth = slotData.advSmooth;
+    uopt->advI2P = slotData.advI2P;
+    uopt->advBrightness = slotData.advBrightness;
+    uopt->advContrast = slotData.advContrast;
+    uopt->advSaturation = slotData.advSaturation;
+    uopt->advACE = slotData.advACE;
+    // Load ADV7280 ACE parameters (with default fallback for old slots)
+    uopt->advACELumaGain = (slotData.advACELumaGain <= 31) ? slotData.advACELumaGain : ADV_ACE_LUMA_GAIN_DEFAULT;
+    uopt->advACEChromaGain = (slotData.advACEChromaGain <= 15) ? slotData.advACEChromaGain : ADV_ACE_CHROMA_GAIN_DEFAULT;
+    uopt->advACEChromaMax = (slotData.advACEChromaMax <= 15) ? slotData.advACEChromaMax : ADV_ACE_CHROMA_MAX_DEFAULT;
+    uopt->advACEGammaGain = (slotData.advACEGammaGain <= 15) ? slotData.advACEGammaGain : ADV_ACE_GAMMA_GAIN_DEFAULT;
+    uopt->advACEResponseSpeed = (slotData.advACEResponseSpeed <= 15) ? slotData.advACEResponseSpeed : ADV_ACE_RESPONSE_SPEED_DEFAULT;
 
     return true;
 }
@@ -7352,6 +7370,24 @@ void loadDefaultUserOptions()
     uopt->bcshAdjustMode = 0;       // Default: 0
     uopt->advCompatibility = 0;     // Default: off
     uopt->osdTheme = 0;             // Default: Classic theme
+    // GBS Color Balance
+    uopt->gbsColorR = 128;
+    uopt->gbsColorG = 128;
+    uopt->gbsColorB = 128;
+    // ADV Processing
+    uopt->advI2P = 1;
+    uopt->advSmooth = 0;
+    uopt->advACE = 0;
+    // ADV BCSH
+    uopt->advBrightness = 128;
+    uopt->advContrast = 128;
+    uopt->advSaturation = 128;
+    // ACE params
+    uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
+    uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
+    uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
+    uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
+    uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
 }
 
 //RF_PRE_INIT() {
@@ -7743,6 +7779,39 @@ void setup()
                 uopt->osdTheme = OSD_THEME_CLASSIC;
             OSD_setTheme(uopt->osdTheme);
 
+            // Picture Settings - GBS Color Balance (3 digits each)
+            uopt->gbsColorR = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->gbsColorR > 255) uopt->gbsColorR = 128;
+            uopt->gbsColorG = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->gbsColorG > 255) uopt->gbsColorG = 128;
+            uopt->gbsColorB = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->gbsColorB > 255) uopt->gbsColorB = 128;
+            // ADV Processing toggles
+            uopt->advI2P = (uint8_t)(f.read() - '0');
+            if (uopt->advI2P > 1) uopt->advI2P = 1;
+            uopt->advSmooth = (uint8_t)(f.read() - '0');
+            if (uopt->advSmooth > 1) uopt->advSmooth = 0;
+            uopt->advACE = (uint8_t)(f.read() - '0');
+            if (uopt->advACE > 1) uopt->advACE = 0;
+            // ADV BCSH (3 digits each)
+            uopt->advBrightness = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advBrightness > 254) uopt->advBrightness = 128;
+            uopt->advContrast = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advContrast > 254) uopt->advContrast = 128;
+            uopt->advSaturation = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advSaturation > 254) uopt->advSaturation = 128;
+            // ACE parameters (2 digits each)
+            uopt->advACELumaGain = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advACELumaGain > 31) uopt->advACELumaGain = 13;
+            uopt->advACEChromaGain = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advACEChromaGain > 15) uopt->advACEChromaGain = 8;
+            uopt->advACEChromaMax = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advACEChromaMax > 15) uopt->advACEChromaMax = 8;
+            uopt->advACEGammaGain = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advACEGammaGain > 15) uopt->advACEGammaGain = 8;
+            uopt->advACEResponseSpeed = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advACEResponseSpeed > 15) uopt->advACEResponseSpeed = 15;
+
             f.close();
         }
     }
@@ -7823,9 +7892,9 @@ void setup()
             externalClockGenDetectAndInitialize();
         }
         if (rto->extClockGenDetected == 1) {
-            Serial.println(F("ext clockgen detected"));
+            SerialM.println(F("ext clockgen detected"));
         } else {
-            Serial.println(F("no ext clockgen"));
+            SerialM.println(F("no ext clockgen"));
         }
 
         zeroAll();
@@ -8363,10 +8432,10 @@ void loop()
             case '!':
                 //fastGetBestHtotal();
                 //readEeprom();
-                Serial.print(F("sfr: "));
-                Serial.println(getSourceFieldRate(1));
-                Serial.print(F("pll: "));
-                Serial.println(getPllRate());
+                SerialM.print(F("sfr: "));
+                SerialM.println(getSourceFieldRate(1));
+                SerialM.print(F("pll: "));
+                SerialM.println(getPllRate());
                 break;
             case '$': {
                 // EEPROM write protect pin (7, next to Vcc) is under original MCU control
@@ -8391,7 +8460,7 @@ void loop()
                 //Wire.endTransmission();
                 //delay(5);
 
-                Serial.println("done");
+                SerialM.println("done");
             } break;
             case 'j':
                 //resetPLL();
@@ -8839,13 +8908,13 @@ void loop()
                     writeOneByte(0xF0, segmentCurrent);
                     readFromRegister(registerCurrent, 1, &readout);
                     writeOneByte(registerCurrent, readout - 1); // also allow wrapping
-                    Serial.print("S");
-                    Serial.print(segmentCurrent);
-                    Serial.print("_");
-                    Serial.print(registerCurrent, HEX);
+                    SerialM.print("S");
+                    SerialM.print(segmentCurrent);
+                    SerialM.print("_");
+                    SerialM.print(registerCurrent, HEX);
                     readFromRegister(registerCurrent, 1, &readout);
-                    Serial.print(" : ");
-                    Serial.println(readout, HEX);
+                    SerialM.print(" : ");
+                    SerialM.println(readout, HEX);
                 }
             } break;
             case '>': {
@@ -8853,18 +8922,18 @@ void loop()
                     writeOneByte(0xF0, segmentCurrent);
                     readFromRegister(registerCurrent, 1, &readout);
                     writeOneByte(registerCurrent, readout + 1);
-                    Serial.print("S");
-                    Serial.print(segmentCurrent);
-                    Serial.print("_");
-                    Serial.print(registerCurrent, HEX);
+                    SerialM.print("S");
+                    SerialM.print(segmentCurrent);
+                    SerialM.print("_");
+                    SerialM.print(registerCurrent, HEX);
                     readFromRegister(registerCurrent, 1, &readout);
-                    Serial.print(" : ");
-                    Serial.println(readout, HEX);
+                    SerialM.print(" : ");
+                    SerialM.println(readout, HEX);
                 }
             } break;
             case '_': {
                 uint32_t ticks = FrameSync::getPulseTicks();
-                Serial.println(ticks);
+                SerialM.println(ticks);
             } break;
             case '~':
                 goLowPowerWithInputDetection(); // test reset + input detect
@@ -8881,8 +8950,8 @@ void loop()
                 }
                 if (what.equals("f")) {
                     if (rto->extClockGenDetected) {
-                        Serial.print(F("old freqExtClockGen: "));
-                        Serial.println((uint32_t)rto->freqExtClockGen);
+                        SerialM.print(F("old freqExtClockGen: "));
+                        SerialM.println((uint32_t)rto->freqExtClockGen);
                         rto->freqExtClockGen = Serial.parseInt();
                         // safety range: 1 - 250 MHz
                         if (rto->freqExtClockGen >= 1000000 && rto->freqExtClockGen <= 250000000) {
@@ -8890,8 +8959,8 @@ void loop()
                             rto->clampPositionIsSet = 0;
                             rto->coastPositionIsSet = 0;
                         }
-                        Serial.print(F("set freqExtClockGen: "));
-                        Serial.println((uint32_t)rto->freqExtClockGen);
+                        SerialM.print(F("set freqExtClockGen: "));
+                        SerialM.println((uint32_t)rto->freqExtClockGen);
                     }
                     break;
                 }
@@ -8999,10 +9068,10 @@ void loop()
                 externalClockGenResetClock();
                 if (rto->extClockGenDetected) {
                     rto->extClockGenDetected = 0;
-                    Serial.println(F("ext clock gen bypass"));
+                    SerialM.println(F("ext clock gen bypass"));
                 } else {
                     rto->extClockGenDetected = 1;
-                    Serial.println(F("ext clock gen active"));
+                    SerialM.println(F("ext clock gen active"));
                     externalClockGenSyncInOutRate();
                 }
                 //{
@@ -9013,8 +9082,8 @@ void loop()
                 //}
                 break;
             default:
-                Serial.print(F("unknown command "));
-                Serial.println(serialCommand, HEX);
+                SerialM.print(F("unknown command "));
+                SerialM.println(serialCommand, HEX);
                 break;
         }
 
@@ -9283,7 +9352,7 @@ void loop()
         if (digitalRead(SCL) && digitalRead(SDA)) {
             delay(50);
             if (digitalRead(SCL) && digitalRead(SDA)) {
-                Serial.println(F("power good"));
+                SerialM.println(F("power good"));
                 delay(350); // i've seen the MTV230 go on briefly on GBS power cycle
                 startWire();
                 {
@@ -9308,7 +9377,7 @@ void loop()
         if (rto->enableDebugPings && millis() - pingLastTime > 1000) {
             // regular interval pings
             if (pinger.Ping(WiFi.gatewayIP(), 1, 750) == false) {
-                Serial.println("Error during last ping command.");
+                SerialM.println("Error during last ping command.");
             }
             pingLastTime = millis();
         }
@@ -9340,7 +9409,7 @@ void handleType2Command(char argument)
             webSocket.disconnect();
             loadDefaultUserOptions();
             saveUserPrefs();
-            Serial.println(F("options set to defaults, restarting"));
+            SerialM.println(F("options set to defaults, restarting"));
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
             //
@@ -9406,7 +9475,7 @@ void handleType2Command(char argument)
             break;
         case 'a':
             webSocket.disconnect();
-            Serial.println(F("restart"));
+            SerialM.println(F("restart"));
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
             break;
@@ -9927,9 +9996,9 @@ void handleType2Command(char argument)
                 GBS::VDS_Y_GAIN::write(128);
                 GBS::VDS_UCOS_GAIN::write(28);
                 GBS::VDS_VCOS_GAIN::write(41);
-                GBS::VDS_Y_OFST::write(14);
+                GBS::VDS_Y_OFST::write(254);
                 GBS::VDS_U_OFST::write(3);
-                GBS::VDS_V_OFST::write(4);
+                GBS::VDS_V_OFST::write(3);
                 GBS::ADC_ROFCTRL::write(adco->r_off);
                 GBS::ADC_GOFCTRL::write(adco->g_off);
                 GBS::ADC_BOFCTRL::write(adco->b_off);
@@ -9991,8 +10060,8 @@ void startWebserver()
     });
 
     disconnectedEventHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &event) {
-        Serial.print("Station disconnected, reason: ");
-        Serial.println(event.reason);
+        SerialM.print("Station disconnected, reason: ");
+        SerialM.println(event.reason);
     });
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -10334,17 +10403,18 @@ void startWebserver()
             uint8_t x = request->arg("x").toInt();
 
             if (x <= 1) {
-                advI2P = x;
-                ADV_sendI2P(advI2P);
-                SerialM.println(advI2P ? F("I2P enabled") : F("I2P disabled"));
+                uopt->advI2P = x;
+                ADV_sendI2P(uopt->advI2P);
+                SerialM.println(uopt->advI2P ? F("I2P enabled") : F("I2P disabled"));
 
                 // If I2P is disabled, also disable Smooth (smooth only works with I2P)
-                if (!advI2P && advSmooth) {
-                    advSmooth = 0;
+                if (!uopt->advI2P && uopt->advSmooth) {
+                    uopt->advSmooth = 0;
                     ADV_sendSmooth(false);
                     SerialM.println(F("Smooth disabled (requires I2P)"));
                 }
 
+                saveUserPrefs();
                 request->send(200, "application/json", "true");
             } else {
                 request->send(400, "application/json", "false");
@@ -10360,14 +10430,15 @@ void startWebserver()
 
             if (s <= 1) {
                 // Force smooth off if I2P is not enabled
-                if (!advI2P && s == 1) {
-                    advSmooth = 0;
+                if (!uopt->advI2P && s == 1) {
+                    uopt->advSmooth = 0;
                     SerialM.println(F("Smooth not enabled (requires I2P)"));
                 } else {
-                    advSmooth = s;
-                    SerialM.println(advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
+                    uopt->advSmooth = s;
+                    SerialM.println(uopt->advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
                 }
-                ADV_sendSmooth(advSmooth);
+                ADV_sendSmooth(uopt->advSmooth);
+                saveUserPrefs();
                 request->send(200, "application/json", "true");
             } else {
                 request->send(400, "application/json", "false");
@@ -10381,13 +10452,114 @@ void startWebserver()
             uint8_t a = request->arg("a").toInt();
 
             if (a <= 1) {
-                advACE = a;
-                ADV_sendACE(advACE);
-                SerialM.println(advACE ? F("ACE enabled") : F("ACE disabled"));
+                uopt->advACE = a;
+                ADV_sendACE(uopt->advACE);
+                SerialM.println(uopt->advACE ? F("ACE enabled") : F("ACE disabled"));
+                saveUserPrefs();
                 request->send(200, "application/json", "true");
             } else {
                 request->send(400, "application/json", "false");
             }
+            return;
+        }
+
+        // Handle ACE Luma Gain (al parameter)
+        // 0-31
+        if (request->hasArg("al")) {
+            uint8_t val = request->arg("al").toInt();
+            if (val <= 31) {
+                uopt->advACELumaGain = val;
+                ADV_sendACELumaGain(uopt->advACELumaGain);
+                SerialM.print(F("ACE Luma Gain: "));
+                SerialM.println(uopt->advACELumaGain);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE Chroma Gain (ac parameter)
+        // 0-15
+        if (request->hasArg("ac")) {
+            uint8_t val = request->arg("ac").toInt();
+            if (val <= 15) {
+                uopt->advACEChromaGain = val;
+                ADV_sendACEChromaGain(uopt->advACEChromaGain);
+                SerialM.print(F("ACE Chroma Gain: "));
+                SerialM.println(uopt->advACEChromaGain);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE Chroma Max (am parameter)
+        // 0-15
+        if (request->hasArg("am")) {
+            uint8_t val = request->arg("am").toInt();
+            if (val <= 15) {
+                uopt->advACEChromaMax = val;
+                ADV_sendACEChromaMax(uopt->advACEChromaMax);
+                SerialM.print(F("ACE Chroma Max: "));
+                SerialM.println(uopt->advACEChromaMax);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE Gamma Gain (ag parameter)
+        // 0-15
+        if (request->hasArg("ag")) {
+            uint8_t val = request->arg("ag").toInt();
+            if (val <= 15) {
+                uopt->advACEGammaGain = val;
+                ADV_sendACEGammaGain(uopt->advACEGammaGain);
+                SerialM.print(F("ACE Gamma Gain: "));
+                SerialM.println(uopt->advACEGammaGain);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE Response Speed (ar parameter)
+        // 0-15
+        if (request->hasArg("ar")) {
+            uint8_t val = request->arg("ar").toInt();
+            if (val <= 15) {
+                uopt->advACEResponseSpeed = val;
+                ADV_sendACEResponseSpeed(uopt->advACEResponseSpeed);
+                SerialM.print(F("ACE Response Speed: "));
+                SerialM.println(uopt->advACEResponseSpeed);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle ACE Defaults (ad parameter)
+        // Reset all ACE parameters to defaults
+        if (request->hasArg("ad")) {
+            uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
+            uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
+            uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
+            uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
+            uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
+            ADV_sendACEDefaults();
+            SerialM.println(F("ACE parameters reset to defaults"));
+            saveUserPrefs();
+            request->send(200, "application/json", "true");
             return;
         }
 
@@ -10397,18 +10569,18 @@ void startWebserver()
             String hexStr = request->arg("c");
 
             // Parse comma-separated hex values
-            unsigned char data[60];  // max 20 triplets
+            unsigned char data[30];  // max 10 triplets
             size_t dataLen = 0;
 
             unsigned int start = 0;
             int commaPos;
-            while ((commaPos = hexStr.indexOf(',', start)) != -1 && dataLen < 60) {
+            while ((commaPos = hexStr.indexOf(',', start)) != -1 && dataLen < 30) {
                 String byteStr = hexStr.substring(start, commaPos);
                 data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
                 start = commaPos + 1;
             }
             // Last value (no trailing comma)
-            if (start < hexStr.length() && dataLen < 60) {
+            if (start < hexStr.length() && dataLen < 30) {
                 String byteStr = hexStr.substring(start);
                 data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
             }
@@ -10453,14 +10625,14 @@ void startWebserver()
     // pinger library
     pinger.OnReceive([](const PingerResponse &response) {
         if (response.ReceivedResponse) {
-            Serial.printf(
+            SerialM.printf(
                 "Reply from %s: time=%lums\n",
                 response.DestIPAddress.toString().c_str(),
                 response.ResponseTime);
 
             pingLastTime = millis() - 900; // produce a fast stream of pings if connection is good
         } else {
-            Serial.printf("Request timed out.\n");
+            SerialM.printf("Request timed out.\n");
         }
 
         // Return true to continue the ping sequence.
@@ -10762,6 +10934,41 @@ void saveUserPrefs()
     f.write(uopt->bcshAdjustMode + '0');
     f.write(uopt->advCompatibility + '0');
     f.write(uopt->osdTheme + '0');
+    // Picture Settings - GBS Color Balance (3 digits each, 000-255)
+    f.write(uopt->gbsColorR / 100 + '0');
+    f.write((uopt->gbsColorR / 10) % 10 + '0');
+    f.write(uopt->gbsColorR % 10 + '0');
+    f.write(uopt->gbsColorG / 100 + '0');
+    f.write((uopt->gbsColorG / 10) % 10 + '0');
+    f.write(uopt->gbsColorG % 10 + '0');
+    f.write(uopt->gbsColorB / 100 + '0');
+    f.write((uopt->gbsColorB / 10) % 10 + '0');
+    f.write(uopt->gbsColorB % 10 + '0');
+    // ADV Processing toggles (0-1)
+    f.write(uopt->advI2P + '0');
+    f.write(uopt->advSmooth + '0');
+    f.write(uopt->advACE + '0');
+    // ADV BCSH (3 digits each, 000-254)
+    f.write(uopt->advBrightness / 100 + '0');
+    f.write((uopt->advBrightness / 10) % 10 + '0');
+    f.write(uopt->advBrightness % 10 + '0');
+    f.write(uopt->advContrast / 100 + '0');
+    f.write((uopt->advContrast / 10) % 10 + '0');
+    f.write(uopt->advContrast % 10 + '0');
+    f.write(uopt->advSaturation / 100 + '0');
+    f.write((uopt->advSaturation / 10) % 10 + '0');
+    f.write(uopt->advSaturation % 10 + '0');
+    // ACE parameters (2 digits each)
+    f.write(uopt->advACELumaGain / 10 + '0');
+    f.write(uopt->advACELumaGain % 10 + '0');
+    f.write(uopt->advACEChromaGain / 10 + '0');
+    f.write(uopt->advACEChromaGain % 10 + '0');
+    f.write(uopt->advACEChromaMax / 10 + '0');
+    f.write(uopt->advACEChromaMax % 10 + '0');
+    f.write(uopt->advACEGammaGain / 10 + '0');
+    f.write(uopt->advACEGammaGain % 10 + '0');
+    f.write(uopt->advACEResponseSpeed / 10 + '0');
+    f.write(uopt->advACEResponseSpeed % 10 + '0');
     f.close();
 }
 

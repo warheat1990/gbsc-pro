@@ -36,8 +36,6 @@
 #define AV_Connecte_Off() GPIO_SetPins(GPIO_PORT_A, GPIO_PIN_08)
 #define AV_Connecte_On()  GPIO_ResetPins(GPIO_PORT_A, GPIO_PIN_08)
 
-#define APP_FRAME_LEN_MAX (500U)
-
 #define RES_CHANGED     true
 #define VID_SEL_REG     0x02 // Video Format Selection Register
 #define AUTO_DETECT_REG 0x07 // Automatic Detection Register
@@ -82,6 +80,5 @@ extern uint8_t Input_signal;
 extern uint8_t Bright;
 extern uint8_t Contrast;
 extern uint8_t Saturation;
-extern uint8_t dma_au8RxBuf[APP_FRAME_LEN_MAX];
 
 #endif

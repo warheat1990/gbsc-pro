@@ -75,6 +75,24 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t avVideoFormat;          /* ADV7280 Composite format (0=Auto, 1-11) */ \
     uint8_t bcshAdjustMode;         /* BCSH adjustment UI mode */ \
     uint8_t advCompatibility;       /* ADV7280 RGB compatibility mode */ \
-    uint8_t osdTheme;               /* TV OSD theme (0-3) */
+    uint8_t osdTheme;               /* TV OSD theme (0-3) */ \
+    /* GBS TV5725 Color Balance */ \
+    uint8_t gbsColorR;              /* R channel (0-255, default 128) */ \
+    uint8_t gbsColorG;              /* G channel (0-255, default 128) */ \
+    uint8_t gbsColorB;              /* B channel (0-255, default 128) */ \
+    /* ADV7280 Processing Settings */ \
+    uint8_t advI2P;                 /* I2P - interlace to progressive (0-1, default 1) */ \
+    uint8_t advSmooth;              /* Smooth interpolation (0-1, default 0) */ \
+    uint8_t advACE;                 /* ACE - Adaptive Contrast Enhancement (0-1, default 0) */ \
+    /* ADV7280 BCSH (Brightness/Contrast/Saturation) */ \
+    uint8_t advBrightness;          /* Brightness (0-254, default 128) */ \
+    uint8_t advContrast;            /* Contrast (0-254, default 128) */ \
+    uint8_t advSaturation;          /* Saturation (0-254, default 128) */ \
+    /* ADV7280 ACE Parameters */ \
+    uint8_t advACELumaGain;         /* Luma Gain (0-31, default 13) */ \
+    uint8_t advACEChromaGain;       /* Chroma Gain (0-15, default 8) */ \
+    uint8_t advACEChromaMax;        /* Chroma Max (0-15, default 8) */ \
+    uint8_t advACEGammaGain;        /* Gamma Gain (0-15, default 8) */ \
+    uint8_t advACEResponseSpeed;    /* Response Speed (0-15, default 15) */
 
 #endif // OPTIONS_PRO_H_
