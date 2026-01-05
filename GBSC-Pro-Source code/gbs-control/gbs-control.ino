@@ -3681,6 +3681,13 @@ void doPostPresetLoadSteps()
     GBS::ADC_TEST_0C::write(0x12);    // 5_0c 1 4
     GBS::ADC_TA_05_CTRL::write(0x02); // 5_05
 
+    // First apply saved ADC gain value from preset (if present)
+    if (adco->r_gain != 0) {
+        GBS::ADC_RGCTRL::write(adco->r_gain);
+        GBS::ADC_GGCTRL::write(adco->g_gain);
+        GBS::ADC_BGCTRL::write(adco->b_gain);
+    }
+
     // auto ADC gain
     if (uopt->enableAutoGain == 1) {
         if (adco->r_gain == 0) {
@@ -4108,7 +4115,7 @@ static File initSlotsFile()
     emptySlot.enableFrameTimeLock = 0;  // Default off
     emptySlot.frameTimeLockMethod = 0;  // Default method 0
     emptySlot.PalForce60 = 0;           // Default off
-    emptySlot.enableAutoGain = 0;       // Default off
+    emptySlot.adcGain = 0;              // 0 = no override, use preset default
     // GBS Color balance defaults
     emptySlot.gbsColorR = 128;
     emptySlot.gbsColorG = 128;
@@ -4169,7 +4176,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.enableFrameTimeLock = uopt->enableFrameTimeLock;
     slotData.frameTimeLockMethod = uopt->frameTimeLockMethod;
     slotData.PalForce60 = uopt->PalForce60;
-    slotData.enableAutoGain = uopt->enableAutoGain;
+    slotData.adcGain = GBS::ADC_RGCTRL::read();  // Save current ADC gain value
     slotData.wantSharpness = (GBS::VDS_PK_LB_GAIN::read() != 0x16) ? 1 : 0;
     // GBS Color balance
     slotData.gbsColorR = uopt->gbsColorR;
@@ -4236,7 +4243,10 @@ bool loadSlotSettings()
     uopt->enableFrameTimeLock = slotData.enableFrameTimeLock;
     uopt->frameTimeLockMethod = slotData.frameTimeLockMethod;
     uopt->PalForce60 = slotData.PalForce60;
-    uopt->enableAutoGain = slotData.enableAutoGain;
+    // Load ADC Gain for doPostPresetLoadSteps to apply
+    adco->r_gain = slotData.adcGain;
+    adco->g_gain = slotData.adcGain;
+    adco->b_gain = slotData.adcGain;
     // Load sharpness (sharpness ON implies peaking ON)
     if (slotData.wantSharpness) {
         uopt->wantPeaking = 1;  // Sharpness requires peaking enabled

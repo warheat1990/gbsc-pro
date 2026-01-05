@@ -20,7 +20,7 @@ typedef struct
     uint8_t enableFrameTimeLock; // 0=off, 1=on (default 0)
     uint8_t frameTimeLockMethod; // 0 or 1 (default 0)
     uint8_t PalForce60;          // 0=off, 1=on (default 0)
-    uint8_t enableAutoGain;      // 0=off, 1=on (default 0)
+    uint8_t adcGain;             // ADC_RGCTRL value (default 0x7B)
     uint8_t wantSharpness;       // 0=off, 1=on (default 0)
     // --- PRO: GBS Color balance ---
     uint8_t gbsColorR;           // 0-255 (default 128)
