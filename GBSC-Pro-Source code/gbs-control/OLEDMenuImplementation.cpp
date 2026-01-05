@@ -4,6 +4,7 @@
 #include <LittleFS.h>
 #include "pro/options-pro.h"  // GBSC-PRO extensions
 #include "pro/menu/menu-presets.h"  // Virtual preset menu
+#include "pro/gbs-control-pro.h" // Core functions, global variables
 #include "OLEDMenuImplementation.h"
 #include "options.h"
 #include "tv5725.h"
@@ -390,6 +391,47 @@ bool osdMenuHanlder(OLEDMenuManager *manager, OLEDMenuItem *, OLEDMenuNav nav, b
     }
     return true;
 }
+
+// Firmware version display handler
+bool firmwareVersionHandler(OLEDMenuManager *manager, OLEDMenuItem *, OLEDMenuNav nav, bool isFirstTime)
+{
+    if (isFirstTime) {
+        oledMenuFreezeStartTime = millis();
+        oledMenuFreezeTimeoutInMS = 8000; // auto-exit after 8 seconds
+        manager->freeze();
+    } else if (nav != OLEDMenuNav::IDLE) {
+        // Any input exits back to menu
+        manager->unfreeze();
+        return false;
+    }
+
+    // Check timeout
+    if (millis() - oledMenuFreezeStartTime >= oledMenuFreezeTimeoutInMS) {
+        manager->unfreeze();
+        return false;
+    }
+
+    OLEDDisplay &display = *manager->getDisplay();
+    display.clear();
+    display.setColor(OLEDDISPLAY_COLOR::WHITE);
+    display.setTextAlignment(TEXT_ALIGN_CENTER);
+
+    // Title (medium font, centered)
+    display.setFont(URW_Gothic_L_Book_14);
+    display.drawString(64, 0, "Firmware version");
+
+    // Version info (smaller font, centered, tighter spacing)
+    display.setFont(ArialMT_Plain_10);
+    display.drawString(64, 20, "GBS Control: " GBS_FW_VERSION);
+    display.drawString(64, 32, "ADV Control: " ADV_FW_VERSION);
+
+    // Hint to exit
+    display.drawString(64, 52, "Press to exit");
+
+    display.display();
+    return true;
+}
+
 void initOLEDMenu()
 {
     OLEDMenuItem *root = oledMenu.rootItem;
@@ -424,4 +466,7 @@ void initOLEDMenu()
     oledMenu.registerItem(resetMenu, MT_RESET_GBS, IMAGE_ITEM(OM_RESET_GBS), resetMenuHandler);
     oledMenu.registerItem(resetMenu, MT_RESTORE_FACTORY, IMAGE_ITEM(OM_RESTORE_FACTORY), resetMenuHandler);
     oledMenu.registerItem(resetMenu, MT_RESET_WIFI, IMAGE_ITEM(OM_RESET_WIFI), resetMenuHandler);
+
+    // Firmware version
+    oledMenu.registerItem(root, MT_NULL, IMAGE_ITEM(OM_FIRMWARE_VERSION), firmwareVersionHandler);
 }

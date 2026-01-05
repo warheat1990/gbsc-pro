@@ -9,7 +9,7 @@
 #define OLED_MENU_WIDTH 128
 #define OLED_MENU_HEIGHT 64
 #define OLED_MENU_MAX_SUBITEMS_NUM 16 // should be less than 256 (presets use virtual menu)
-#define OLED_MENU_MAX_ITEMS_NUM 48    // should be less than 1024
+#define OLED_MENU_MAX_ITEMS_NUM 56    // should be less than 1024
 #define OLED_MENU_MAX_DEPTH 6 // maximum levels of submenus
 #define OLED_MENU_REFRESH_INTERVAL_IN_MS 50 // not precise
 #define OLED_MENU_SCREEN_SAVER_REFRESH_INTERVAL_IN_MS 5000 // not precise

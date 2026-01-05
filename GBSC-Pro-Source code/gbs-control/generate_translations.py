@@ -29,7 +29,7 @@ menu_items = [
     },
     {
         "tag": "OM_STATUS_BAR_BACK",
-        "en-US": "←Back",
+        "en-US": "◄Back",
         # should not be larger than 12 (or adjust according to MENU_STATUS_BAR_HEIGHT)
         "size": 12
     },
@@ -129,6 +129,22 @@ menu_items = [
     {
         "tag": "OM_OSD",
         "en-US": "Open OSD Menu",
+    },
+    {
+        "tag": "OM_FIRMWARE_VERSION",
+        "en-US": "Firmware version",
+    },
+    {
+        "tag": "OM_ADVINPUT",
+        "en-US": "Input",
+    },
+    {
+        "tag": "OM_SETTING",
+        "en-US": "Settings",
+    },
+    {
+        "tag": "OM_TVMODE",
+        "en-US": "AV/SV Mode",
     },
 
 
