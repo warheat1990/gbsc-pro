@@ -409,5 +409,5 @@ void OSD_renderMuteDisplay(bool muted);
 void OSD_updateVolumeDisplay(uint8_t volumeValue);
 
 // Render info display on TV OSD
-void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive);
+void OSD_renderInfoDisplay();
 

@@ -48,20 +48,28 @@ void OSD_updateVolumeDisplay(uint8_t volumeValue)
 // ====================================================================================
 
 // Get input resolution string from STATUS_00 register
+// Uses VPERIOD_IF to distinguish progressive (240p/288p) from interlaced (480i/576i)
+// Progressive signals have odd line counts, interlaced have even line counts
 static const char* getInputResolutionName(uint8_t status00)
 {
     if (!(status00 & 0x80)) return "Err";
 
     if (status00 & 0x40) return "576p";
     if (status00 & 0x20) {
-        if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 312) <= 10)
+        // PAL-like: use VPERIOD_IF to distinguish 288p from 576i
+        uint16_t vperiod = GBS::VPERIOD_IF::read();
+        // 623, 625, 627 = progressive (288p), 622, 624, 626 = interlaced (576i)
+        if (vperiod == 623 || vperiod == 625 || vperiod == 627)
             return "288p";
         else
             return "576i";
     }
     if (status00 & 0x10) return "480p";
     if (status00 & 0x08) {
-        if (abs(GBS::STATUS_SYNC_PROC_VTOTAL::read() - 262) <= 10)
+        // NTSC-like: use VPERIOD_IF to distinguish 240p from 480i
+        uint16_t vperiod = GBS::VPERIOD_IF::read();
+        // 521, 523, 525 = progressive (240p), 522, 524, 526 = interlaced (480i)
+        if (vperiod == 521 || vperiod == 523 || vperiod == 525)
             return "240p";
         else
             return "480i";
@@ -69,8 +77,27 @@ static const char* getInputResolutionName(uint8_t status00)
     return "Err";
 }
 
+// Helper to write padded output resolution (max 10 chars: "1920x1080 ")
+static void writeOutputResolution(uint8_t presetID)
+{
+    const char* res = getOutputResolutionName(presetID);
+    char buf[11];
+    snprintf(buf, sizeof(buf), "%-10s", res);  // Left-align, pad with spaces
+    OSD_writeStringAtRow(1, 6, buf, OSD_TEXT_NORMAL);
+}
+
+// Helper to write padded input type (max 5 chars: "YPbPr")
+static void writeInputType(uint8_t inputType)
+{
+    const char* name = getInputTypeName(inputType);
+    char buf[6];
+    snprintf(buf, sizeof(buf), "%-5s", name);
+    OSD_writeStringAtRow(1, 17, buf, OSD_TEXT_NORMAL);
+}
+
 // Render info display on TV OSD
-void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive)
+// Called every frame while info display is active - uses padded writes to avoid flicker
+void OSD_renderInfoDisplay()
 {
     float ofr = getOutputFrameRate();
     uint8_t currentInput = GBS::ADC_INPUT_SEL::read();
@@ -78,16 +105,9 @@ void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive)
 
     // Row 1: "Info: <resolution> <input> <fps>Hz"
     OSD_writeStringAtRow(1, 0, "Info:", OSD_CURSOR_ACTIVE);
+    writeOutputResolution(rto->presetID);
+    writeInputType(uopt->activeInputType);
 
-    // Output resolution (positions 6-15)
-    OSD_clearRowContent(ROW_1, 15, 6);
-    OSD_writeStringAtRow(1, 6, getOutputResolutionName(rto->presetID), OSD_TEXT_NORMAL);
-
-    // Input type (positions 17-22)
-    OSD_clearRowContent(ROW_1, 22, 17);
-    OSD_writeStringAtRow(1, 17, getInputTypeName(uopt->activeInputType), OSD_TEXT_NORMAL);
-
-    // Frame rate (positions 24-27)
     uint8_t frameRate = (uint8_t)ofr;
     OSD_writeCharAtRow(1, 24, '0' + (frameRate / 10), OSD_TEXT_NORMAL);
     OSD_writeCharAtRow(1, 25, '0' + (frameRate % 10), OSD_TEXT_NORMAL);
@@ -96,38 +116,37 @@ void OSD_renderInfoDisplay(uint8_t isInfoDisplayActive)
     // Row 2: "Current: <signal type> <input resolution>"
     OSD_writeStringAtRow(2, 0, "Current:", OSD_CURSOR_ACTIVE);
 
-    // Clear area after "Current:" (positions 9-27)
-    OSD_clearRowContent(ROW_2, 27, 9);
-
     if (rto->sourceDisconnected || !rto->boardHasPower) {
-        OSD_writeStringAtRow(2, 9, "No Input", OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 9, "No Input    ", OSD_TEXT_NORMAL);
         return;
     }
 
-    // Show signal type at position 9
+    // Determine signal type and input resolution
     uint8_t activeInput = uopt->activeInputType;
+    const char* signalType = nullptr;
+
     if (currentInput == 1 || activeInput == InputTypeRGBs || activeInput == InputTypeRGsB || activeInput == InputTypeVGA) {
-        OSD_writeStringAtRow(2, 9, "RGB", OSD_TEXT_NORMAL);
         boolean vsyncActive = GBS::STATUS_SYNC_PROC_VSACT::read();
         boolean hsyncActive = GBS::STATUS_SYNC_PROC_HSACT::read();
-        if (vsyncActive && hsyncActive) {
-            OSD_writeStringAtRow(2, 13, "HV", OSD_TEXT_NORMAL);
-        } else if (activeInput == InputTypeVGA) {
-            OSD_writeStringAtRow(2, 9, "No Input", OSD_TEXT_NORMAL);
+        if (activeInput == InputTypeVGA && !(vsyncActive && hsyncActive)) {
+            OSD_writeStringAtRow(2, 9, "No Input    ", OSD_TEXT_NORMAL);
             return;
         }
+        signalType = (vsyncActive && hsyncActive) ? "RGBHV" : "RGB  ";
     } else if (activeInput == InputTypeYUV) {
-        OSD_writeStringAtRow(2, 9, "YPbPr", OSD_TEXT_NORMAL);
+        signalType = "YPbPr";
     } else if (activeInput == InputTypeSV) {
-        OSD_writeStringAtRow(2, 9, "SV", OSD_TEXT_NORMAL);
+        signalType = "SV   ";
     } else if (activeInput == InputTypeAV) {
-        OSD_writeStringAtRow(2, 9, "AV", OSD_TEXT_NORMAL);
+        signalType = "AV   ";
     } else {
-        OSD_writeStringAtRow(2, 9, "No Input", OSD_TEXT_NORMAL);
+        OSD_writeStringAtRow(2, 9, "No Input    ", OSD_TEXT_NORMAL);
         return;
     }
 
-    // Show input resolution at position 16 (read every frame, no caching)
+    // Write signal type (5 chars) + space + resolution (4 chars) = positions 9-19
     uint8_t status00 = GBS::STATUS_00::read();
-    OSD_writeStringAtRow(2, 16, getInputResolutionName(status00), OSD_TEXT_NORMAL);
+    char buf[13];
+    snprintf(buf, sizeof(buf), "%s %-4s", signalType, getInputResolutionName(status00));
+    OSD_writeStringAtRow(2, 9, buf, OSD_TEXT_NORMAL);
 }

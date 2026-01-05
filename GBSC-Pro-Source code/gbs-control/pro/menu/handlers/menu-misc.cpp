@@ -155,7 +155,7 @@ bool IR_handleInfoDisplay()
     showMenu("Menu-", "Info");
 
     // TV OSD rendering (delegated to osd-misc.cpp)
-    OSD_renderInfoDisplay(isInfoDisplayActive);
+    OSD_renderInfoDisplay();
 
     if (irDecode()) {
         switch (results.value) {
