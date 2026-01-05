@@ -110,7 +110,6 @@ typedef enum : uint8_t {
     // Profile
     OSD_CMD_PROFILE_SAVELOAD,
     OSD_CMD_PROFILE_SLOTDISPLAY,
-    OSD_CMD_PROFILE_SLOTROW1,
 
     // Input Menu
     OSD_CMD_INPUT_PAGE1,
@@ -263,7 +262,10 @@ void handle_Developer_Page6_Values(void);
 
 void handle_Profile_SaveLoad(void);
 void handle_Profile_SlotDisplay(void);
-void handle_Profile_SlotRow1(void);
+void updateLoadSlotName(uint8_t slotIndex);
+void updateSaveSlotName(uint8_t slotIndex);
+int8_t getLoadSlotIdx(void);
+int8_t getSaveSlotIdx(void);
 
 // ====================================================================================
 // Handler Function Declarations - Input Menu
@@ -355,7 +357,6 @@ void handle_FactoryResetConfirm(void);
     /* Profile */ \
     DISPATCH_ENTRY(OSD_CMD_PROFILE_SAVELOAD,    handle_Profile_SaveLoad) \
     DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTDISPLAY, handle_Profile_SlotDisplay) \
-    DISPATCH_ENTRY(OSD_CMD_PROFILE_SLOTROW1,    handle_Profile_SlotRow1) \
     \
     /* SV/AV Input Settings - Page 2 */ \
     DISPATCH_ENTRY(OSD_CMD_SVAVINPUT_PAGE2,        handle_SVAVInput_Page2) \

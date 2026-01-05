@@ -4196,7 +4196,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.enableFrameTimeLock = uopt->enableFrameTimeLock;
     slotData.frameTimeLockMethod = uopt->frameTimeLockMethod;
     slotData.PalForce60 = uopt->PalForce60;
-    slotData.adcGain = GBS::ADC_RGCTRL::read();  // Save current ADC gain value
+    slotData.adcGain = 255 - GBS::ADC_RGCTRL::read();  // Save inverted (display value), 0 = no override
     slotData.wantSharpness = (GBS::VDS_PK_LB_GAIN::read() != 0x16) ? 1 : 0;
     // GBS Color balance
     slotData.gbsColorR = uopt->gbsColorR;
@@ -4263,10 +4263,14 @@ bool loadSlotSettings()
     uopt->enableFrameTimeLock = slotData.enableFrameTimeLock;
     uopt->frameTimeLockMethod = slotData.frameTimeLockMethod;
     uopt->PalForce60 = slotData.PalForce60;
-    // Load ADC Gain for doPostPresetLoadSteps to apply
-    adco->r_gain = slotData.adcGain;
-    adco->g_gain = slotData.adcGain;
-    adco->b_gain = slotData.adcGain;
+    // Load ADC Gain for doPostPresetLoadSteps to apply (convert from display value to register value)
+    // slotData.adcGain is inverted: 0 = no override, 1-255 = display value (255 - register)
+    if (slotData.adcGain != 0) {
+        uint8_t regValue = 255 - slotData.adcGain;
+        adco->r_gain = regValue;
+        adco->g_gain = regValue;
+        adco->b_gain = regValue;
+    }
     // Load sharpness (sharpness ON implies peaking ON)
     if (slotData.wantSharpness) {
         uopt->wantPeaking = 1;  // Sharpness requires peaking enabled

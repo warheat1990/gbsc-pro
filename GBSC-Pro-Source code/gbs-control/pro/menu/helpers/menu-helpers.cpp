@@ -155,8 +155,11 @@ char getSlotChar(int idx) {
 
 bool handleProfileRow(bool isLoadRow) {
     extern struct userOptions *uopt;
+    extern struct runTimeOptions *rto;
     extern char userCommand;
     extern void saveUserPrefs();
+    extern void applyPresets(uint8_t videoMode);
+    extern bool loadSlotSettings();
     extern bool saveSlotSettingsAt(int slotIndex, const char* name);
 
     int idx = isLoadRow ? getLoadSlotIndex(oled_menuItem) : getSaveSlotIndex(oled_menuItem);
@@ -186,30 +189,39 @@ bool handleProfileRow(bool isLoadRow) {
                 break;
             case IR_KEY_UP:
                 if (!isLoadRow) {
-                    oled_menuItem = OLED_Profile_Load1;
+                    oled_menuItem = (OLED_MenuState)(OLED_Profile_Load1 + getLoadSlotIdx());
                     OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW1);
                     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
                 }
                 break;
             case IR_KEY_DOWN:
                 if (isLoadRow) {
-                    oled_menuItem = OLED_Profile_Save1;
+                    oled_menuItem = (OLED_MenuState)(OLED_Profile_Save1 + getSaveSlotIdx());
                     OSD_handleCommand(OSD_CMD_PAGE_CHANGE_ROW2);
                     OSD_handleCommand(OSD_CMD_PROFILE_SAVELOAD);
                 }
                 break;
             case IR_KEY_RIGHT:
                 oled_menuItem = getNextSlot(base, idx);
+                // Update slot name for the new index
+                if (isLoadRow) updateLoadSlotName((idx + 1) % 36);
+                else updateSaveSlotName((idx + 1) % 36);
                 break;
             case IR_KEY_LEFT:
                 oled_menuItem = getPrevSlot(base, idx);
+                // Update slot name for the new index
+                if (isLoadRow) updateLoadSlotName((idx + 35) % 36);
+                else updateSaveSlotName((idx + 35) % 36);
                 break;
             case IR_KEY_OK:
                 uopt->presetSlot = getSlotChar(idx);
+                uopt->presetPreference = OutputCustomized;
                 if (isLoadRow) {
-                    OSD_handleCommand(OSD_CMD_PROFILE_SLOTROW1);
+                    loadSlotSettings();
+                    applyPresets(rto->videoStandardInput);
+                    saveUserPrefs();
+                    OSD_showOkFeedback(ROW_1);
                 } else {
-                    uopt->presetPreference = OutputCustomized;
                     saveUserPrefs();
                     userCommand = '4';  // Save GBS preset
                     saveSlotSettingsAt(idx, NULL); // Save ADV settings to slots.bin
