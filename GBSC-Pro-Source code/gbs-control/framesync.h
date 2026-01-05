@@ -67,31 +67,29 @@ namespace MeasurePeriod {
 }
 
 void setExternalClockGenFrequencySmooth(uint32_t freq) {
-    uint32_t current = rto->freqExtClockGen;
+    uint32_t old = rto->freqExtClockGen;
 
+    // Disable CKIN before programming to prevent clock glitches
+    GBS::PAD_CKIN_ENZ::write(1);
+
+    Si.setFreq(0, freq);
+    Si.enable(0);
     rto->freqExtClockGen = freq;
 
-    constexpr uint32_t STEP_SIZE_HZ = 1000;
-
-    if (current > rto->freqExtClockGen) {
-        if ((current - rto->freqExtClockGen) < 750000) {
-            while (current > (rto->freqExtClockGen + STEP_SIZE_HZ)) {
-                current -= STEP_SIZE_HZ;
-                Si.setFreq(0, current);
-                handleWiFi(0);
-            }
-        }
-    } else if (current < rto->freqExtClockGen) {
-        if ((rto->freqExtClockGen - current) < 750000) {
-            while ((current + STEP_SIZE_HZ) < rto->freqExtClockGen) {
-                current += STEP_SIZE_HZ;
-                Si.setFreq(0, current);
-                handleWiFi(0);
-            }
+    // Wait for PLL lock
+    if (!Si.waitForLock()) {
+        Si.reset();
+        if (!Si.waitForLock()) {
+            // Lock failed - rollback
+            Si.setFreq(0, old);
+            Si.enable(0);
+            Si.waitForLock();
+            rto->freqExtClockGen = old;
         }
     }
 
-    Si.setFreq(0, rto->freqExtClockGen);
+    // Re-enable CKIN
+    GBS::PAD_CKIN_ENZ::write(0);
 }
 
 template <class GBS, class Attrs>

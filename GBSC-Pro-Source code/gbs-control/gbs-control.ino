@@ -342,20 +342,34 @@ void externalClockGenResetClock()
         SerialM.println(activeDisplayClock, HEX);
     }
 
-    // problem: around 108MHz the library seems to double the clock
-    // maybe there are regs to check for this and resetPLL
+    // Disable CKIN before programming Si5351 to prevent clock glitches
+    GBS::PAD_CKIN_ENZ::write(1);
+
+    // Workaround: at certain frequencies the library may glitch, pre-setting
+    // an intermediate frequency first helps avoid clock doubling issues
     if (rto->freqExtClockGen == 108000000) {
         Si.setFreq(0, 87000000);
-        delay(1); // quick fix
+        delay(1);
     }
-    // same thing it seems at 40500000
     if (rto->freqExtClockGen == 40500000) {
         Si.setFreq(0, 48500000);
-        delay(1); // quick fix
+        delay(1);
     }
 
     Si.setFreq(0, rto->freqExtClockGen);
-    GBS::PAD_CKIN_ENZ::write(0); // 0 = clock input enable (pin40)
+    Si.enable(0);
+
+    // Wait for PLL lock before re-enabling CKIN
+    if (!Si.waitForLock()) {
+        Si.reset();
+        if (!Si.waitForLock()) {
+            SerialM.println(F("Si5351 lock timeout!"));
+        }
+    }
+
+    // Re-enable CKIN now that PLL is locked
+    GBS::PAD_CKIN_ENZ::write(0);
+
     FrameSync::clearFrequency();
 
     SerialM.print(F("clock gen reset: "));
@@ -396,7 +410,12 @@ void externalClockGenSyncInOutRate()
     uint32_t old = rto->freqExtClockGen;
     FrameSync::initFrequency(ofr, old);
 
-    setExternalClockGenFrequencySmooth((sfr / ofr) * rto->freqExtClockGen);
+    // Calculate new frequency with ratio clamping (±5%)
+    float ratio = sfr / ofr;
+    if (ratio < 0.95f) ratio = 0.95f;
+    if (ratio > 1.05f) ratio = 1.05f;
+
+    setExternalClockGenFrequencySmooth((uint32_t)(ratio * (float)rto->freqExtClockGen));
 
     int32_t diff = rto->freqExtClockGen - old;
 
@@ -415,8 +434,6 @@ void externalClockGenSyncInOutRate()
 
 void externalClockGenDetectAndInitialize()
 {
-    const uint8_t xtal_cl = 0xD2; // 10pF, other choices are 8pF (0x92) and 6pF (0x52) NOTE: Per AN619, the low bytes should be written 0b010010
-
     // MHz: 27, 32.4, 40.5, 54, 64.8, 81, 108, 129.6, 162
     rto->freqExtClockGen = 81000000;
     rto->extClockGenDetected = 0;
@@ -452,10 +469,13 @@ void externalClockGenDetectAndInitialize()
     }
 
     Si.init(25000000L); // many Si5351 boards come with 25MHz crystal; 27000000L for one with 27MHz
-    Wire.beginTransmission(SIADDR);
-    Wire.write(183);    // XTAL_CL
-    Wire.write(xtal_cl);
-    Wire.endTransmission();
+
+    // Auto-discover optimal XTAL load capacitance (tests 10pF, 8pF, 6pF)
+    uint8_t best_cl = Si.autoDiscoverXtalCL(rto->freqExtClockGen);
+    SerialM.print(F("Si5351 XTAL CL: "));
+    SerialM.println(best_cl == SI5351_XTAL_CL_10PF ? F("10pF") :
+                    best_cl == SI5351_XTAL_CL_8PF  ? F("8pF")  : F("6pF"));
+
     Si.setPower(0, SIOUT_6mA);
     Si.setFreq(0, rto->freqExtClockGen);
     Si.disable(0);
