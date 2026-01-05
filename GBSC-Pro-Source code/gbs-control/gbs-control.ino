@@ -10705,22 +10705,14 @@ const uint8_t *loadPresetFromLittleFS(byte forVideoMode)
 {
     static uint8_t preset[432];
     String s = "";
-    Ascii8 slot = 0;
     File f;
 
-    f = LittleFS.open("/preferencesv2.txt", "r");
-    if (f) {
-        SerialM.println(F("preferencesv2.txt opened"));
-        uint8_t result[3];
-        result[0] = f.read(); // todo: move file cursor manually
-        result[1] = f.read();
-        result[2] = f.read();
+    // Use runtime slot from uopt (already set by caller before applyPresets)
+    Ascii8 slot = uopt->presetSlot;
 
-        f.close();
-        slot = result[2];
-    } else {
-        // file not found, we don't know what preset to load
-        SerialM.println(F("please select a preset slot first!")); // say "slot" here to make people save usersettings
+    if (slot == 0) {
+        // No slot selected yet
+        SerialM.println(F("please select a preset slot first!"));
         if (forVideoMode == 2 || forVideoMode == 4)
             return pal_240p;
         else
@@ -10779,20 +10771,12 @@ void savePresetToLittleFS()
 {
     uint8_t readout = 0;
     File f;
-    Ascii8 slot = 0;
 
-    // first figure out if the user has set a preferenced slot
-    f = LittleFS.open("/preferencesv2.txt", "r");
-    if (f) {
-        uint8_t result[3];
-        result[0] = f.read(); // todo: move file cursor manually
-        result[1] = f.read();
-        result[2] = f.read();
+    // Use runtime slot from uopt (already set by caller)
+    Ascii8 slot = uopt->presetSlot;
 
-        f.close();
-        slot = result[2]; // got the slot to save to now
-    } else {
-        // file not found, we don't know where to save this preset
+    if (slot == 0) {
+        // No slot selected yet
         SerialM.println(F("please select a preset slot first!"));
         return;
     }
