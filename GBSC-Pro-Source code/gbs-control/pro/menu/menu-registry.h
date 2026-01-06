@@ -125,7 +125,7 @@ typedef enum {
 
     // SV/AV Input Settings submenu
     OLED_SystemSettings_SVAVInputSettings,
-    OLED_SystemSettings_SVAVInput_DoubleLine,
+    OLED_SystemSettings_SVAVInput_I2P,
     OLED_SystemSettings_SVAVInput_Smooth,
     OLED_SystemSettings_SVAVInput_ACESettings,
     OLED_SystemSettings_SVAVInput_Bright,
@@ -141,6 +141,17 @@ typedef enum {
     OLED_ACESettings_GammaGain,
     OLED_ACESettings_ResponseSpeed,
     OLED_ACESettings_Default,
+
+    // Video Filters Settings submenu (inside SV/AV Settings)
+    // Single page adapts based on AV/SV input:
+    // AV: Y Filter, C Filter, Comb Filter, Default
+    // SV: Y Filter, Override, Comb Filter, Default
+    OLED_SystemSettings_SVAVInput_FiltersSettings,  // Link to Filters submenu (Page 1, row 3)
+    OLED_VideoFiltersSettings_YFilter,      // Row 1: Y Filter (AV: YSFM, SV: WYSFM)
+    OLED_VideoFiltersSettings_CFilter,      // Row 2 (AV only): C Filter
+    OLED_VideoFiltersSettings_SVOverride,   // Row 2 (SV only): Override (Auto/Manual)
+    OLED_VideoFiltersSettings_CombFilter,   // Row 3: Unified Comb Filter (sets both PAL/NTSC)
+    OLED_VideoFiltersSettings_Default,      // Page 2: Default
 
     // Preferences menu (Page 2 row 3 of main menu)
     OLED_Preferences,
@@ -347,14 +358,18 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings_ClockGenerator,    OSD_CMD_SYS_PAGE4, 3)
 
 // SV/AV Input Settings Menu Mappings
+// Page 1: ACE Settings link, Video Filters link, I2P
+// Page 2: Brightness, Contrast, Saturation
+// Page 3: Smooth, Default
 #define MENU_ITEMS_SVAVINPUT \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_DoubleLine,   OSD_CMD_SVAVINPUT_PAGE1, 1) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Smooth,       OSD_CMD_SVAVINPUT_PAGE1, 2) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACESettings,  OSD_CMD_SVAVINPUT_PAGE1, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,       OSD_CMD_SVAVINPUT_PAGE2, 1) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,     OSD_CMD_SVAVINPUT_PAGE2, 2) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation,   OSD_CMD_SVAVINPUT_PAGE2, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,      OSD_CMD_SVAVINPUT_PAGE3, 1)
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACESettings,      OSD_CMD_SVAVINPUT_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_FiltersSettings,  OSD_CMD_SVAVINPUT_PAGE1, 2) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_I2P,       OSD_CMD_SVAVINPUT_PAGE1, 3) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,           OSD_CMD_SVAVINPUT_PAGE2, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,         OSD_CMD_SVAVINPUT_PAGE2, 2) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation,       OSD_CMD_SVAVINPUT_PAGE2, 3) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Smooth,           OSD_CMD_SVAVINPUT_PAGE3, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,          OSD_CMD_SVAVINPUT_PAGE3, 2)
 
 // ACE Settings Menu Mappings (submenu inside SV/AV Settings)
 #define MENU_ITEMS_ACE \
@@ -365,6 +380,17 @@ typedef struct {
     MENU_ITEM(OLED_ACESettings_GammaGain,     OSD_CMD_ACE_PAGE2, 2) \
     MENU_ITEM(OLED_ACESettings_ResponseSpeed, OSD_CMD_ACE_PAGE2, 3) \
     MENU_ITEM(OLED_ACESettings_Default,       OSD_CMD_ACE_PAGE3, 1)
+
+// Video Filters Settings Menu Mappings (submenu inside SV/AV Settings)
+// Single page adapts based on AV/SV input:
+// AV: Y Filter, C Filter, Comb Filter | Default
+// SV: Y Filter, Override, Comb Filter | Default
+#define MENU_ITEMS_VIDEOFILTERS \
+    MENU_ITEM(OLED_VideoFiltersSettings_YFilter,     OSD_CMD_VIDEOFILTERS_PAGE1, 1) \
+    MENU_ITEM(OLED_VideoFiltersSettings_CFilter,     OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
+    MENU_ITEM(OLED_VideoFiltersSettings_SVOverride,  OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
+    MENU_ITEM(OLED_VideoFiltersSettings_CombFilter,  OSD_CMD_VIDEOFILTERS_PAGE1, 3) \
+    MENU_ITEM(OLED_VideoFiltersSettings_Default,     OSD_CMD_VIDEOFILTERS_PAGE2, 1)
 
 // Developer Menu Mappings (6 pages, 3 items each = 17 items total)
 #define MENU_ITEMS_DEVELOPER \
@@ -396,6 +422,7 @@ typedef struct {
     MENU_ITEMS_SYSTEM \
     MENU_ITEMS_SVAVINPUT \
     MENU_ITEMS_ACE \
+    MENU_ITEMS_VIDEOFILTERS \
     MENU_ITEMS_PREFERENCES \
     MENU_ITEMS_DEVELOPER
 
@@ -411,6 +438,7 @@ bool IR_handleColorSettings();
 bool IR_handleSystemSettings();
 bool IR_handleADVSettings();
 bool IR_handleACESettings();
+bool IR_handleVideoFiltersSettings();
 bool IR_handlePreferencesMenu();
 bool IR_handleProfileManagement();
 bool IR_handleMuteDisplay();

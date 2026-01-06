@@ -173,6 +173,16 @@ void ADV_sendACEResponseSpeed(uint8_t speed);
 void ADV_sendACEDefaults(void);
 void ADV_sendACEParams(void);
 
+// Video Filter parameter functions
+void ADV_sendFilterYShaping(uint8_t filter);
+void ADV_sendFilterCShaping(uint8_t filter);
+void ADV_sendFilterWYShaping(uint8_t filter);
+void ADV_sendFilterWYOverride(uint8_t ovr);
+void ADV_sendFilterCombNTSC(uint8_t bw);
+void ADV_sendFilterCombPAL(uint8_t bw);
+void ADV_sendFilterDefaults(void);
+void ADV_sendFilterParams(void);
+
 // ====================================================================================
 // Function Declarations - Input Source Switching
 // ====================================================================================

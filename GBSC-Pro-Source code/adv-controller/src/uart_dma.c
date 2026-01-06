@@ -639,6 +639,56 @@ void UART_ProcessCommand(void)
                     FLASH_SaveSettings();
                     c_state = 1;
                 }
+                /* Video Filter Commands (0xB0-0xB7) */
+                else if (dma_au8RxBuf[3] == 0xB0)
+                {
+                    /* Y Shaping Filter for CVBS (0-31) */
+                    ADV_SetFilterYShaping(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB1)
+                {
+                    /* C Shaping Filter for CVBS (0-7) */
+                    ADV_SetFilterCShaping(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB2)
+                {
+                    /* WY Shaping Filter for S-Video (0-31) */
+                    ADV_SetFilterWYShaping(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB3)
+                {
+                    /* WY Shaping Filter Override (0=Auto, 1=Manual) */
+                    ADV_SetFilterWYShapingOvr(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB4)
+                {
+                    /* Comb Filter NTSC bandwidth (0-3) */
+                    ADV_SetFilterCombNTSC(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB5)
+                {
+                    /* Comb Filter PAL bandwidth (0-3) */
+                    ADV_SetFilterCombPAL(dma_au8RxBuf[4]);
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
+                else if (dma_au8RxBuf[3] == 0xB7)
+                {
+                    /* Video Filter Reset to Defaults */
+                    ADV_SetFilterDefaults();
+                    FLASH_SaveSettings();
+                    c_state = 1;
+                }
             }
         }
         m_enRxFrameEnd = RESET;

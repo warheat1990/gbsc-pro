@@ -39,8 +39,15 @@ typedef struct
     uint8_t advACEChromaMax;     // 0-15 (default 8)
     uint8_t advACEGammaGain;     // 0-15 (default 8)
     uint8_t advACEResponseSpeed; // 0-15 (default 15)
+    // --- PRO: ADV7280 Video Filter Parameters ---
+    uint8_t advFilterYShaping;   // 0-30 (default 1=Auto Narrow)
+    uint8_t advFilterCShaping;   // 0-7 (default 0=Auto 1.5MHz)
+    uint8_t advFilterWYShaping;  // 2-19 (default 19=SVHS 18)
+    uint8_t advFilterWYOverride; // 0=Auto, 1=Manual (default 1=Manual)
+    uint8_t advFilterCombNTSC;   // 0-3 (default 0=Narrow)
+    uint8_t advFilterCombPAL;    // 0-3 (default 1=Medium)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[75];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[69];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)

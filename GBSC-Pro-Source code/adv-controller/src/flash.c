@@ -59,6 +59,14 @@ void FLASH_LoadSettings(void)
     AceGammaGain     = (u8_buf[18] <= 15) ? u8_buf[18] : 8;
     AceResponseSpeed = (u8_buf[19] <= 15) ? u8_buf[19] : 15;
 
+    /* Video Filter parameters (offsets 20-25) */
+    FilterYShaping     = (u8_buf[20] <= 31) ? u8_buf[20] : 0;
+    FilterCShaping     = (u8_buf[21] <= 7)  ? u8_buf[21] : 0;
+    FilterWYShaping    = (u8_buf[22] <= 31) ? u8_buf[22] : 0;
+    FilterWYShapingOvr = (u8_buf[23] <= 1)  ? u8_buf[23] : 0;
+    FilterCombNTSC     = (u8_buf[24] <= 3)  ? u8_buf[24] : 0;
+    FilterCombPAL      = (u8_buf[25] <= 3)  ? u8_buf[25] : 0;
+
     Input_signal = u8_buf[48];
 
     printf("[FLASH] Loaded: adv_sw=%d adv_tv=0x%02x\n", adv_sw, adv_tv);
@@ -104,6 +112,14 @@ static void FLASH_SaveSettingsNow(void)
     u8_buf[17] = AceChromaMax;
     u8_buf[18] = AceGammaGain;
     u8_buf[19] = AceResponseSpeed;
+
+    /* Video Filter parameters (offsets 20-25) */
+    u8_buf[20] = FilterYShaping;
+    u8_buf[21] = FilterCShaping;
+    u8_buf[22] = FilterWYShaping;
+    u8_buf[23] = FilterWYShapingOvr;
+    u8_buf[24] = FilterCombNTSC;
+    u8_buf[25] = FilterCombPAL;
 
     u8_buf[48] = Input_signal;
 

@@ -94,6 +94,32 @@ static const unsigned char ADV_ACE_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_C
 static const unsigned char ADV_ACE_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_ACE_DEFAULTS};
 
 // ====================================================================================
+// Video Filter Parameter Commands
+// Uses 'S' command with sub-commands 0xB0-0xB7
+// Data byte in packet[4] contains the parameter value
+// ====================================================================================
+
+#define ADV_FILTER_Y_SHAPING     0xB0  // Set Y Shaping Filter for CVBS (0-31), value in packet[4]
+#define ADV_FILTER_C_SHAPING     0xB1  // Set C Shaping Filter for CVBS (0-7), value in packet[4]
+#define ADV_FILTER_WY_SHAPING    0xB2  // Set WY Shaping Filter for S-Video (0-31), value in packet[4]
+#define ADV_FILTER_WY_OVERRIDE   0xB3  // Set WY Override (0=Auto, 1=Manual), value in packet[4]
+#define ADV_FILTER_COMB_NTSC     0xB4  // Set Comb Filter NTSC bandwidth (0-3), value in packet[4]
+#define ADV_FILTER_COMB_PAL      0xB5  // Set Comb Filter PAL bandwidth (0-3), value in packet[4]
+#define ADV_FILTER_DEFAULTS      0xB7  // Reset Video Filter parameters to defaults
+
+// Video Filter parameter default values (from ADV7280 Main Register Map)
+#define ADV_FILTER_Y_SHAPING_DEFAULT     1   // Auto Narrow
+#define ADV_FILTER_C_SHAPING_DEFAULT     0   // Auto 1.5MHz
+#define ADV_FILTER_WY_SHAPING_DEFAULT    19  // SVHS 18 (CCIR 601)
+#define ADV_FILTER_WY_OVERRIDE_DEFAULT   1   // Manual
+#define ADV_FILTER_COMB_NTSC_DEFAULT     0   // Narrow
+#define ADV_FILTER_COMB_PAL_DEFAULT      1   // Medium
+
+// Packet templates for Video Filter parameters (use writeReg to fill value)
+static const unsigned char ADV_Filter_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x00};
+static const unsigned char ADV_Filter_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_FILTER_DEFAULTS};
+
+// ====================================================================================
 // Video Format Mapping Table
 // ====================================================================================
 

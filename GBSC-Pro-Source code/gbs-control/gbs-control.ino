@@ -4150,6 +4150,13 @@ static File initSlotsFile()
     emptySlot.advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
     emptySlot.advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
     emptySlot.advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
+    // ADV7280 Video Filter parameter defaults
+    emptySlot.advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+    emptySlot.advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+    emptySlot.advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+    emptySlot.advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+    emptySlot.advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+    emptySlot.advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4215,6 +4222,13 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.advACEChromaMax = uopt->advACEChromaMax;
     slotData.advACEGammaGain = uopt->advACEGammaGain;
     slotData.advACEResponseSpeed = uopt->advACEResponseSpeed;
+    // ADV7280 Video Filter parameters
+    slotData.advFilterYShaping = uopt->advFilterYShaping;
+    slotData.advFilterCShaping = uopt->advFilterCShaping;
+    slotData.advFilterWYShaping = uopt->advFilterWYShaping;
+    slotData.advFilterWYOverride = uopt->advFilterWYOverride;
+    slotData.advFilterCombNTSC = uopt->advFilterCombNTSC;
+    slotData.advFilterCombPAL = uopt->advFilterCombPAL;
 
     // Update name if provided
     if (name != NULL) {
@@ -4299,6 +4313,13 @@ bool loadSlotSettings()
     uopt->advACEChromaMax = (slotData.advACEChromaMax <= 15) ? slotData.advACEChromaMax : ADV_ACE_CHROMA_MAX_DEFAULT;
     uopt->advACEGammaGain = (slotData.advACEGammaGain <= 15) ? slotData.advACEGammaGain : ADV_ACE_GAMMA_GAIN_DEFAULT;
     uopt->advACEResponseSpeed = (slotData.advACEResponseSpeed <= 15) ? slotData.advACEResponseSpeed : ADV_ACE_RESPONSE_SPEED_DEFAULT;
+    // Load ADV7280 Video Filter parameters (with default fallback for old slots)
+    uopt->advFilterYShaping = (slotData.advFilterYShaping <= 30) ? slotData.advFilterYShaping : ADV_FILTER_Y_SHAPING_DEFAULT;
+    uopt->advFilterCShaping = (slotData.advFilterCShaping <= 7) ? slotData.advFilterCShaping : ADV_FILTER_C_SHAPING_DEFAULT;
+    uopt->advFilterWYShaping = (slotData.advFilterWYShaping >= 2 && slotData.advFilterWYShaping <= 19) ? slotData.advFilterWYShaping : ADV_FILTER_WY_SHAPING_DEFAULT;
+    uopt->advFilterWYOverride = (slotData.advFilterWYOverride <= 1) ? slotData.advFilterWYOverride : ADV_FILTER_WY_OVERRIDE_DEFAULT;
+    uopt->advFilterCombNTSC = (slotData.advFilterCombNTSC <= 3) ? slotData.advFilterCombNTSC : ADV_FILTER_COMB_NTSC_DEFAULT;
+    uopt->advFilterCombPAL = (slotData.advFilterCombPAL <= 3) ? slotData.advFilterCombPAL : ADV_FILTER_COMB_PAL_DEFAULT;
 
     return true;
 }
@@ -7422,6 +7443,13 @@ void loadDefaultUserOptions()
     uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
     uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
     uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
+    // Video Filter params
+    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
 }
 
 //RF_PRE_INIT() {

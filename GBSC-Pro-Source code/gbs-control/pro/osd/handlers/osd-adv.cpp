@@ -6,25 +6,25 @@
 #include "../osd-core.h"
 
 // ====================================================================================
-// SV/AV Input Settings - Page 1 (I2P, Smooth, ACE)
+// SV/AV Input Settings - Page 1 (ACE Settings, Video Filters, I2P)
 // ====================================================================================
 
 void handle_SVAVInput_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
-    OSD_drawDashRange(1, 14, 22);
-    OSD_writeStringAtRow(2, 1, "Smooth", uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
-    OSD_drawDashRange(2, 7, 22, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
-    OSD_writeStringAtRow(3, 1, "ACE Settings");
-    OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(1, 1, "ACE Settings");
+    OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(2, 1, "Video Filters");
+    OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
+    OSD_writeStringAtRow(3, 1, "Enable I2P/2X");
+    OSD_drawDashRange(3, 14, 22);
 }
 
 void handle_SVAVInput_Page1_Values(void)
 {
-    OSD_writeOnOff(1, uopt->advI2P);
-    OSD_writeOnOff(2, uopt->advSmooth, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    // Row 1 and 2 are submenu links, no values to display
+    OSD_writeOnOff(3, uopt->advI2P);
 }
 
 // ====================================================================================
@@ -51,21 +51,22 @@ void handle_SVAVInput_Page2_Values(void)
 }
 
 // ====================================================================================
-// SV/AV Input Settings - Page 3 (Default)
+// SV/AV Input Settings - Page 3 (Smooth, Default)
 // ====================================================================================
 
 void handle_SVAVInput_Page3(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '3', false);
-    OSD_writeStringAtRow(1, 1, "Default");
-    OSD_writeStringAtRow(2, 1, "");
+    OSD_writeStringAtRow(1, 1, "Smooth", uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    OSD_drawDashRange(1, 7, 22, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    OSD_writeStringAtRow(2, 1, "Default");
     OSD_writeStringAtRow(3, 1, "");
 }
 
 void handle_SVAVInput_Page3_Values(void)
 {
-    // No values to display on page 3
+    OSD_writeOnOff(1, uopt->advSmooth, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
 }
 
 // ====================================================================================
@@ -123,11 +124,177 @@ void handle_ACE_Page3(void)
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '3', false);
     OSD_writeStringAtRow(1, 1, "Default", uopt->advACE ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
-    OSD_writeStringAtRow(2, 1, "");
-    OSD_writeStringAtRow(3, 1, "");
 }
 
 void handle_ACE_Page3_Values(void)
 {
     // No values to display on page 3
 }
+
+// ====================================================================================
+// Video Filters Settings - Single Page (AV or SV based on active input)
+// AV: Y Filter, C Filter, Comb Filter
+// SV: Y Filter, Override, Comb Filter
+// ====================================================================================
+
+// Helper to display Y filter name for CVBS (register 0x17 YSFM - datasheet names)
+// Valid range: 0-30 (AutoWide-NTSC WN3).
+static void OSD_displayYFilterName(uint8_t row, uint8_t filter) {
+    const char* name = "AutoNarrow";  // Default fallback
+
+    switch (filter) {
+        case 0:  name = "--AutoWide"; break;
+        case 1:  name = "AutoNarrow"; break;
+        case 2:  name = "----SVHS-1"; break;
+        case 3:  name = "----SVHS-2"; break;
+        case 4:  name = "----SVHS-3"; break;
+        case 5:  name = "----SVHS-4"; break;
+        case 6:  name = "----SVHS-5"; break;
+        case 7:  name = "----SVHS-6"; break;
+        case 8:  name = "----SVHS-7"; break;
+        case 9:  name = "----SVHS-8"; break;
+        case 10: name = "----SVHS-9"; break;
+        case 11: name = "---SVHS-10"; break;
+        case 12: name = "---SVHS-11"; break;
+        case 13: name = "---SVHS-12"; break;
+        case 14: name = "---SVHS-13"; break;
+        case 15: name = "---SVHS-14"; break;
+        case 16: name = "---SVHS-15"; break;
+        case 17: name = "---SVHS-16"; break;
+        case 18: name = "---SVHS-17"; break;
+        case 19: name = "---SVHS-18"; break;
+        case 20: name = "---PAL-NN1"; break;
+        case 21: name = "---PAL-NN2"; break;
+        case 22: name = "---PAL-NN3"; break;
+        case 23: name = "---PAL-WN1"; break;
+        case 24: name = "---PAL-WN2"; break;
+        case 25: name = "--NTSC-NN1"; break;
+        case 26: name = "--NTSC-NN2"; break;
+        case 27: name = "--NTSC-NN3"; break;
+        case 28: name = "--NTSC-WN1"; break;
+        case 29: name = "--NTSC-WN2"; break;
+        case 30: name = "--NTSC-WN3"; break;
+    }
+
+    OSD_writeStringAtRow(row, 16, name);
+}
+
+// Helper to display WY filter name for S-Video (register 0x18 WYSFM - datasheet names)
+// Valid range: 2-19 (SVHS 1-18).
+static void OSD_displayWYFilterName(uint8_t row, uint8_t filter) {
+    const char* name = "--SVHS-8";  // Default fallback (default value is 19)
+
+    switch (filter) {
+        case 2:  name = "--SVHS-1"; break;
+        case 3:  name = "--SVHS-2"; break;
+        case 4:  name = "--SVHS-3"; break;
+        case 5:  name = "--SVHS-4"; break;
+        case 6:  name = "--SVHS-5"; break;
+        case 7:  name = "--SVHS-6"; break;
+        case 8:  name = "--SVHS-7"; break;
+        case 9:  name = "--SVHS-8"; break;
+        case 10: name = "--SVHS-9"; break;
+        case 11: name = "-SVHS-10"; break;
+        case 12: name = "-SVHS-11"; break;
+        case 13: name = "-SVHS-12"; break;
+        case 14: name = "-SVHS-13"; break;
+        case 15: name = "-SVHS-14"; break;
+        case 16: name = "-SVHS-15"; break;
+        case 17: name = "-SVHS-16"; break;
+        case 18: name = "-SVHS-17"; break;
+        case 19: name = "-SVHS-18"; break;
+    }
+
+    OSD_writeStringAtRow(row, 18, name);
+}
+
+// Helper to display C filter name (datasheet names)
+// Valid range: 0-7 (Auto1.5M-Wideband)
+static void OSD_displayCFilterName(uint8_t row, uint8_t filter) {
+    const char* name = "Auto1.5M";  // Default fallback
+    switch (filter) {
+        case 0: name = "Auto1.5M"; break;  // Autoselection 1.5 MHz
+        case 1: name = "Auto2.2M"; break;  // Autoselection 2.17 MHz
+        case 2: name = "-----SH1"; break;
+        case 3: name = "-----SH2"; break;
+        case 4: name = "-----SH3"; break;
+        case 5: name = "-----SH4"; break;
+        case 6: name = "-----SH5"; break;
+        case 7: name = "Wideband"; break;
+    }
+    OSD_writeStringAtRow(row, 18, name);
+}
+
+// Helper to display comb filter bandwidth name (uses PAL names: Narrow/Medium/Wide/Widest)
+static void OSD_displayCombBW(uint8_t row, uint8_t bw) {
+    const char* name = "Narrow";
+    switch (bw) {
+        case 0: name = "Narrow"; break;
+        case 1: name = "Medium"; break;
+        case 2: name = "--Wide"; break;
+        case 3: name = "Widest"; break;
+    }
+    OSD_writeStringAtRow(row, 20, name);
+}
+
+// Page 1: AV mode - Y Filter, C Filter, Comb Filter
+// Page 1: SV mode - Y Filter, Override, Comb Filter
+void handle_VideoFilters_Page1(void)
+{
+    bool isSV = (uopt->activeInputType == InputTypeSV);
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(false, '1', true);
+
+    if (isSV) {
+        // S-Video mode
+        OSD_writeStringAtRow(1, 1, "Y Filter");
+        OSD_drawDashRange(1, 9, 17);
+        OSD_writeStringAtRow(2, 1, "Override");
+        OSD_drawDashRange(2, 9, 17);
+        OSD_writeStringAtRow(3, 1, "Comb Filter");
+        OSD_drawDashRange(3, 12, 19);
+    } else {
+        // AV (Composite) mode
+        OSD_writeStringAtRow(1, 1, "Y Filter");
+        OSD_drawDashRange(1, 9, 15);
+        OSD_writeStringAtRow(2, 1, "C Filter");
+        OSD_drawDashRange(2, 9, 17);
+        OSD_writeStringAtRow(3, 1, "Comb Filter");
+        OSD_drawDashRange(3, 12, 19);
+    }
+}
+
+void handle_VideoFilters_Page1_Values(void)
+{
+    bool isSV = (uopt->activeInputType == InputTypeSV);
+
+    if (isSV) {
+        // S-Video: Y Filter uses WY register, Override, Comb
+        if (uopt->advFilterWYOverride) {
+            OSD_displayWYFilterName(1, uopt->advFilterWYShaping);
+        } else {
+            OSD_writeStringAtRow(1, 18, "----Auto");
+        }
+        OSD_writeStringAtRow(2, 18, uopt->advFilterWYOverride ? "--Manual" : "----Auto");
+        OSD_displayCombBW(3, uopt->advFilterCombPAL);  // Unified comb (PAL value)
+    } else {
+        // AV: Y Filter, C Filter, Comb
+        OSD_displayYFilterName(1, uopt->advFilterYShaping);
+        OSD_displayCFilterName(2, uopt->advFilterCShaping);
+        OSD_displayCombBW(3, uopt->advFilterCombPAL);  // Unified comb (PAL value)
+    }
+}
+
+// Page 2: Default only
+void handle_VideoFilters_Page2(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '2', false);
+    OSD_writeStringAtRow(1, 1, "Default");
+}
+
+void handle_VideoFilters_Page2_Values(void)
+{
+    // No values to display
+}
+

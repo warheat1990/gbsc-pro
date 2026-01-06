@@ -93,6 +93,13 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advACEChromaGain;       /* Chroma Gain (0-15, default 8) */ \
     uint8_t advACEChromaMax;        /* Chroma Max (0-15, default 8) */ \
     uint8_t advACEGammaGain;        /* Gamma Gain (0-15, default 8) */ \
-    uint8_t advACEResponseSpeed;    /* Response Speed (0-15, default 15) */
+    uint8_t advACEResponseSpeed;    /* Response Speed (0-15, default 15) */ \
+    /* ADV7280 Video Filter Parameters */ \
+    uint8_t advFilterYShaping;      /* Y Shaping Filter for CVBS (0-30, default 1=Auto Narrow) */ \
+    uint8_t advFilterCShaping;      /* C Shaping Filter for CVBS (0-7, default 0=Auto 1.5MHz) */ \
+    uint8_t advFilterWYShaping;     /* WY Shaping Filter for S-Video (2-19, default 19=SVHS 18) */ \
+    uint8_t advFilterWYOverride;    /* WY Override (0=Auto, 1=Manual, default 1) */ \
+    uint8_t advFilterCombNTSC;      /* Comb Filter NTSC bandwidth (0-3, default 0=Narrow) */ \
+    uint8_t advFilterCombPAL;       /* Comb Filter PAL bandwidth (0-3, default 1=Medium) */
 
 #endif // OPTIONS_PRO_H_

@@ -38,6 +38,14 @@ uint8_t AceChromaMax = 8;      /* 0x84 bits 7:4, default 0x08 */
 uint8_t AceGammaGain = 8;      /* 0x85 bits 3:0, default 0x08 */
 uint8_t AceResponseSpeed = 15; /* 0x85 bits 7:4, default 0x0F */
 
+/* Video Filter parameters - Main Register Map (0x17, 0x18, 0x19) */
+uint8_t FilterYShaping = 1;     /* 0x17 bits 4:0, YSFM for CVBS, default 1 (Auto Narrow) */
+uint8_t FilterCShaping = 0;     /* 0x17 bits 7:5, CSFM for CVBS, default 0 (Auto 1.5MHz) */
+uint8_t FilterWYShaping = 19;   /* 0x18 bits 4:0, WYSFM for S-Video/YPrPb, default 19 (SVHS 18 CCIR 601) */
+uint8_t FilterWYShapingOvr = 1; /* 0x18 bit 7, WYSFMOVR default 1 (Manual) */
+uint8_t FilterCombNTSC = 0;     /* 0x19 bits 3:2, NSFSEL, default 0 (Narrow) */
+uint8_t FilterCombPAL = 1;      /* 0x19 bits 1:0, PSFSEL, default 1 (Medium) */
+
 bool asw_01, asw_02, asw_03, asw_04;
 bool AVsw;
 uint8_t Input_signal = 0;
@@ -329,7 +337,8 @@ void ADV_Init(void)
     ADV_ConfigureEncoder();
     ADV_SetBCSH();
     ADV_SetACE(adv_ace);
-    ADV_SetACEParams();  /* Apply ACE parameters loaded from flash */
+    ADV_SetACEParams();     /* Apply ACE parameters loaded from flash */
+    ADV_SetFilterParams();  /* Apply Video Filter parameters loaded from flash */
 
     /* Configure I2P based on settings */
     if (adv_i2p) {
@@ -604,6 +613,176 @@ void ADV_SetACEDefaults(void)
 
     ADV_SetACEParams();
     printf("[ADV] ACE Defaults restored\n");
+}
+
+/*******************************************************************************
+ * Video Filter Parameter Controls
+ * Main Register Map: Registers 0x17 (Shaping Filter 1), 0x18 (Shaping Filter 2),
+ * 0x19 (Comb Filter Control)
+ ******************************************************************************/
+
+/**
+ * @brief Set Y Shaping Filter for CVBS input
+ * @param filter 0-31 (YSFM), default 0 (Auto Wide)
+ * Register 0x17, bits [4:0]
+ */
+void ADV_SetFilterYShaping(uint8_t filter)
+{
+    if (filter > 31) filter = 31;
+    FilterYShaping = filter;
+
+    /* Register 0x17 = (CSFM << 5) | YSFM */
+    uint8_t reg_val = ((FilterCShaping & 0x07) << 5) | (filter & 0x1F);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x17, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter Y Shaping: %d\n", filter);
+}
+
+/**
+ * @brief Set C Shaping Filter for CVBS input
+ * @param filter 0-7 (CSFM), default 0 (Auto 1.5MHz)
+ * Register 0x17, bits [7:5]
+ */
+void ADV_SetFilterCShaping(uint8_t filter)
+{
+    if (filter > 7) filter = 7;
+    FilterCShaping = filter;
+
+    /* Register 0x17 = (CSFM << 5) | YSFM */
+    uint8_t reg_val = ((filter & 0x07) << 5) | (FilterYShaping & 0x1F);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x17, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter C Shaping: %d\n", filter);
+}
+
+/**
+ * @brief Set Wideband Y Shaping Filter for S-Video/YPrPb input
+ * @param filter 0-31 (WYSFM), default 0 (Auto)
+ * Register 0x18, bits [4:0]
+ */
+void ADV_SetFilterWYShaping(uint8_t filter)
+{
+    if (filter > 31) filter = 31;
+    FilterWYShaping = filter;
+
+    /* Register 0x18 = (WYSFMOVR << 7) | WYSFM - bits 6 and 5 are reserved */
+    uint8_t reg_val = ((FilterWYShapingOvr & 0x01) << 7) | (filter & 0x1F);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x18, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter WY Shaping: %d\n", filter);
+}
+
+/**
+ * @brief Set Wideband Y Shaping Filter Override mode
+ * @param ovr 0=Auto (decoder selects), 1=Manual (use WYSFM value)
+ * Register 0x18, bit [7]
+ */
+void ADV_SetFilterWYShapingOvr(uint8_t ovr)
+{
+    FilterWYShapingOvr = ovr ? 1 : 0;
+
+    /* Register 0x18 = (WYSFMOVR << 7) | WYSFM - bits 6 and 5 are reserved */
+    uint8_t reg_val = ((FilterWYShapingOvr & 0x01) << 7) | (FilterWYShaping & 0x1F);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x18, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter WY Override: %s\n", FilterWYShapingOvr ? "Manual" : "Auto");
+}
+
+/**
+ * @brief Set Comb Filter bandwidth for NTSC
+ * @param bw 0=Narrow, 1=Medium, 2=Medium, 3=Wide
+ * Register 0x19, bits [3:2]
+ */
+void ADV_SetFilterCombNTSC(uint8_t bw)
+{
+    if (bw > 3) bw = 3;
+    FilterCombNTSC = bw;
+
+    /* Register 0x19 = 0xF0 | (NSFSEL << 2) | PSFSEL */
+    uint8_t reg_val = 0xF0 | ((bw & 0x03) << 2) | (FilterCombPAL & 0x03);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x19, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter Comb NTSC: %d\n", bw);
+}
+
+/**
+ * @brief Set Comb Filter bandwidth for PAL
+ * @param bw 0=Narrow, 1=Medium, 2=Wide, 3=Widest
+ * Register 0x19, bits [1:0]
+ */
+void ADV_SetFilterCombPAL(uint8_t bw)
+{
+    if (bw > 3) bw = 3;
+    FilterCombPAL = bw;
+
+    /* Register 0x19 = 0xF0 | (NSFSEL << 2) | PSFSEL */
+    uint8_t reg_val = 0xF0 | ((FilterCombNTSC & 0x03) << 2) | (bw & 0x03);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x19, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+
+    printf("[ADV] Filter Comb PAL: %d\n", bw);
+}
+
+/**
+ * @brief Apply all filter parameters to hardware
+ * Call this after loading settings from flash or changing multiple params
+ */
+void ADV_SetFilterParams(void)
+{
+    /* Write all three filter registers in one batch */
+    uint8_t reg17 = ((FilterCShaping & 0x07) << 5) | (FilterYShaping & 0x1F);
+    uint8_t reg18 = ((FilterWYShapingOvr & 0x01) << 7) | (FilterWYShaping & 0x1F);  /* bit 7 for WYSFMOVR */
+    uint8_t reg19 = 0xF0 | ((FilterCombNTSC & 0x03) << 2) | (FilterCombPAL & 0x03);
+
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x17, reg17,
+        DEVICE_ADDR, 0x18, reg18,
+        DEVICE_ADDR, 0x19, reg19
+    };
+    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+
+    printf("[ADV] Filter Params: Y=%d C=%d WY=%d OVR=%d NTSC=%d PAL=%d\n",
+           FilterYShaping, FilterCShaping, FilterWYShaping,
+           FilterWYShapingOvr, FilterCombNTSC, FilterCombPAL);
+}
+
+/**
+ * @brief Reset all filter parameters to defaults
+ */
+void ADV_SetFilterDefaults(void)
+{
+    FilterYShaping = 0;     /* Auto Wide */
+    FilterCShaping = 0;     /* Auto 1.5MHz */
+    FilterWYShaping = 0;    /* Auto */
+    FilterWYShapingOvr = 0; /* Auto */
+    FilterCombNTSC = 0;     /* Narrow */
+    FilterCombPAL = 0;      /* Narrow */
+
+    ADV_SetFilterParams();
+    printf("[ADV] Filter Defaults restored\n");
 }
 
 /*******************************************************************************

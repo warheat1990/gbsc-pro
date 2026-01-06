@@ -34,7 +34,7 @@ bool IR_handleSystemSettings()
             switch (results.value) {
                 case IR_KEY_OK:
                     if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_DoubleLine);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
                     }
                     break;
                 case IR_KEY_MENU:

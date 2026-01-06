@@ -182,6 +182,7 @@ void IR_handleMenuSelection(void)
     IR_handleSystemSettings() ||
     IR_handleADVSettings() ||
     IR_handleACESettings() ||
+    IR_handleVideoFiltersSettings() ||
     IR_handlePreferencesMenu() ||
     IR_handleDeveloperMenu() ||
     IR_handleInputSelection() ||

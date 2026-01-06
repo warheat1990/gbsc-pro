@@ -190,6 +190,53 @@ void ADV_sendACEParams(void) {
     ADV_sendACEResponseSpeed(uopt->advACEResponseSpeed);
 }
 
+// ====================================================================================
+// Video Filter Parameter Functions
+// ====================================================================================
+
+void ADV_sendFilterYShaping(uint8_t filter) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_Y_SHAPING, filter);
+}
+
+void ADV_sendFilterCShaping(uint8_t filter) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_C_SHAPING, filter);
+}
+
+void ADV_sendFilterWYShaping(uint8_t filter) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_WY_SHAPING, filter);
+}
+
+void ADV_sendFilterWYOverride(uint8_t ovr) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_WY_OVERRIDE, ovr);
+}
+
+void ADV_sendFilterCombNTSC(uint8_t bw) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_COMB_NTSC, bw);
+}
+
+void ADV_sendFilterCombPAL(uint8_t bw) {
+    advController.writeReg(ADV_Filter_Param, ADV_FILTER_COMB_PAL, bw);
+}
+
+void ADV_sendFilterDefaults(void) {
+    advController.send(ADV_Filter_Defaults);
+    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+}
+
+void ADV_sendFilterParams(void) {
+    ADV_sendFilterYShaping(uopt->advFilterYShaping);
+    ADV_sendFilterCShaping(uopt->advFilterCShaping);
+    ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
+    ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
+    ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+    ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+}
+
 // Apply video format option with bounds checking
 // Returns true if format was changed (triggers picture settings re-apply)
 static bool ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
@@ -203,7 +250,7 @@ static bool ADV_applyVideoFormatOption(uint8_t* changed, uint8_t option) {
     return false;
 }
 
-// Apply per-slot ADV settings (I2P, Smooth, ACE, BCSH)
+// Apply per-slot ADV settings (I2P, Smooth, ACE, BCSH, Video Filters)
 // These are loaded from SlotMeta and stored in uopt
 // Only applies when input is SV or AV (ADV7280 is only used for these inputs)
 void ADV_applySlotSettings(void) {
@@ -218,6 +265,8 @@ void ADV_applySlotSettings(void) {
     advController.writeReg(ADV_BCSH, 0xE3, uopt->advSaturation);
     // Apply ACE parameters
     ADV_sendACEParams();
+    // Apply Video Filter parameters
+    ADV_sendFilterParams();
 }
 
 void ADV_applyPendingOptions(void)

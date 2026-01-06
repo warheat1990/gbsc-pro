@@ -18,9 +18,9 @@ extern void saveUserPrefs();
 
 bool IR_handleADVSettings()
 {
-    // OLED_SystemSettings_SVAVInput_DoubleLine (I2P)
-    if (oled_menuItem == OLED_SystemSettings_SVAVInput_DoubleLine) {
-        showMenuValue("M>Sys>SvAv Set", "I2P", uopt->advI2P ? "ON" : "OFF");
+    // OLED_SystemSettings_SVAVInput_ACESettings (Page 1, row 1) - Link to ACE submenu
+    if (oled_menuItem == OLED_SystemSettings_SVAVInput_ACESettings) {
+        showMenu("M>Sys>SvAv Set", "ACE Settings >");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -32,7 +32,67 @@ bool IR_handleADVSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_OK:
+                    // Enter ACE Settings submenu
+                    Menu_navigateTo(OLED_ACESettings_Enable);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_FiltersSettings (Page 1, row 2) - Link to Filters submenu
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_FiltersSettings) {
+        showMenu("M>Sys>SvAv Set", "Video Filters>");
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2P);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_OK:
+                    // Enter Video Filters submenu
+                    Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_I2P (I2P) - Page 1, row 3
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_I2P) {
+        showMenuValue("M>Sys>SvAv Set", "I2P", uopt->advI2P ? "ON" : "OFF");
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
@@ -43,70 +103,6 @@ bool IR_handleADVSettings()
                     }
                     ADV_sendI2P(uopt->advI2P);
                     saveUserPrefs();
-                    break;
-                case IR_KEY_EXIT:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_SystemSettings_SVAVInput_Smooth
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
-        showMenuToggle("M>Sys>SvAv Set", "Smooth", uopt->advSmooth);
-        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_DoubleLine);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
-                    break;
-                case IR_KEY_RIGHT:
-                case IR_KEY_LEFT:
-                case IR_KEY_OK:
-                    if (uopt->advI2P) {
-                        uopt->advSmooth = !uopt->advSmooth;
-                        ADV_sendSmooth(uopt->advSmooth);
-                        saveUserPrefs();
-                    }
-                    break;
-                case IR_KEY_EXIT:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_SystemSettings_SVAVInput_ACESettings (Page 1, row 3) - Link to ACE submenu
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_ACESettings) {
-        showMenu("M>Sys>SvAv Set", "ACE Settings >");
-        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
-                    break;
-                case IR_KEY_RIGHT:
-                case IR_KEY_OK:
-                    // Enter ACE Settings submenu
-                    Menu_navigateTo(OLED_ACESettings_Enable);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
@@ -132,7 +128,7 @@ bool IR_handleADVSettings()
                         break;
                     case IR_KEY_UP:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2P);
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
@@ -236,7 +232,7 @@ bool IR_handleADVSettings()
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
@@ -267,9 +263,9 @@ bool IR_handleADVSettings()
         return true;
     }
 
-    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 1)
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
-        showMenu("M>Sys>SvAv Set", "Default");
+    // OLED_SystemSettings_SVAVInput_Smooth (Page 3, row 1)
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
+        showMenuToggle("M>Sys>SvAv Set", "Smooth", uopt->advSmooth);
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
 
         if (irDecode()) {
@@ -281,15 +277,59 @@ bool IR_handleADVSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_DoubleLine);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    if (uopt->advI2P) {
+                        uopt->advSmooth = !uopt->advSmooth;
+                        ADV_sendSmooth(uopt->advSmooth);
+                        saveUserPrefs();
+                    }
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 2)
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
+        showMenu("M>Sys>SvAv Set", "Default");
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
                     break;
                 case IR_KEY_OK:
+                    // Reset BCSH to defaults
                     ADV_sendBCSH('D', 'E');
                     uopt->advBrightness = 128;
                     uopt->advContrast = 128;
                     uopt->advSaturation = 128;
+                    // Reset ACE
                     uopt->advACE = 0;
                     ADV_sendACE(false);
+                    // Reset Video Filters to defaults
+                    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+                    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+                    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+                    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+                    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+                    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+                    ADV_sendFilterDefaults();
                     saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:
@@ -642,6 +682,263 @@ bool IR_handleACESettings()
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// ====================================================================================
+// IR_handleVideoFiltersSettings - Video Filters Settings Submenu (inside SV/AV Settings)
+// Unified single-page menu that adapts based on active input (AV or SV)
+// AV: Y Filter (row 1), C Filter (row 2), Comb Filter (row 3)
+// SV: Y Filter (row 1), Override (row 2), Comb Filter (row 3)
+// Page 2: Default only
+// ====================================================================================
+
+bool IR_handleVideoFiltersSettings()
+{
+    bool isSV = (uopt->activeInputType == InputTypeSV);
+
+    // OLED_VideoFiltersSettings_YFilter (Page 1, row 1) - Y Filter (AV: YSFM, SV: WYSFM)
+    if (oled_menuItem == OLED_VideoFiltersSettings_YFilter) {
+        showMenu("M>Filters", "Y Filter");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_Default);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        // Row 2: C Filter (AV) or Override (SV)
+                        Menu_navigateTo(isSV ? OLED_VideoFiltersSettings_SVOverride : OLED_VideoFiltersSettings_CFilter);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        if (isSV) {
+                            // SV: adjust WY filter (only if override is Manual)
+                            if (uopt->advFilterWYOverride) {
+                                uopt->advFilterWYShaping = (uopt->advFilterWYShaping >= 19) ? 2 : uopt->advFilterWYShaping + 1;
+                                ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
+                            }
+                        } else {
+                            // AV: adjust Y filter
+                            uopt->advFilterYShaping = (uopt->advFilterYShaping >= 30) ? 0 : uopt->advFilterYShaping + 1;
+                            ADV_sendFilterYShaping(uopt->advFilterYShaping);
+                        }
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        if (isSV) {
+                            if (uopt->advFilterWYOverride) {
+                                uopt->advFilterWYShaping = (uopt->advFilterWYShaping <= 2) ? 19 : uopt->advFilterWYShaping - 1;
+                                ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
+                            }
+                        } else {
+                            uopt->advFilterYShaping = (uopt->advFilterYShaping == 0) ? 30 : uopt->advFilterYShaping - 1;
+                            ADV_sendFilterYShaping(uopt->advFilterYShaping);
+                        }
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_CFilter (Page 1, row 2) - C Filter (AV only)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_CFilter) {
+        showMenu("M>Filters", "C Filter");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        uopt->advFilterCShaping = (uopt->advFilterCShaping >= 7) ? 0 : uopt->advFilterCShaping + 1;
+                        ADV_sendFilterCShaping(uopt->advFilterCShaping);
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        uopt->advFilterCShaping = (uopt->advFilterCShaping == 0) ? 7 : uopt->advFilterCShaping - 1;
+                        ADV_sendFilterCShaping(uopt->advFilterCShaping);
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_SVOverride (Page 1, row 2 for SV) - Override (Auto/Manual)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_SVOverride) {
+        showMenu("M>Filters", "Override");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    uopt->advFilterWYOverride = !uopt->advFilterWYOverride;
+                    ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
+                    saveUserPrefs();
+                    OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1);
+                    OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_CombFilter (Page 1, row 3) - Unified Comb Filter
+    else if (oled_menuItem == OLED_VideoFiltersSettings_CombFilter) {
+        showMenu("M>Filters", "Comb Filter");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        // Row 2: C Filter (AV) or Override (SV)
+                        Menu_navigateTo(isSV ? OLED_VideoFiltersSettings_SVOverride : OLED_VideoFiltersSettings_CFilter);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_Default);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        uopt->advFilterCombPAL = (uopt->advFilterCombPAL >= 3) ? 0 : uopt->advFilterCombPAL + 1;
+                        uopt->advFilterCombNTSC = uopt->advFilterCombPAL;
+                        ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                        ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        uopt->advFilterCombPAL = (uopt->advFilterCombPAL == 0) ? 3 : uopt->advFilterCombPAL - 1;
+                        uopt->advFilterCombNTSC = uopt->advFilterCombPAL;
+                        ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                        ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_Default (Page 2, row 1) - Reset Filters to Defaults
+    else if (oled_menuItem == OLED_VideoFiltersSettings_Default) {
+        showMenu("M>Filters", "Default");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
+                    break;
+                case IR_KEY_OK:
+                    // Reset all filter parameters to defaults
+                    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+                    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+                    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+                    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+                    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+                    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+                    ADV_sendFilterDefaults();
+                    saveUserPrefs();
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
                     break;
             }
             irResume();

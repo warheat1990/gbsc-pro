@@ -66,6 +66,24 @@ void ADV_SetACEResponseSpeed(uint8_t speed); /* 0-15, default 15 */
 void ADV_SetACEParams(void);                 /* Apply all ACE parameters */
 void ADV_SetACEDefaults(void);               /* Reset ACE parameters to defaults */
 
+/* Video Filter parameter variables (ADV7280 registers 0x17, 0x18, 0x19) */
+extern uint8_t FilterYShaping;      /* YSFM[4:0] for CVBS (0-31, default 0=Auto Wide) */
+extern uint8_t FilterCShaping;      /* CSFM[2:0] for CVBS (0-7, default 0=Auto 1.5MHz) */
+extern uint8_t FilterWYShaping;     /* WYSFM[4:0] for S-Video/YPrPb (0-31, default 0=Auto) */
+extern uint8_t FilterWYShapingOvr;  /* WYSFMOVR (0=Auto, 1=Manual) */
+extern uint8_t FilterCombNTSC;      /* NSFSEL[1:0] (0-3, default 0=Narrow) */
+extern uint8_t FilterCombPAL;       /* PSFSEL[1:0] (0-3, default 0=Narrow) */
+
+/* Video Filter parameter controls */
+void ADV_SetFilterYShaping(uint8_t filter);     /* 0-31, default 0 (Auto Wide) */
+void ADV_SetFilterCShaping(uint8_t filter);     /* 0-7, default 0 (Auto 1.5MHz) */
+void ADV_SetFilterWYShaping(uint8_t filter);    /* 0-31, default 0 (Auto) */
+void ADV_SetFilterWYShapingOvr(uint8_t ovr);    /* 0=Auto, 1=Manual */
+void ADV_SetFilterCombNTSC(uint8_t bw);         /* 0-3, default 0 (Narrow) */
+void ADV_SetFilterCombPAL(uint8_t bw);          /* 0-3, default 0 (Narrow) */
+void ADV_SetFilterParams(void);                 /* Apply all filter parameters */
+void ADV_SetFilterDefaults(void);               /* Reset filter parameters to defaults */
+
 /* Detection and monitoring */
 void ADV_ReadKeyChange(void);
 void ADV_DetectLoop(void);
