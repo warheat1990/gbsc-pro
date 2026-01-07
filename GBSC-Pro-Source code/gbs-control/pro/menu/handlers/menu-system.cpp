@@ -25,38 +25,8 @@ extern void disableScanlines();
 
 bool IR_handleSystemSettings()
 {
-    // OLED_SystemSettings_SVAVInputSettings
-    if (oled_menuItem == OLED_SystemSettings_SVAVInputSettings) {
-        showMenu("Menu->System", "Sv-Av InputSet");
-        OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_OK:
-                    if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
-                    }
-                    break;
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
-                    break;
-                case IR_KEY_EXIT:
-                    Menu_navigateTo(OLED_SystemSettings);
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_SystemSettings_Compatibility
-    else if (oled_menuItem == OLED_SystemSettings_Compatibility) {
+    // OLED_SystemSettings_Compatibility (first item - wraps from ClockGenerator)
+    if (oled_menuItem == OLED_SystemSettings_Compatibility) {
         showMenuToggle("Menu->System", "Compatibility", uopt->advCompatibility == 1);
         OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
 
@@ -66,7 +36,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
@@ -124,7 +94,7 @@ bool IR_handleSystemSettings()
     // OLED_SystemSettings_Deinterlace
     else if (oled_menuItem == OLED_SystemSettings_Deinterlace) {
         showMenuValue("Menu->System", "Deinterlace", uopt->deintMode ? "Bob" : "Adaptive");
-        OSD_handleCommand(OSD_CMD_SYS_PAGE2_VALUES);
+        OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -227,7 +197,7 @@ bool IR_handleSystemSettings()
     // OLED_SystemSettings_ADCCalibration
     else if (oled_menuItem == OLED_SystemSettings_ADCCalibration) {
         showMenuToggle("Menu->System", "ADC calibration", uopt->enableCalibrationADC);
-        OSD_handleCommand(OSD_CMD_SYS_PAGE4_VALUES);
+        OSD_handleCommand(OSD_CMD_SYS_PAGE2_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -284,7 +254,7 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_ClockGenerator
+    // OLED_SystemSettings_ClockGenerator (last item - wraps to Compatibility)
     else if (oled_menuItem == OLED_SystemSettings_ClockGenerator) {
         showMenuToggle("Menu->System", "Clock generator", !uopt->disableExternalClockGenerator);
         OSD_handleCommand(OSD_CMD_SYS_PAGE4_VALUES);
@@ -298,7 +268,7 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_FrameTimeLock);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:

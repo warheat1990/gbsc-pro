@@ -18,9 +18,9 @@ extern void saveUserPrefs();
 
 bool IR_handleADVSettings()
 {
-    // OLED_SystemSettings_SVAVInput_ACESettings (Page 1, row 1) - Link to ACE submenu
-    if (oled_menuItem == OLED_SystemSettings_SVAVInput_ACESettings) {
-        showMenu("M>Sys>SvAv Set", "ACE Settings >");
+    // OLED_SystemSettings_SVAVInput_I2PSettings (Page 1, row 1) - Link to I2P Settings submenu
+    if (oled_menuItem == OLED_SystemSettings_SVAVInput_I2PSettings) {
+        showMenu("M>Sys>SvAv Set", "I2P Settings>");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -36,8 +36,8 @@ bool IR_handleADVSettings()
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_OK:
-                    // Enter ACE Settings submenu
-                    Menu_navigateTo(OLED_ACESettings_Enable);
+                    // Enter I2P Settings submenu
+                    Menu_navigateTo(OLED_I2PSettings_Enable);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
@@ -59,10 +59,10 @@ bool IR_handleADVSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2P);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_OK:
@@ -78,9 +78,9 @@ bool IR_handleADVSettings()
         return true;
     }
 
-    // OLED_SystemSettings_SVAVInput_I2P (I2P) - Page 1, row 3
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_I2P) {
-        showMenuValue("M>Sys>SvAv Set", "I2P", uopt->advI2P ? "ON" : "OFF");
+    // OLED_SystemSettings_SVAVInput_ACESettings (Page 1, row 3) - Link to ACE submenu
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_ACESettings) {
+        showMenu("M>Sys>SvAv Set", "ACE Settings >");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -95,14 +95,9 @@ bool IR_handleADVSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Bright);
                     break;
                 case IR_KEY_RIGHT:
-                case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    uopt->advI2P = !uopt->advI2P;
-                    if(!uopt->advI2P) {
-                        uopt->advSmooth = false;
-                    }
-                    ADV_sendI2P(uopt->advI2P);
-                    saveUserPrefs();
+                    // Enter ACE Settings submenu
+                    Menu_navigateTo(OLED_ACESettings_Enable);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
@@ -128,7 +123,7 @@ bool IR_handleADVSettings()
                         break;
                     case IR_KEY_UP:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2P);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
@@ -232,7 +227,7 @@ bool IR_handleADVSettings()
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
@@ -263,9 +258,9 @@ bool IR_handleADVSettings()
         return true;
     }
 
-    // OLED_SystemSettings_SVAVInput_Smooth (Page 3, row 1)
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Smooth) {
-        showMenuToggle("M>Sys>SvAv Set", "Smooth", uopt->advSmooth);
+    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 1)
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
+        showMenu("M>Sys>SvAv Set", "Default");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
 
         if (irDecode()) {
@@ -277,41 +272,7 @@ bool IR_handleADVSettings()
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
-                    break;
-                case IR_KEY_RIGHT:
-                case IR_KEY_LEFT:
-                case IR_KEY_OK:
-                    if (uopt->advI2P) {
-                        uopt->advSmooth = !uopt->advSmooth;
-                        ADV_sendSmooth(uopt->advSmooth);
-                        saveUserPrefs();
-                    }
-                    break;
-                case IR_KEY_EXIT:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
-    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 2)
-    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
-        showMenu("M>Sys>SvAv Set", "Default");
-        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Smooth);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_ACESettings);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
                     break;
                 case IR_KEY_OK:
                     // Reset BCSH to defaults
@@ -330,6 +291,10 @@ bool IR_handleADVSettings()
                     uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
                     uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
                     ADV_sendFilterDefaults();
+                    // Reset I2P settings
+                    uopt->advI2P = false;
+                    uopt->advSmooth = false;
+                    ADV_sendI2P(false);
                     saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:
@@ -939,6 +904,87 @@ bool IR_handleVideoFiltersSettings()
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// ====================================================================================
+// IR_handleI2PSettings - I2P Settings Submenu (inside SV/AV Settings)
+// Page 1: Enable I2P/2X, Smooth
+// ====================================================================================
+
+bool IR_handleI2PSettings()
+{
+    // OLED_I2PSettings_Enable (Page 1, row 1)
+    if (oled_menuItem == OLED_I2PSettings_Enable) {
+        showMenuToggle("M>I2P Settings", "I2P/2X", uopt->advI2P);
+        OSD_handleCommand(OSD_CMD_I2P_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_I2PSettings_Smooth);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_I2PSettings_Smooth);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    uopt->advI2P = !uopt->advI2P;
+                    if(!uopt->advI2P) {
+                        uopt->advSmooth = false;
+                    }
+                    ADV_sendI2P(uopt->advI2P);
+                    saveUserPrefs();
+                    OSD_handleCommand(OSD_CMD_I2P_PAGE1);
+                    OSD_handleCommand(OSD_CMD_I2P_PAGE1_VALUES);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_I2PSettings_Smooth (Page 1, row 2)
+    else if (oled_menuItem == OLED_I2PSettings_Smooth) {
+        showMenuToggle("M>I2P Settings", "Smooth", uopt->advSmooth);
+        OSD_handleCommand(OSD_CMD_I2P_PAGE1_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_I2PSettings_Enable);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_I2PSettings_Enable);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    if (uopt->advI2P) {
+                        uopt->advSmooth = !uopt->advSmooth;
+                        ADV_sendSmooth(uopt->advSmooth);
+                        saveUserPrefs();
+                    }
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
                     break;
             }
             irResume();

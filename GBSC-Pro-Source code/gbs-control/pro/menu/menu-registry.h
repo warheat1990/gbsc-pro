@@ -153,6 +153,11 @@ typedef enum {
     OLED_VideoFiltersSettings_CombFilter,   // Row 3: Unified Comb Filter (sets both PAL/NTSC)
     OLED_VideoFiltersSettings_Default,      // Page 2: Default
 
+    // I2P Settings submenu (inside SV/AV Settings)
+    OLED_SystemSettings_SVAVInput_I2PSettings,  // Link to I2P Settings submenu (Page 1, row 3)
+    OLED_I2PSettings_Enable,                // Row 1: Enable I2P/2X
+    OLED_I2PSettings_Smooth,                // Row 2: Smooth
+
     // Preferences menu (Page 2 row 3 of main menu)
     OLED_Preferences,
     OLED_Preferences_Theme,
@@ -289,16 +294,17 @@ typedef struct {
 
 // Main Menu Mappings
 #define MENU_ITEMS_MAIN \
-    MENU_ITEM(OLED_Input,            OSD_CMD_MAIN_PAGE1, 1) \
-    MENU_ITEM(OLED_OutputResolution, OSD_CMD_MAIN_PAGE1, 2) \
-    MENU_ITEM(OLED_ScreenSettings,   OSD_CMD_MAIN_PAGE1, 3) \
-    MENU_ITEM(OLED_SystemSettings,   OSD_CMD_MAIN_PAGE2, 1) \
-    MENU_ITEM(OLED_ColorSettings,    OSD_CMD_MAIN_PAGE2, 2) \
-    MENU_ITEM(OLED_Preferences,      OSD_CMD_MAIN_PAGE2, 3) \
-    MENU_ITEM(OLED_Developer,        OSD_CMD_MAIN_PAGE3, 1) \
-    MENU_ITEM(OLED_FirmwareVersion,  OSD_CMD_MAIN_PAGE3, 2) \
-    MENU_ITEM(OLED_FactoryReset,     OSD_CMD_MAIN_PAGE3, 3) \
-    MENU_ITEM(OLED_Restart,          OSD_CMD_MAIN_PAGE4, 1)
+    MENU_ITEM(OLED_Input,                          OSD_CMD_MAIN_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInputSettings, OSD_CMD_MAIN_PAGE1, 2) \
+    MENU_ITEM(OLED_OutputResolution,               OSD_CMD_MAIN_PAGE1, 3) \
+    MENU_ITEM(OLED_ScreenSettings,                 OSD_CMD_MAIN_PAGE2, 1) \
+    MENU_ITEM(OLED_ColorSettings,                  OSD_CMD_MAIN_PAGE2, 2) \
+    MENU_ITEM(OLED_SystemSettings,                 OSD_CMD_MAIN_PAGE2, 3) \
+    MENU_ITEM(OLED_Preferences,                    OSD_CMD_MAIN_PAGE3, 1) \
+    MENU_ITEM(OLED_Developer,                      OSD_CMD_MAIN_PAGE3, 2) \
+    MENU_ITEM(OLED_FirmwareVersion,                OSD_CMD_MAIN_PAGE3, 3) \
+    MENU_ITEM(OLED_FactoryReset,                   OSD_CMD_MAIN_PAGE4, 1) \
+    MENU_ITEM(OLED_Restart,                        OSD_CMD_MAIN_PAGE4, 2)
 
 // Preferences Menu Mappings
 #define MENU_ITEMS_PREFERENCES \
@@ -347,29 +353,27 @@ typedef struct {
 
 // System Settings Menu Mappings
 #define MENU_ITEMS_SYSTEM \
-    MENU_ITEM(OLED_SystemSettings_SVAVInputSettings, OSD_CMD_SYS_PAGE1, 1) \
-    MENU_ITEM(OLED_SystemSettings_Compatibility,     OSD_CMD_SYS_PAGE1, 2) \
-    MENU_ITEM(OLED_SystemSettings_MatchedPresets,    OSD_CMD_SYS_PAGE1, 3) \
-    MENU_ITEM(OLED_SystemSettings_Deinterlace,       OSD_CMD_SYS_PAGE2, 1) \
-    MENU_ITEM(OLED_SystemSettings_Force5060Hz,       OSD_CMD_SYS_PAGE2, 2) \
-    MENU_ITEM(OLED_SystemSettings_LockMethod,        OSD_CMD_SYS_PAGE2, 3) \
-    MENU_ITEM(OLED_SystemSettings_ADCCalibration,    OSD_CMD_SYS_PAGE4, 1) \
-    MENU_ITEM(OLED_SystemSettings_FrameTimeLock,     OSD_CMD_SYS_PAGE4, 2) \
-    MENU_ITEM(OLED_SystemSettings_ClockGenerator,    OSD_CMD_SYS_PAGE4, 3)
+    MENU_ITEM(OLED_SystemSettings_Compatibility,     OSD_CMD_SYS_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_MatchedPresets,    OSD_CMD_SYS_PAGE1, 2) \
+    MENU_ITEM(OLED_SystemSettings_Deinterlace,       OSD_CMD_SYS_PAGE1, 3) \
+    MENU_ITEM(OLED_SystemSettings_Force5060Hz,       OSD_CMD_SYS_PAGE2, 1) \
+    MENU_ITEM(OLED_SystemSettings_LockMethod,        OSD_CMD_SYS_PAGE2, 2) \
+    MENU_ITEM(OLED_SystemSettings_ADCCalibration,    OSD_CMD_SYS_PAGE2, 3) \
+    MENU_ITEM(OLED_SystemSettings_FrameTimeLock,     OSD_CMD_SYS_PAGE4, 1) \
+    MENU_ITEM(OLED_SystemSettings_ClockGenerator,    OSD_CMD_SYS_PAGE4, 2)
 
 // SV/AV Input Settings Menu Mappings
-// Page 1: ACE Settings link, Video Filters link, I2P
+// Page 1: I2P Settings link, Video Filters link, ACE Settings link
 // Page 2: Brightness, Contrast, Saturation
-// Page 3: Smooth, Default
+// Page 3: Default
 #define MENU_ITEMS_SVAVINPUT \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACESettings,      OSD_CMD_SVAVINPUT_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_I2PSettings,      OSD_CMD_SVAVINPUT_PAGE1, 1) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_FiltersSettings,  OSD_CMD_SVAVINPUT_PAGE1, 2) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_I2P,       OSD_CMD_SVAVINPUT_PAGE1, 3) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_ACESettings,      OSD_CMD_SVAVINPUT_PAGE1, 3) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,           OSD_CMD_SVAVINPUT_PAGE2, 1) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,         OSD_CMD_SVAVINPUT_PAGE2, 2) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation,       OSD_CMD_SVAVINPUT_PAGE2, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Smooth,           OSD_CMD_SVAVINPUT_PAGE3, 1) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,          OSD_CMD_SVAVINPUT_PAGE3, 2)
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,          OSD_CMD_SVAVINPUT_PAGE3, 1)
 
 // ACE Settings Menu Mappings (submenu inside SV/AV Settings)
 #define MENU_ITEMS_ACE \
@@ -391,6 +395,11 @@ typedef struct {
     MENU_ITEM(OLED_VideoFiltersSettings_SVOverride,  OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
     MENU_ITEM(OLED_VideoFiltersSettings_CombFilter,  OSD_CMD_VIDEOFILTERS_PAGE1, 3) \
     MENU_ITEM(OLED_VideoFiltersSettings_Default,     OSD_CMD_VIDEOFILTERS_PAGE2, 1)
+
+// I2P Settings Menu Mappings (submenu inside SV/AV Settings)
+#define MENU_ITEMS_I2P \
+    MENU_ITEM(OLED_I2PSettings_Enable,  OSD_CMD_I2P_PAGE1, 1) \
+    MENU_ITEM(OLED_I2PSettings_Smooth,  OSD_CMD_I2P_PAGE1, 2)
 
 // Developer Menu Mappings (6 pages, 3 items each = 17 items total)
 #define MENU_ITEMS_DEVELOPER \
@@ -423,6 +432,7 @@ typedef struct {
     MENU_ITEMS_SVAVINPUT \
     MENU_ITEMS_ACE \
     MENU_ITEMS_VIDEOFILTERS \
+    MENU_ITEMS_I2P \
     MENU_ITEMS_PREFERENCES \
     MENU_ITEMS_DEVELOPER
 
@@ -439,6 +449,7 @@ bool IR_handleSystemSettings();
 bool IR_handleADVSettings();
 bool IR_handleACESettings();
 bool IR_handleVideoFiltersSettings();
+bool IR_handleI2PSettings();
 bool IR_handlePreferencesMenu();
 bool IR_handleProfileManagement();
 bool IR_handleMuteDisplay();

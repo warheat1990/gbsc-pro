@@ -6,25 +6,24 @@
 #include "../osd-core.h"
 
 // ====================================================================================
-// SV/AV Input Settings - Page 1 (ACE Settings, Video Filters, I2P)
+// SV/AV Input Settings - Page 1 (I2P Settings, Video Filters, ACE Settings)
 // ====================================================================================
 
 void handle_SVAVInput_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "ACE Settings");
+    OSD_writeStringAtRow(1, 1, "I2P Settings");
     OSD_writeCharAtRow(1, 0xFF, arrow_right_icon, (selectedMenuLine == 1) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
     OSD_writeStringAtRow(2, 1, "Video Filters");
     OSD_writeCharAtRow(2, 0xFF, arrow_right_icon, (selectedMenuLine == 2) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
-    OSD_writeStringAtRow(3, 1, "Enable I2P/2X");
-    OSD_drawDashRange(3, 14, 22);
+    OSD_writeStringAtRow(3, 1, "ACE Settings");
+    OSD_writeCharAtRow(3, 0xFF, arrow_right_icon, (selectedMenuLine == 3) ? OSD_TEXT_SELECTED : OSD_CURSOR_INACTIVE);
 }
 
 void handle_SVAVInput_Page1_Values(void)
 {
-    // Row 1 and 2 are submenu links, no values to display
-    OSD_writeOnOff(3, uopt->advI2P);
+    // All rows are submenu links, no values to display
 }
 
 // ====================================================================================
@@ -51,22 +50,19 @@ void handle_SVAVInput_Page2_Values(void)
 }
 
 // ====================================================================================
-// SV/AV Input Settings - Page 3 (Smooth, Default)
+// SV/AV Input Settings - Page 3 (Default only)
 // ====================================================================================
 
 void handle_SVAVInput_Page3(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '3', false);
-    OSD_writeStringAtRow(1, 1, "Smooth", uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
-    OSD_drawDashRange(1, 7, 22, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
-    OSD_writeStringAtRow(2, 1, "Default");
-    OSD_writeStringAtRow(3, 1, "");
+    OSD_writeStringAtRow(1, 1, "Default");
 }
 
 void handle_SVAVInput_Page3_Values(void)
 {
-    OSD_writeOnOff(1, uopt->advSmooth, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    // No values to display
 }
 
 // ====================================================================================
@@ -296,5 +292,25 @@ void handle_VideoFilters_Page2(void)
 void handle_VideoFilters_Page2_Values(void)
 {
     // No values to display
+}
+
+// ====================================================================================
+// I2P Settings - Single Page (Enable I2P/2X, Smooth)
+// ====================================================================================
+
+void handle_I2P_Page1(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(false, '1', false);
+    OSD_writeStringAtRow(1, 1, "Enable I2P/2X");
+    OSD_drawDashRange(1, 14, 22);
+    OSD_writeStringAtRow(2, 1, "Smooth", uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    OSD_drawDashRange(2, 7, 22, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+}
+
+void handle_I2P_Page1_Values(void)
+{
+    OSD_writeOnOff(1, uopt->advI2P);
+    OSD_writeOnOff(2, uopt->advSmooth, uopt->advI2P ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
 }
 

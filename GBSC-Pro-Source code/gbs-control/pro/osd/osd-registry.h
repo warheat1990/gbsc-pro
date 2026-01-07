@@ -139,6 +139,10 @@ typedef enum : uint8_t {
     OSD_CMD_VIDEOFILTERS_PAGE2,
     OSD_CMD_VIDEOFILTERS_PAGE2_VALUES,
 
+    // I2P Settings (submenu inside SV/AV Settings)
+    OSD_CMD_I2P_PAGE1,
+    OSD_CMD_I2P_PAGE1_VALUES,
+
     // Firmware Version
     OSD_CMD_FIRMWARE_VERSION,
 
@@ -253,6 +257,13 @@ void handle_VideoFilters_Page1(void);
 void handle_VideoFilters_Page1_Values(void);
 void handle_VideoFilters_Page2(void);
 void handle_VideoFilters_Page2_Values(void);
+
+// ====================================================================================
+// Handler Function Declarations - I2P Settings (submenu inside SV/AV)
+// ====================================================================================
+
+void handle_I2P_Page1(void);
+void handle_I2P_Page1_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - Developer
@@ -404,6 +415,10 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES, handle_VideoFilters_Page1_Values) \
     DISPATCH_ENTRY(OSD_CMD_VIDEOFILTERS_PAGE2,        handle_VideoFilters_Page2) \
     DISPATCH_ENTRY(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES, handle_VideoFilters_Page2_Values) \
+    \
+    /* I2P Settings (submenu inside SV/AV) */ \
+    DISPATCH_ENTRY(OSD_CMD_I2P_PAGE1,        handle_I2P_Page1) \
+    DISPATCH_ENTRY(OSD_CMD_I2P_PAGE1_VALUES, handle_I2P_Page1_Values) \
     \
     /* Firmware Version */ \
     DISPATCH_ENTRY(OSD_CMD_FIRMWARE_VERSION, handle_FirmwareVersion) \

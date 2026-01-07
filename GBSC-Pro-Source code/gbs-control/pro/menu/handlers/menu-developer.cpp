@@ -18,7 +18,7 @@ extern char userCommand;
 
 bool IR_handleDeveloperMenu()
 {
-    // OLED_Developer - Main menu entry (row 1, page 3)
+    // OLED_Developer - Main menu entry (row 2, page 3)
     if (oled_menuItem == OLED_Developer) {
         showMenu("Menu->>>", "Developer");
 

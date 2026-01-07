@@ -21,7 +21,7 @@ bool IR_handleMainMenu()
 
     // OLED_Input - Main menu entry (row 1, page 1)
     if (oled_menuItem == OLED_Input) {
-        showMenu("Menu->>>", "Input");
+        showMenu("Menu->>>", "Input source");
 
         if (irDecode()) {
             switch (results.value) {
@@ -32,7 +32,7 @@ bool IR_handleMainMenu()
                     Menu_navigateTo(OLED_Restart);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_OutputResolution);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
                     break;
                 case IR_KEY_OK:
                     Menu_navigateTo(OLED_Input_RGBs);
@@ -46,7 +46,37 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_OutputResolution - Main menu entry (row 2, page 1)
+    // OLED_SystemSettings_SVAVInputSettings - Main menu entry (row 2, page 1)
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInputSettings) {
+        showMenu("Menu->>>", "AV/SV Inputs");
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_Input);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_OutputResolution);
+                    break;
+                case IR_KEY_OK:
+                    // Only enter submenu if SV/AV input is active
+                    if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
+                    }
+                    break;
+                case IR_KEY_EXIT:
+                    exitMenu();
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_OutputResolution - Main menu entry (row 3, page 1)
     else if (oled_menuItem == OLED_OutputResolution) {
         showMenu("Menu->>>", "Output Resolution");
 
@@ -56,7 +86,7 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_Input);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ScreenSettings);
@@ -73,7 +103,7 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_ScreenSettings - Main menu entry (row 3, page 1)
+    // OLED_ScreenSettings - Main menu entry (row 1, page 2)
     else if (oled_menuItem == OLED_ScreenSettings) {
         showMenu("Menu->>>", "Screen Settings");
 
@@ -86,7 +116,7 @@ bool IR_handleMainMenu()
                     Menu_navigateTo(OLED_OutputResolution);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings);
+                    Menu_navigateTo(OLED_ColorSettings);
                     break;
                 case IR_KEY_OK:
                     Menu_navigateTo(OLED_ScreenSettings_Move);
@@ -102,33 +132,6 @@ bool IR_handleMainMenu()
 
     // ==================== Main Menu Page 2 ====================
 
-    // OLED_SystemSettings - Main menu entry (row 1, page 2)
-    else if (oled_menuItem == OLED_SystemSettings) {
-        showMenu("Menu->>>", "System Settings");
-
-        if (irDecode()) {
-            switch (results.value) {
-                case IR_KEY_MENU:
-                    exitMenu();
-                    break;
-                case IR_KEY_UP:
-                    Menu_navigateTo(OLED_ScreenSettings);
-                    break;
-                case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_ColorSettings);
-                    break;
-                case IR_KEY_OK:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
-                    break;
-                case IR_KEY_EXIT:
-                    exitMenu();
-                    break;
-            }
-            irResume();
-        }
-        return true;
-    }
-
     // OLED_ColorSettings - Main menu entry (row 2, page 2)
     else if (oled_menuItem == OLED_ColorSettings) {
         showMenu("Menu->>>", "Picture Settings");
@@ -139,10 +142,10 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings);
+                    Menu_navigateTo(OLED_ScreenSettings);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_Preferences);
+                    Menu_navigateTo(OLED_SystemSettings);
                     break;
                 case IR_KEY_OK:
                     Menu_navigateTo(OLED_ColorSettings_RGB_R);
@@ -156,7 +159,36 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_Preferences - Main menu entry (row 3, page 2)
+    // OLED_SystemSettings - Main menu entry (row 3, page 2)
+    else if (oled_menuItem == OLED_SystemSettings) {
+        showMenu("Menu->>>", "System Settings");
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_ColorSettings);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_Preferences);
+                    break;
+                case IR_KEY_OK:
+                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    break;
+                case IR_KEY_EXIT:
+                    exitMenu();
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // ==================== Main Menu Page 3 ====================
+
+    // OLED_Preferences - Main menu entry (row 1, page 3)
     else if (oled_menuItem == OLED_Preferences) {
         showMenu("Menu->>>", "Preferences");
 
@@ -166,7 +198,7 @@ bool IR_handleMainMenu()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_ColorSettings);
+                    Menu_navigateTo(OLED_SystemSettings);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_Developer);
@@ -183,9 +215,7 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // ==================== Main Menu Page 3 ====================
-
-    // OLED_FirmwareVersion - Main menu entry (row 2, page 3)
+    // OLED_FirmwareVersion - Main menu entry (row 3, page 3)
     else if (oled_menuItem == OLED_FirmwareVersion) {
         showMenu("Menu->>>", "Firmware Version");
 
@@ -234,7 +264,9 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_FactoryReset - Main menu entry (row 3, page 3)
+    // ==================== Main Menu Page 4 ====================
+
+    // OLED_FactoryReset - Main menu entry (row 1, page 4)
     else if (oled_menuItem == OLED_FactoryReset) {
         showMenu("Menu->>>", "Factory Reset");
 
@@ -301,7 +333,7 @@ bool IR_handleMainMenu()
         return true;
     }
 
-    // OLED_Restart - Main menu entry (row 1, page 4)
+    // OLED_Restart - Main menu entry (row 2, page 4)
     else if (oled_menuItem == OLED_Restart) {
         showMenu("Menu->>>", "Restart");
 
