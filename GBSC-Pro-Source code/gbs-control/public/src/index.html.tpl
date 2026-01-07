@@ -137,6 +137,99 @@
         <section name="presets">
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div class="gbs-icon">aspect_ratio</div>
+              <div>Resolution</div>
+            </legend>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li>Choose an output resolution from these presets.</li>
+              <li>Your selection will also be used for startup. 1280x960 is recommended for NTSC sources, 1280x1024 for PAL.
+              </li>
+              <li>Use the "Matched Presets" option to switch between the two automatically (Preferences tab)
+              </li>
+              <li>Selecting a resolution also makes it the new startup preset.</li>
+            </ul>
+            <div class="gbs-resolution">
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-message="s"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1920x1080"
+                gbs-role="preset"
+              >
+                1920 <span>x1080</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-message="p"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1280x1024"
+                gbs-role="preset"
+              >
+                1280 <span>x1024</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-message="f"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1280x960"
+                gbs-role="preset"
+              >
+                1280 <span>x960</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-message="g"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1280x720"
+                gbs-role="preset"
+              >
+                1280 <span>x720</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
+                gbs-message="h"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button720x480"
+                gbs-role="preset"
+              >
+                480p 576p
+              </button>
+              <!-- PRO: 15KHz Downscale and Pass Through not supported
+              <button
+                gbs-message="L"
+                gbs-message-type="user"
+                gbs-click="normal"
+                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
+                gbs-element-ref="button15kHzScaleDown"
+                gbs-role="preset"
+              >
+                <div class="gbs-icon">tv</div>
+                <div>15KHz</div>
+              </button>
+              <button
+                gbs-message="K"
+                gbs-message-type="action"
+                gbs-click="normal"
+                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
+                gbs-element-ref="buttonSourcePassThrough"
+                gbs-role="preset"
+              >
+                <div class="gbs-icon">swap_calls</div>
+                <div class="gbs-button__resolution--pass-through">
+                  Pass Through
+                </div>
+              </button>
+              -->
+            </div>
+          </fieldset>
+          <fieldset class="gbs-fieldset" style="padding: 8px 2px">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
               <div class="gbs-icon">cable</div>
               <div>Input Source</div>
             </legend>
@@ -366,97 +459,64 @@
               </button>
             </div>
           </fieldset>
-          <fieldset class="gbs-fieldset" style="padding: 8px 2px">
+          <fieldset id="gbs-pro-filters-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">aspect_ratio</div>
-              <div>Resolution</div>
+              <div class="gbs-icon">tune</div>
+              <div>Video Filters</div>
             </legend>
             <!-- prettier-ignore -->
             <ul class="gbs-help">
-              <li>Choose an output resolution from these presets.</li>
-              <li>Your selection will also be used for startup. 1280x960 is recommended for NTSC sources, 1280x1024 for PAL.
-              </li>
-              <li>Use the "Matched Presets" option to switch between the two automatically (Preferences tab)
-              </li>
-              <li>Selecting a resolution also makes it the new startup preset.</li>
+              <li><strong>Y Filter</strong>: Luminance filter shaping</li>
+              <li><strong>C Filter</strong>: Chrominance filter (Composite only)</li>
+              <li><strong>Override</strong>: Manual Y filter control (S-Video only)</li>
+              <li><strong>Comb Filter</strong>: Comb filter bandwidth</li>
             </ul>
-            <div class="gbs-resolution">
-              <button
-                class="gbs-button gbs-button__resolution"
-                gbs-message="s"
-                gbs-message-type="user"
-                gbs-click="normal"
-                gbs-element-ref="button1920x1080"
-                gbs-role="preset"
-              >
-                1920 <span>x1080</span>
+            <!-- Y Filter -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Y Filter</span>
+              <button id="gbs-pro-filter-yfilter-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
               </button>
-              <button
-                class="gbs-button gbs-button__resolution"
-                gbs-message="p"
-                gbs-message-type="user"
-                gbs-click="normal"
-                gbs-element-ref="button1280x1024"
-                gbs-role="preset"
-              >
-                1280 <span>x1024</span>
+              <span id="gbs-pro-filter-yfilter-value" style="width: 80px; text-align: center; padding: 8px;">AutoNarrow</span>
+              <button id="gbs-pro-filter-yfilter-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
               </button>
-              <button
-                class="gbs-button gbs-button__resolution"
-                gbs-message="f"
-                gbs-message-type="user"
-                gbs-click="normal"
-                gbs-element-ref="button1280x960"
-                gbs-role="preset"
-              >
-                1280 <span>x960</span>
+            </div>
+            <!-- C Filter (AV only) -->
+            <div id="gbs-pro-filter-cfilter-row" class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">C Filter</span>
+              <button id="gbs-pro-filter-cfilter-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
               </button>
-              <button
-                class="gbs-button gbs-button__resolution"
-                gbs-message="g"
-                gbs-message-type="user"
-                gbs-click="normal"
-                gbs-element-ref="button1280x720"
-                gbs-role="preset"
-              >
-                1280 <span>x720</span>
+              <span id="gbs-pro-filter-cfilter-value" style="width: 80px; text-align: center; padding: 8px;">Auto1.5M</span>
+              <button id="gbs-pro-filter-cfilter-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
               </button>
-              <button
-                class="gbs-button gbs-button__resolution"
-                gbs-message="h"
-                gbs-message-type="user"
-                gbs-click="normal"
-                gbs-element-ref="button720x480"
-                gbs-role="preset"
-              >
-                480p 576p
+            </div>
+            <!-- Override (SV only) -->
+            <table id="gbs-pro-filter-override-row" class="gbs-preferences" style="display: none; width: 100%;">
+              <tr id="gbs-pro-filter-override-tr">
+                <td style="width: 100%; padding: 6px;">Override</td>
+                <td id="gbs-pro-filter-override" class="gbs-icon">toggle_off</td>
+              </tr>
+            </table>
+            <!-- Comb Filter -->
+            <div class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Comb Filter</span>
+              <button id="gbs-pro-filter-comb-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
               </button>
-              <!-- PRO: 15KHz Downscale and Pass Through not supported
-              <button
-                gbs-message="L"
-                gbs-message-type="user"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="button15kHzScaleDown"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">tv</div>
-                <div>15KHz</div>
+              <span id="gbs-pro-filter-comb-value" style="width: 80px; text-align: center; padding: 8px;">Medium</span>
+              <button id="gbs-pro-filter-comb-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
               </button>
-              <button
-                gbs-message="K"
-                gbs-message-type="action"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="buttonSourcePassThrough"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">swap_calls</div>
-                <div class="gbs-button__resolution--pass-through">
-                  Pass Through
-                </div>
+            </div>
+            <!-- Reset -->
+            <div class="gbs-flex">
+              <button id="gbs-pro-filter-default" class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
+                <div class="gbs-icon">restore</div>
+                <div>Reset to Defaults</div>
               </button>
-              -->
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset presets">

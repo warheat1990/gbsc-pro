@@ -13,6 +13,7 @@
 
 __IO en_flag_status_t m_enRxFrameEnd;
 uint8_t dma_au8RxBuf[APP_FRAME_LEN_MAX];
+static uint16_t m_u16RxLen;  /* Number of bytes received in buffer */
 
 static void RX_DMA_TC_IrqCallback(void)
 {
@@ -158,6 +159,9 @@ void USART_RxTimeout_IrqCallback(void)
     uint16_t remaining = DMA_GetTransCount(RX_DMA_UNIT, RX_DMA_CH);
     uint16_t received = APP_FRAME_LEN_MAX - remaining;
 
+    /* Store received length for processing */
+    m_u16RxLen = received;
+
     printf("[RX %d] ", received);
     for (uint16_t i = 0; i < received && i < APP_FRAME_LEN_MAX; i++) {
         printf("%02X ", dma_au8RxBuf[i]);
@@ -299,398 +303,450 @@ static void UART_SetVideoMode(const uint8_t mode_byte)
     }
 }
 
-void UART_ProcessCommand(void)
+/**
+ * @brief  Process a single command from the buffer at given offset
+ * @param  buf Pointer to command data
+ * @param  len Available bytes in buffer
+ * @return Command length if valid, 0 if invalid/incomplete
+ */
+static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
 {
     uint8_t buff[2];
 
-    if (SET == m_enRxFrameEnd)
+    /* Need at least 7 bytes for standard packet or header check */
+    if (len < 7)
+        return 0;
+
+    /* Check header */
+    if (buf[0] != 0x41 || buf[1] != 0x44)
+        return 0;
+
+    /* Handle Custom I2C command with variable length */
+    if (buf[2] == 'C')
     {
-        /* Check header first */
-        if (dma_au8RxBuf[0] != 0x41 || dma_au8RxBuf[1] != 0x44)
+        uint8_t count = buf[3];
+        /* Max triplets limited by buffer size (4096-6)/3=1363, but count is uint8_t so max 255 */
+        if (count > 0)
         {
-            m_enRxFrameEnd = RESET;
-            memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
-            return;
-        }
+            uint16_t data_len   = count * 3;
+            uint16_t fe_pos     = 4 + data_len;
+            uint16_t chksum_pos = fe_pos + 1;
+            uint16_t cmd_len    = chksum_pos + 1;
 
-        /* Handle Custom I2C command with variable length */
-        if (dma_au8RxBuf[2] == 'C')
-        {
-            uint8_t count = dma_au8RxBuf[3];
-            /* Max triplets limited by buffer size: (APP_FRAME_LEN_MAX - 6) / 3 */
-            uint8_t max_count = (APP_FRAME_LEN_MAX - 6) / 3;
-            if (count > 0 && count <= max_count)
+            /* Check if we have enough bytes */
+            if (len < cmd_len)
+                return 0;
+
+            /* Calculate checksum */
+            uint8_t calc_sum = 0;
+            for (uint16_t i = 0; i <= fe_pos; i++)
             {
-                /* Variable length packet:
-                 * [0x41 0x44] ['C'] [count] [data...] [0xFE] [checksum]
-                 * Data length = count * 3
-                 * 0xFE position = 4 + count*3
-                 * checksum position = 5 + count*3
-                 */
-                uint16_t data_len   = count * 3;
-                uint16_t fe_pos     = 4 + data_len;
-                uint16_t chksum_pos = fe_pos + 1;
-
-                /* Calculate checksum for variable length packet */
-                uint8_t calc_sum = 0;
-                for (uint16_t i = 0; i <= fe_pos; i++)
-                {
-                    calc_sum += dma_au8RxBuf[i];
-                }
-
-                if (dma_au8RxBuf[fe_pos] == 0xFE && dma_au8RxBuf[chksum_pos] == calc_sum)
-                {
-                    uint8_t *i2c_data = &dma_au8RxBuf[4];
-                    (void)I2C_TransmitBatch(i2c_data, count, TIMEOUT);
-                    printf("[ADV] Custom I2C: %d cmds\n", count);
-                    c_state = 1;
-                }
-                else
-                {
-                    printf("[ADV] Custom I2C: chksum err\n");
-                }
+                calc_sum += buf[i];
             }
-            m_enRxFrameEnd = RESET;
-            memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
-            return;
-        }
 
-        /* Standard fixed-length packet validation (7 bytes) */
-        buff[1] =
-            dma_au8RxBuf[5] + dma_au8RxBuf[4] + dma_au8RxBuf[3] + dma_au8RxBuf[2] + dma_au8RxBuf[1] + dma_au8RxBuf[0];
-        if (dma_au8RxBuf[5] != 0xFE || dma_au8RxBuf[6] != buff[1])
+            if (buf[fe_pos] == 0xFE && buf[chksum_pos] == calc_sum)
+            {
+                uint8_t *i2c_data = &buf[4];
+                (void)I2C_TransmitBatch(i2c_data, count, TIMEOUT);
+                printf("[ADV] Custom I2C: %d cmds\n", count);
+                c_state = 1;
+            }
+            else
+            {
+                printf("[ADV] Custom I2C: chksum err\n");
+            }
+            return cmd_len;
+        }
+        return 0;
+    }
+
+    /* Standard fixed-length packet validation (7 bytes) */
+    buff[1] = buf[5] + buf[4] + buf[3] + buf[2] + buf[1] + buf[0];
+    if (buf[5] != 0xFE || buf[6] != buff[1])
+        return 0;
+
+    /* Process command */
+    if (buf[2] == 'T')
+    {
+        adv_tv  = buf[3];
+        FLASH_SaveSettings();
+        buff[0] = VID_SEL_REG;
+        buff[1] = adv_tv;
+        (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
+        printf("[ADV] Tv 0x%02x\n", adv_tv);
+        c_state = 1;
+    }
+    else if (buf[2] == 'N' && (buf[3] == 0x0a || buf[3] == 0x08 ||
+                                buf[3] == 0xe3 || buf[3] == 'D'))
+    {
+        if (buf[3] == 'D' && buf[4] == 'E')
         {
-            m_enRxFrameEnd = RESET;
-            memset(dma_au8RxBuf, 0, sizeof(dma_au8RxBuf));
-            return;
+            uint8_t I2C_DEFAULT_BCSH[] = {
+                0x42, 0x0E, 0x00,
+                0x42, 0x0A, 0x00,
+                0x42, 0x08, 0x80,
+                0x42, 0xE3, 0x80,
+                0x42, 0x0B, 0x00,
+            };
+            Bright     = 0x00;
+            Contrast   = 0x80;
+            Saturation = 0x80;
+            (void)I2C_TransmitBatch(I2C_DEFAULT_BCSH, sizeof(I2C_DEFAULT_BCSH) / 3, TIMEOUT);
+            printf("[ADV] bcsh: default\n");
         }
         else
         {
-            if (dma_au8RxBuf[2] == 'T')
-            {
-                adv_tv  = dma_au8RxBuf[3];
-                FLASH_SaveSettings();
-                buff[0] = VID_SEL_REG;
-                buff[1] = adv_tv;
-                (void)I2C_Transmit(DEVICE_ADDR, buff, 2, TIMEOUT);
-                printf("[ADV] Tv 0x%02x\n", adv_tv);
-                c_state = 1;
-            }
-            else if (dma_au8RxBuf[2] == 'N' && (dma_au8RxBuf[3] == 0x0a || dma_au8RxBuf[3] == 0x08 ||
-                                                dma_au8RxBuf[3] == 0xe3 || dma_au8RxBuf[3] == 'D'))
-            {
-                if (dma_au8RxBuf[3] == 'D' && dma_au8RxBuf[4] == 'E')
-                {
-                    uint8_t I2C_DEFAULT_BCSH[] = {
-                        0x42, 0x0E, 0x00, // ADV7280 - ADI Control 1: main register
-                        0x42, 0x0A, 0x00, // ADV7280 - Brightness adjust: 0 IRE
-                        0x42, 0x08, 0x80, // ADV7280 - Contrast: 1 gain
-                        0x42, 0xE3, 0x80, // ADV7280 - SD saturation Cb channel: 0dB
-                        0x42, 0x0B, 0x00, // ADV7280 - Hue adjust: 0 default
-                    };
-                    Bright     = 0x00;
-                    Contrast   = 0x80;
-                    Saturation = 0x80;
-
-                    (void)I2C_TransmitBatch(I2C_DEFAULT_BCSH, sizeof(I2C_DEFAULT_BCSH) / 3, TIMEOUT);
-                    printf("[ADV] bcsh: default\n");
-                }
-                else
-                {
-                    (void)I2C_Transmit(DEVICE_ADDR, &dma_au8RxBuf[3], 2, TIMEOUT);
-                    printf("[ADV] bcsh: 0x%02x\n", dma_au8RxBuf[4]);
-                    if (dma_au8RxBuf[3] == 0x0a)
-                        Bright = dma_au8RxBuf[4];
-                    else if (dma_au8RxBuf[3] == 0x08)
-                        Contrast = dma_au8RxBuf[4];
-                    else if (dma_au8RxBuf[3] == 0xe3)
-                        Saturation = dma_au8RxBuf[4];
-                }
-                FLASH_SaveSettings();
-                c_state = 1;
-            }
-            else if (dma_au8RxBuf[2] == 'S')
-            {
-                if (dma_au8RxBuf[3] == 0xfd)
-                {
-                    adv_sw = true;
-                    FLASH_SaveSettings();
-                    ADV_Init();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x01)
-                {
-                    adv_sw = false;
-                    FLASH_SaveSettings();
-                    ADV_Deinit();
-                    c_state = 1;
-                }
-                else if ((dma_au8RxBuf[3] & 0xf0) == 0x10)
-                {
-                    AVsw   = 1;
-                    asw_01 = 0;
-                    asw_02 = 0;
-                    asw_03 = 1;
-                    asw_04 = 0;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    ASW_SetAVConnect(AVsw);
-                    adv_sw    = true;
-                    adv_input = SV_INPUT;
-                    UART_SetVideoMode(dma_au8RxBuf[3] & 0x0f);
-                    ADV_Init();
-                    Input_signal = 5;
-                    FLASH_SaveSettings();
-                    printf("[ADV] mode 0x%02x\n", dma_au8RxBuf[3]);
-                    c_state = 1;
-                }
-                else if ((dma_au8RxBuf[3] & 0xf0) == 0x20)
-                {
-                    AVsw   = 1;
-                    asw_01 = 0;
-                    asw_02 = 0;
-                    asw_03 = 1;
-                    asw_04 = 0;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    ASW_SetAVConnect(AVsw);
-                    adv_sw    = true;
-                    adv_input = AV_INPUT;
-                    UART_SetVideoMode(dma_au8RxBuf[3] & 0x0f);
-                    ADV_Init();
-                    Input_signal = 6;
-                    FLASH_SaveSettings();
-                    printf("[ADV] mode 0x%02x\n", dma_au8RxBuf[3]);
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x90)
-                {
-                    if (adv_i2p == true)
-                    {
-                        adv_smooth = true;
-                        FLASH_SaveSettings();
-                        ADV_SetSmooth(adv_smooth);
-                    }
-                    else
-                    {
-                        printf("[ADV] Smooth skip (I2P off)\n");
-                    }
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x91)
-                {
-                    if (adv_i2p == true)
-                    {
-                        adv_smooth = false;
-                        FLASH_SaveSettings();
-                        ADV_SetSmooth(adv_smooth);
-                    }
-                    else
-                    {
-                        printf("[ADV] Smooth skip (I2P off)\n");
-                    }
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x30)
-                {
-                    adv_i2p = true;
-                    FLASH_SaveSettings();
-                    ADV_SetI2P(adv_i2p);
-                    c_state = 1;
-                    ADV_ResetStatus();
-                }
-                else if (dma_au8RxBuf[3] == 0x31)
-                {
-                    adv_i2p = false;
-                    adv_smooth = false;
-                    FLASH_SaveSettings();
-                    ADV_SetSmooth(adv_smooth);
-                    ADV_SetI2P(adv_i2p);
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xa0)
-                {
-                    asw_02 = 1;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    FLASH_SaveSettings();
-                    printf("[ADV] Open Compatibility\n");
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xa1)
-                {
-                    asw_02 = 0;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    FLASH_SaveSettings();
-                    printf("[ADV] Close Compatibility\n");
-                    c_state = 1;
-                }
-                else if ((dma_au8RxBuf[3] & 0xf0) == 0x40)
-                {
-                    AVsw   = 0;
-                    asw_01 = 0;
-                    asw_02 = dma_au8RxBuf[3] & 0x01;
-                    asw_03 = 0;
-                    asw_04 = 1;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    ASW_SetAVConnect(AVsw);
-                    adv_sw       = false;
-                    Input_signal = 1;
-                    FLASH_SaveSettings();
-                    ADV_Deinit();
-                    printf("[ADV] RGBs (Compat=%d)\n", (dma_au8RxBuf[3] & 0x0f));
-                    c_state = 1;
-                }
-                else if ((dma_au8RxBuf[3] & 0xf0) == 0x50)
-                {
-                    AVsw   = 0;
-                    asw_01 = 0;
-                    asw_02 = dma_au8RxBuf[3] & 0x01;
-                    asw_03 = 1;
-                    asw_04 = 0;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    ASW_SetAVConnect(AVsw);
-                    adv_sw       = false;
-                    Input_signal = 2;
-                    FLASH_SaveSettings();
-                    ADV_Deinit();
-                    printf("[ADV] RGsB\n");
-                    c_state = 1;
-                }
-                else if ((dma_au8RxBuf[3] & 0xf0) == 0x60)
-                {
-                    asw_01 = 1;
-                    asw_02 = dma_au8RxBuf[3] & 0x0f;
-                    asw_03 = 1;
-                    asw_04 = 1;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    adv_sw       = false;
-                    Input_signal = 3;
-                    FLASH_SaveSettings();
-                    ADV_Deinit();
-                    printf("[ADV] VGA\n");
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x70)
-                {
-                    asw_01 = 0;
-                    asw_02 = 0;
-                    asw_03 = 1;
-                    asw_04 = 0;
-                    ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
-                    adv_sw       = false;
-                    Input_signal = 4;
-                    FLASH_SaveSettings();
-                    ADV_Deinit();
-                    printf("[ADV] Ypbpr\n");
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x80)
-                {
-                    adv_ace = true;
-                    FLASH_SaveSettings();
-                    ADV_SetACE(adv_ace);
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x81)
-                {
-                    adv_ace = false;
-                    FLASH_SaveSettings();
-                    ADV_SetACE(adv_ace);
-                    c_state = 1;
-                }
-                /* ACE Parameter Commands (0x82-0x87) */
-                else if (dma_au8RxBuf[3] == 0x82)
-                {
-                    /* ACE Luma Gain (0-31) */
-                    ADV_SetACELumaGain(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x83)
-                {
-                    /* ACE Chroma Gain (0-15) */
-                    ADV_SetACEChromaGain(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x84)
-                {
-                    /* ACE Chroma Max (0-15) */
-                    ADV_SetACEChromaMax(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x85)
-                {
-                    /* ACE Gamma Gain (0-15) */
-                    ADV_SetACEGammaGain(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x86)
-                {
-                    /* ACE Response Speed (0-15) */
-                    ADV_SetACEResponseSpeed(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0x87)
-                {
-                    /* ACE Reset to Defaults */
-                    ADV_SetACEDefaults();
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                /* Video Filter Commands (0xB0-0xB7) */
-                else if (dma_au8RxBuf[3] == 0xB0)
-                {
-                    /* Y Shaping Filter for CVBS (0-31) */
-                    ADV_SetFilterYShaping(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB1)
-                {
-                    /* C Shaping Filter for CVBS (0-7) */
-                    ADV_SetFilterCShaping(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB2)
-                {
-                    /* WY Shaping Filter for S-Video (0-31) */
-                    ADV_SetFilterWYShaping(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB3)
-                {
-                    /* WY Shaping Filter Override (0=Auto, 1=Manual) */
-                    ADV_SetFilterWYShapingOvr(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB4)
-                {
-                    /* Comb Filter NTSC bandwidth (0-3) */
-                    ADV_SetFilterCombNTSC(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB5)
-                {
-                    /* Comb Filter PAL bandwidth (0-3) */
-                    ADV_SetFilterCombPAL(dma_au8RxBuf[4]);
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-                else if (dma_au8RxBuf[3] == 0xB7)
-                {
-                    /* Video Filter Reset to Defaults */
-                    ADV_SetFilterDefaults();
-                    FLASH_SaveSettings();
-                    c_state = 1;
-                }
-            }
+            (void)I2C_Transmit(DEVICE_ADDR, &buf[3], 2, TIMEOUT);
+            printf("[ADV] bcsh: 0x%02x\n", buf[4]);
+            if (buf[3] == 0x0a)
+                Bright = buf[4];
+            else if (buf[3] == 0x08)
+                Contrast = buf[4];
+            else if (buf[3] == 0xe3)
+                Saturation = buf[4];
         }
-        m_enRxFrameEnd = RESET;
+        FLASH_SaveSettings();
+        c_state = 1;
+    }
+    else if (buf[2] == 'S')
+    {
+        if (buf[3] == 0xfd)
+        {
+            adv_sw = true;
+            FLASH_SaveSettings();
+            ADV_Init();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x01)
+        {
+            adv_sw = false;
+            FLASH_SaveSettings();
+            ADV_Deinit();
+            c_state = 1;
+        }
+        else if ((buf[3] & 0xf0) == 0x10)
+        {
+            AVsw   = 1;
+            asw_01 = 0;
+            asw_02 = 0;
+            asw_03 = 1;
+            asw_04 = 0;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            ASW_SetAVConnect(AVsw);
+            adv_sw    = true;
+            adv_input = SV_INPUT;
+            UART_SetVideoMode(buf[3] & 0x0f);
+            ADV_Init();
+            DDL_DelayMS(300);  /* Allow ADV to stabilize after init */
+            Input_signal = 5;
+            FLASH_SaveSettings();
+            printf("[ADV] mode 0x%02x\n", buf[3]);
+            c_state = 1;
+        }
+        else if ((buf[3] & 0xf0) == 0x20)
+        {
+            AVsw   = 1;
+            asw_01 = 0;
+            asw_02 = 0;
+            asw_03 = 1;
+            asw_04 = 0;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            ASW_SetAVConnect(AVsw);
+            adv_sw    = true;
+            adv_input = AV_INPUT;
+            UART_SetVideoMode(buf[3] & 0x0f);
+            ADV_Init();
+            DDL_DelayMS(300);  /* Allow ADV to stabilize after init */
+            Input_signal = 6;
+            FLASH_SaveSettings();
+            printf("[ADV] mode 0x%02x\n", buf[3]);
+            c_state = 1;
+        }
+        else if (buf[3] == 0x90)
+        {
+            if (adv_i2p == true)
+            {
+                adv_smooth = true;
+                FLASH_SaveSettings();
+                ADV_SetSmooth(adv_smooth);
+            }
+            else
+            {
+                printf("[ADV] Smooth skip (I2P off)\n");
+            }
+            c_state = 1;
+        }
+        else if (buf[3] == 0x91)
+        {
+            if (adv_i2p == true)
+            {
+                adv_smooth = false;
+                FLASH_SaveSettings();
+                ADV_SetSmooth(adv_smooth);
+            }
+            else
+            {
+                printf("[ADV] Smooth skip (I2P off)\n");
+            }
+            c_state = 1;
+        }
+        else if (buf[3] == 0x30)
+        {
+            adv_i2p = true;
+            FLASH_SaveSettings();
+            ADV_SetI2P(adv_i2p);
+            c_state = 1;
+            ADV_ResetStatus();
+        }
+        else if (buf[3] == 0x31)
+        {
+            adv_i2p = false;
+            adv_smooth = false;
+            FLASH_SaveSettings();
+            ADV_SetSmooth(adv_smooth);
+            ADV_SetI2P(adv_i2p);
+            c_state = 1;
+            ADV_ResetStatus();
+        }
+        else if (buf[3] == 0xa0)
+        {
+            asw_02 = 1;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            FLASH_SaveSettings();
+            printf("[ADV] Open Compatibility\n");
+            c_state = 1;
+        }
+        else if (buf[3] == 0xa1)
+        {
+            asw_02 = 0;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            FLASH_SaveSettings();
+            printf("[ADV] Close Compatibility\n");
+            c_state = 1;
+        }
+        else if ((buf[3] & 0xf0) == 0x40)
+        {
+            AVsw   = 0;
+            asw_01 = 0;
+            asw_02 = buf[3] & 0x01;
+            asw_03 = 0;
+            asw_04 = 1;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            ASW_SetAVConnect(AVsw);
+            adv_sw       = false;
+            Input_signal = 1;
+            FLASH_SaveSettings();
+            ADV_Deinit();
+            printf("[ADV] RGBs (Compat=%d)\n", (buf[3] & 0x0f));
+            c_state = 1;
+        }
+        else if ((buf[3] & 0xf0) == 0x50)
+        {
+            AVsw   = 0;
+            asw_01 = 0;
+            asw_02 = buf[3] & 0x01;
+            asw_03 = 1;
+            asw_04 = 0;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            ASW_SetAVConnect(AVsw);
+            adv_sw       = false;
+            Input_signal = 2;
+            FLASH_SaveSettings();
+            ADV_Deinit();
+            printf("[ADV] RGsB\n");
+            c_state = 1;
+        }
+        else if ((buf[3] & 0xf0) == 0x60)
+        {
+            asw_01 = 1;
+            asw_02 = buf[3] & 0x0f;
+            asw_03 = 1;
+            asw_04 = 1;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            adv_sw       = false;
+            Input_signal = 3;
+            FLASH_SaveSettings();
+            ADV_Deinit();
+            printf("[ADV] VGA\n");
+            c_state = 1;
+        }
+        else if (buf[3] == 0x70)
+        {
+            asw_01 = 0;
+            asw_02 = 0;
+            asw_03 = 1;
+            asw_04 = 0;
+            ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
+            adv_sw       = false;
+            Input_signal = 4;
+            FLASH_SaveSettings();
+            ADV_Deinit();
+            printf("[ADV] Ypbpr\n");
+            c_state = 1;
+        }
+        else if (buf[3] == 0x80)
+        {
+            adv_ace = true;
+            FLASH_SaveSettings();
+            ADV_SetACE(adv_ace);
+            c_state = 1;
+        }
+        else if (buf[3] == 0x81)
+        {
+            adv_ace = false;
+            FLASH_SaveSettings();
+            ADV_SetACE(adv_ace);
+            c_state = 1;
+        }
+        else if (buf[3] == 0x82)
+        {
+            ADV_SetACELumaGain(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x83)
+        {
+            ADV_SetACEChromaGain(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x84)
+        {
+            ADV_SetACEChromaMax(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x85)
+        {
+            ADV_SetACEGammaGain(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x86)
+        {
+            ADV_SetACEResponseSpeed(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0x87)
+        {
+            ADV_SetACEDefaults();
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB0)
+        {
+            ADV_SetFilterYShaping(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB1)
+        {
+            ADV_SetFilterCShaping(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB2)
+        {
+            ADV_SetFilterWYShaping(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB3)
+        {
+            ADV_SetFilterWYShapingOvr(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB4)
+        {
+            ADV_SetFilterCombNTSC(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB5)
+        {
+            ADV_SetFilterCombPAL(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB7)
+        {
+            ADV_SetFilterDefaults();
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+    }
+
+    return 7;  /* Standard command length */
+}
+
+/**
+ * @brief  Find next valid header in buffer
+ * @param  buf Buffer to search
+ * @param  len Buffer length
+ * @return Offset to header, or len if not found
+ */
+static uint16_t UART_FindHeader(uint8_t *buf, uint16_t len)
+{
+    for (uint16_t i = 0; i < len - 1; i++)
+    {
+        if (buf[i] == 0x41 && buf[i + 1] == 0x44)
+            return i;
+    }
+    return len;
+}
+
+void UART_ProcessCommand(void)
+{
+    if (SET != m_enRxFrameEnd)
+        return;
+
+    /* Copy buffer locally to avoid race condition with DMA */
+    uint8_t local_buf[APP_FRAME_LEN_MAX];
+    uint16_t local_len = m_u16RxLen;
+    memcpy(local_buf, dma_au8RxBuf, local_len);
+
+    /* Reset state immediately to allow new reception */
+    m_enRxFrameEnd = RESET;
+    m_u16RxLen = 0;
+
+    uint16_t pos = 0;
+    uint16_t remaining = local_len;
+    uint16_t cmd_count = 0;
+
+    /* Process all commands in buffer */
+    while (remaining >= 7)
+    {
+        /* Find header if not at start */
+        if (local_buf[pos] != 0x41 || local_buf[pos + 1] != 0x44)
+        {
+            uint16_t skip = UART_FindHeader(&local_buf[pos], remaining);
+            if (skip >= remaining)
+                break;  /* No more headers found */
+            pos += skip;
+            remaining -= skip;
+            continue;
+        }
+
+        /* Try to process command at current position */
+        uint16_t cmd_len = UART_ProcessSingleCommand(&local_buf[pos], remaining);
+        if (cmd_len == 0)
+        {
+            /* Invalid command, skip header and look for next */
+            pos += 2;
+            remaining -= 2;
+            continue;
+        }
+
+        /* Command processed successfully */
+        pos += cmd_len;
+        remaining -= cmd_len;
+        cmd_count++;
+    }
+
+    if (cmd_count > 1)
+    {
+        printf("[UART] Processed %d commands\n", cmd_count);
     }
 }

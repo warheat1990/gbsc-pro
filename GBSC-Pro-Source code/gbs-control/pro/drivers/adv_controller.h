@@ -31,11 +31,6 @@
 #define ADV_END_MARKER      0xFE
 #define ADV_PACKET_SIZE     7
 
-// Delay after packet transmission for HC32 DMA processing
-// HC32 uses USART_TIMEOUT_BITS = 250 (~6.7ms timeout) to detect frame end
-// 35ms provides margin for timeout + command processing + I2C operations
-#define ADV_PACKET_DELAY_MS 35
-
 // Command bytes
 #define ADV_CMD_SOURCE      'S'   // Input source / line mode / smooth / compatibility
 #define ADV_CMD_TVMODE      'T'   // TV mode (video format)
@@ -184,11 +179,10 @@ public:
     /**
      * @brief Send a standard 4-byte command packet
      * @param buff 4-byte base packet [header0, header1, cmd, data]
-     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [buff[0..3]] [random] [0xFE] [checksum]
      */
-    void send(const unsigned char* buff, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
+    void send(const unsigned char* buff) {
         unsigned char packet[ADV_PACKET_SIZE];
         packet[0] = buff[0];
         packet[1] = buff[1];
@@ -198,20 +192,18 @@ public:
         packet[5] = ADV_END_MARKER;
         packet[6] = packet[0] + packet[1] + packet[2] + packet[3] + packet[4] + packet[5];
         m_serial.write(packet, ADV_PACKET_SIZE);
-        delay(delayMs);
     }
 
     /**
      * @brief Send command with mode bits merged into data byte
      * @param buff 4-byte base packet
      * @param mode Mode value (lower 4 bits OR'd into buff[3])
-     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      */
-    void sendWithMode(const unsigned char* buff, uint8_t mode, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
+    void sendWithMode(const unsigned char* buff, uint8_t mode) {
         unsigned char packet[4];
         memcpy(packet, buff, 4);
         packet[3] |= (mode & 0x0F);
-        send(packet, delayMs);
+        send(packet);
     }
 
     /**
@@ -219,11 +211,10 @@ public:
      * @param buff 4-byte base packet (buff[2] = command, buff[3] ignored)
      * @param reg Target register address
      * @param val Value to write
-     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [header0, header1, cmd, reg, val, 0xFE, checksum]
      */
-    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
+    void writeReg(const unsigned char* buff, unsigned char reg, unsigned char val) {
         unsigned char packet[ADV_PACKET_SIZE];
         packet[0] = buff[0];
         packet[1] = buff[1];
@@ -235,19 +226,17 @@ public:
         for (int i = 0; i < 6; ++i) sum += packet[i];
         packet[6] = sum;
         m_serial.write(packet, ADV_PACKET_SIZE);
-        delay(delayMs);
     }
 
     /**
      * @brief Send custom I2C batch command
      * @param data Array of I2C triplets [addr, reg, val, addr, reg, val, ...]
      * @param size Total bytes (must be multiple of 3)
-     * @param delayMs Post-transmit delay in ms (default: ADV_PACKET_DELAY_MS)
      *
      * Output: [header0, header1, 'C', count, triplets..., 0xFE, checksum]
      * Each triplet: [I2C_addr, register, value]
      */
-    void sendCustomI2C(const unsigned char* data, size_t size, uint16_t delayMs = ADV_PACKET_DELAY_MS) {
+    void sendCustomI2C(const unsigned char* data, size_t size) {
         if (size == 0 || size % 3 != 0) return;
 
         uint8_t count = size / 3;
@@ -268,7 +257,6 @@ public:
         sum += ADV_END_MARKER;
 
         m_serial.write(sum);
-        delay(delayMs);
     }
 
 private:

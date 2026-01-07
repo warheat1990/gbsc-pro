@@ -34,10 +34,41 @@ const Structs = {
         { name: "advACEChromaMax", type: "byte", size: 1 },
         { name: "advACEGammaGain", type: "byte", size: 1 },
         { name: "advACEResponseSpeed", type: "byte", size: 1 },
+        // --- PRO: ADV7280 Video Filter Parameters ---
+        { name: "advFilterYShaping", type: "byte", size: 1 },
+        { name: "advFilterCShaping", type: "byte", size: 1 },
+        { name: "advFilterWYShaping", type: "byte", size: 1 },
+        { name: "advFilterWYOverride", type: "byte", size: 1 },
+        { name: "advFilterCombNTSC", type: "byte", size: 1 },
+        { name: "advFilterCombPAL", type: "byte", size: 1 },
         // --- Reserved for future expansion ---
-        { name: "reserved", type: "byte", size: 75 },
+        { name: "reserved", type: "byte", size: 69 },
     ],
 };
+// =====================================================================
+// Video Filter Name Constants
+// =====================================================================
+// Y Filter names for Composite (YSFM register 0x17) - 31 values (0-30)
+const yFilterNamesAV = [
+    "AutoWide", "AutoNarrow",
+    "SVHS-1", "SVHS-2", "SVHS-3", "SVHS-4", "SVHS-5", "SVHS-6",
+    "SVHS-7", "SVHS-8", "SVHS-9", "SVHS-10", "SVHS-11", "SVHS-12",
+    "SVHS-13", "SVHS-14", "SVHS-15", "SVHS-16", "SVHS-17", "SVHS-18",
+    "PAL-NN1", "PAL-NN2", "PAL-NN3", "PAL-WN1", "PAL-WN2",
+    "NTSC-NN1", "NTSC-NN2", "NTSC-NN3", "NTSC-WN1", "NTSC-WN2", "NTSC-WN3"
+];
+// WY Filter names for S-Video (WYSFM register 0x18) - 18 values (raw 2-19, array index 0-17)
+const yFilterNamesSV = [
+    "SVHS-1", "SVHS-2", "SVHS-3", "SVHS-4", "SVHS-5", "SVHS-6",
+    "SVHS-7", "SVHS-8", "SVHS-9", "SVHS-10", "SVHS-11", "SVHS-12",
+    "SVHS-13", "SVHS-14", "SVHS-15", "SVHS-16", "SVHS-17", "SVHS-18"
+];
+// C Filter names (CSFM register 0x18) - 8 values (0-7)
+const cFilterNames = [
+    "Auto1.5M", "Auto2.2M", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband"
+];
+// Comb Filter bandwidth names - 4 values (0-3)
+const combNames = ["Narrow", "Medium", "Wide", "Widest"];
 const StructParser = {
     pos: 0,
     parseStructArray(buff, structsDescriptors, struct) {
@@ -245,6 +276,12 @@ const createWebSocket = () => {
             const chromaMaxChar = message.data[9] || "8";
             const gammaGainChar = message.data[10] || "8";
             const responseSpeedChar = message.data[11] || "F"; // Default 15 (F in hex)
+            // Video Filter parameters (positions 12-16)
+            const yFilterChar = message.data[12] || "1"; // AV default 1 (AutoNarrow)
+            const cFilterChar = message.data[13] || "0"; // AV default 0 (Auto1.5M)
+            const wyFilterChar = message.data[14] || "9"; // SV default 9 (SVHS-8), raw value
+            const wyOverrideChar = message.data[15] || "1"; // SV default 1 (Manual)
+            const combFilterChar = message.data[16] || "1"; // Default 1 (Medium)
             // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
             const fromHexChar = (c) => {
                 if (c >= '0' && c <= '9')
@@ -271,6 +308,71 @@ const createWebSocket = () => {
             const aceSection = document.getElementById("gbs-pro-ace-section");
             if (aceSection) {
                 aceSection.style.display = (isCVInput && aceChar === "1") ? "block" : "none";
+            }
+            // Show/hide Video Filters section (always visible for CV input)
+            const isSV = inputType === "5";
+            const filtersSection = document.getElementById("gbs-pro-filters-section");
+            if (filtersSection) {
+                filtersSection.style.display = isCVInput ? "block" : "none";
+            }
+            // Show/hide C Filter vs Override based on input type
+            const cFilterRow = document.getElementById("gbs-pro-filter-cfilter-row");
+            const overrideRow = document.getElementById("gbs-pro-filter-override-row");
+            if (cFilterRow && overrideRow) {
+                cFilterRow.style.display = isSV ? "none" : "flex";
+                overrideRow.style.display = isSV ? "table" : "none";
+            }
+            // Update Y Filter value (different for AV vs SV)
+            const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+            const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+            const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+            const isOverrideOn = wyOverrideChar === "1";
+            if (yFilterValueEl) {
+                if (isSV) {
+                    // S-Video: when Override is OFF, show "Auto" and disable buttons
+                    if (isOverrideOn) {
+                        const wyVal = fromHexChar(wyFilterChar);
+                        const svIndex = Math.max(0, Math.min(17, wyVal - 2));
+                        yFilterValueEl.textContent = yFilterNamesSV[svIndex] || "SVHS-8";
+                    }
+                    else {
+                        yFilterValueEl.textContent = "Auto";
+                    }
+                }
+                else {
+                    // Composite: yFilterChar is value 0-30
+                    const yVal = fromHexChar(yFilterChar);
+                    yFilterValueEl.textContent = yFilterNamesAV[yVal] || "AutoNarrow";
+                }
+            }
+            // Disable Y Filter buttons in SV mode when Override is OFF
+            if (yFilterDecBtn && yFilterIncBtn) {
+                const disabled = isSV && !isOverrideOn;
+                yFilterDecBtn.disabled = disabled;
+                yFilterIncBtn.disabled = disabled;
+            }
+            // Update C Filter value (AV only)
+            const cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
+            if (cFilterValueEl) {
+                const cVal = fromHexChar(cFilterChar);
+                cFilterValueEl.textContent = cFilterNames[cVal] || "Auto1.5M";
+            }
+            // Update Override toggle state (SV only)
+            const overrideToggle = document.getElementById("gbs-pro-filter-override");
+            const overrideTr = document.getElementById("gbs-pro-filter-override-tr");
+            if (overrideToggle && overrideTr) {
+                const isManual = wyOverrideChar === "1";
+                overrideToggle.textContent = isManual ? "toggle_on" : "toggle_off";
+                if (isManual)
+                    overrideTr.setAttribute("active", "");
+                else
+                    overrideTr.removeAttribute("active");
+            }
+            // Update Comb Filter value
+            const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
+            if (combValueEl) {
+                const combVal = fromHexChar(combFilterChar);
+                combValueEl.textContent = combNames[combVal] || "Medium";
             }
             // Update format button
             // Format: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'
@@ -1390,6 +1492,134 @@ const initCustomI2C = () => {
         }
     });
 };
+// =====================================================================
+// Video Filters Button Handlers
+// =====================================================================
+const initVideoFilters = () => {
+    // Helper to send filter parameter to /pro API
+    const sendFilterParam = (param, value) => {
+        const formData = new URLSearchParams();
+        formData.append(param, value.toString());
+        fetch("/pro", { method: "POST", body: formData })
+            .then((response) => response.text())
+            .then((data) => {
+            if (data !== "true")
+                console.error("Filter API error:", data);
+        })
+            .catch((error) => console.error("Filter API error:", error));
+    };
+    // Helper to check if S-Video mode
+    const isSVMode = () => {
+        const overrideRow = document.getElementById("gbs-pro-filter-override-row");
+        return overrideRow ? overrideRow.style.display !== "none" : false;
+    };
+    // Y Filter +/- buttons (different behavior for AV vs SV)
+    const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+    const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+    const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+    const updateYFilter = (delta) => {
+        if (!yFilterValueEl)
+            return;
+        const isSV = isSVMode();
+        if (isSV) {
+            // S-Video: array index 0-17, raw value 2-19
+            const currentName = yFilterValueEl.textContent || "SVHS-8";
+            let idx = yFilterNamesSV.indexOf(currentName);
+            if (idx < 0)
+                idx = 7;
+            idx = Math.max(0, Math.min(yFilterNamesSV.length - 1, idx + delta));
+            yFilterValueEl.textContent = yFilterNamesSV[idx];
+            sendFilterParam("fy", idx + 2);
+        }
+        else {
+            // Composite: 0-30
+            const currentName = yFilterValueEl.textContent || "AutoNarrow";
+            let idx = yFilterNamesAV.indexOf(currentName);
+            if (idx < 0)
+                idx = 1;
+            idx = Math.max(0, Math.min(yFilterNamesAV.length - 1, idx + delta));
+            yFilterValueEl.textContent = yFilterNamesAV[idx];
+            sendFilterParam("fy", idx);
+        }
+    };
+    if (yFilterDecBtn)
+        yFilterDecBtn.addEventListener("click", () => updateYFilter(-1));
+    if (yFilterIncBtn)
+        yFilterIncBtn.addEventListener("click", () => updateYFilter(1));
+    // C Filter +/- buttons (Composite only)
+    const cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
+    const cFilterDecBtn = document.getElementById("gbs-pro-filter-cfilter-dec");
+    const cFilterIncBtn = document.getElementById("gbs-pro-filter-cfilter-inc");
+    const updateCFilter = (delta) => {
+        if (!cFilterValueEl)
+            return;
+        const currentName = cFilterValueEl.textContent || "Auto1.5M";
+        let idx = cFilterNames.indexOf(currentName);
+        if (idx < 0)
+            idx = 0;
+        idx = Math.max(0, Math.min(cFilterNames.length - 1, idx + delta));
+        cFilterValueEl.textContent = cFilterNames[idx];
+        sendFilterParam("fc", idx);
+    };
+    if (cFilterDecBtn)
+        cFilterDecBtn.addEventListener("click", () => updateCFilter(-1));
+    if (cFilterIncBtn)
+        cFilterIncBtn.addEventListener("click", () => updateCFilter(1));
+    // Override toggle (S-Video only)
+    const overrideToggle = document.getElementById("gbs-pro-filter-override");
+    if (overrideToggle) {
+        overrideToggle.addEventListener("click", () => {
+            const isManual = overrideToggle.textContent === "toggle_on";
+            const newState = isManual ? "0" : "1";
+            overrideToggle.textContent = isManual ? "toggle_off" : "toggle_on";
+            const row = overrideToggle.parentElement;
+            if (row) {
+                if (isManual)
+                    row.removeAttribute("active");
+                else
+                    row.setAttribute("active", "");
+            }
+            // Update Y Filter buttons and value based on new Override state
+            const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+            const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+            const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+            if (yFilterDecBtn && yFilterIncBtn) {
+                yFilterDecBtn.disabled = isManual; // isManual means we're turning OFF
+                yFilterIncBtn.disabled = isManual;
+            }
+            if (yFilterValueEl && isManual) {
+                yFilterValueEl.textContent = "Auto";
+            }
+            sendFilterParam("fo", newState);
+        });
+    }
+    // Comb Filter +/- buttons
+    const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
+    const combDecBtn = document.getElementById("gbs-pro-filter-comb-dec");
+    const combIncBtn = document.getElementById("gbs-pro-filter-comb-inc");
+    const updateCombFilter = (delta) => {
+        if (!combValueEl)
+            return;
+        const currentName = combValueEl.textContent || "Medium";
+        let idx = combNames.indexOf(currentName);
+        if (idx < 0)
+            idx = 1;
+        idx = Math.max(0, Math.min(combNames.length - 1, idx + delta));
+        combValueEl.textContent = combNames[idx];
+        sendFilterParam("fb", idx);
+    };
+    if (combDecBtn)
+        combDecBtn.addEventListener("click", () => updateCombFilter(-1));
+    if (combIncBtn)
+        combIncBtn.addEventListener("click", () => updateCombFilter(1));
+    // Reset to defaults button
+    const filterDefaultBtn = document.getElementById("gbs-pro-filter-default");
+    if (filterDefaultBtn) {
+        filterDefaultBtn.addEventListener("click", () => {
+            sendFilterParam("fd", "1");
+        });
+    }
+};
 const initControlMobileKeys = () => {
     const controls = document.querySelectorAll("[gbs-control-target]");
     const controlsKeys = document.querySelectorAll("[gbs-control-key]");
@@ -1584,6 +1814,7 @@ const initUI = () => {
     initProButtons();
     initClearButton();
     initCustomI2C();
+    initVideoFilters();
     initControlMobileKeys();
     initUnloadListener();
     initDeveloperMode();

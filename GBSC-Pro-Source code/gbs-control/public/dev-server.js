@@ -11,19 +11,54 @@ const HTTP_PORT = 8080;
 const HTTP_PORT_ALT = 80; // Alternative port for /sc and /uc
 const WS_PORT = 81;
 
-// Mock slot data
+// Mock slot data - must match SlotMeta struct (128 bytes, 36 slots)
 const createMockSlotsData = () => {
-  // Slot structure from code:
-  // { name: "name", type: "string", size: 25 },
-  // { name: "presetID", type: "byte", size: 1 },
-  // { name: "scanlines", type: "byte", size: 1 },
-  // { name: "scanlinesStrength", type: "byte", size: 1 },
-  // { name: "slot", type: "byte", size: 1 },
-  // { name: "wantVdsLineFilter", type: "byte", size: 1 },
-  // { name: "wantStepResponse", type: "byte", size: 1 },
-  // { name: "wantPeaking", type: "byte", size: 1 },
-  const slotSize = 25 + 1 + 1 + 1 + 1 + 1 + 1 + 1; // = 32 bytes
-  const numSlots = 72;
+  // SlotMeta structure (128 bytes total):
+  // --- ORIGINAL GBS-CONTROL (32 bytes) ---
+  // char name[25];              // offset 0
+  // uint8_t presetID;           // offset 25
+  // uint8_t scanlines;          // offset 26
+  // uint8_t scanlinesStrength;  // offset 27
+  // uint8_t slot;               // offset 28
+  // uint8_t wantVdsLineFilter;  // offset 29
+  // uint8_t wantStepResponse;   // offset 30
+  // uint8_t wantPeaking;        // offset 31
+  // --- PRO: GBS Processing options (7 bytes) ---
+  // uint8_t wantFullHeight;     // offset 32
+  // uint8_t deintMode;          // offset 33
+  // uint8_t enableFrameTimeLock;// offset 34
+  // uint8_t frameTimeLockMethod;// offset 35
+  // uint8_t PalForce60;         // offset 36
+  // uint8_t adcGain;            // offset 37
+  // uint8_t wantSharpness;      // offset 38
+  // --- PRO: GBS Color balance (3 bytes) ---
+  // uint8_t gbsColorR;          // offset 39
+  // uint8_t gbsColorG;          // offset 40
+  // uint8_t gbsColorB;          // offset 41
+  // --- PRO: ADV7280 settings (6 bytes) ---
+  // uint8_t advSmooth;          // offset 42
+  // uint8_t advI2P;             // offset 43
+  // uint8_t advBrightness;      // offset 44
+  // uint8_t advContrast;        // offset 45
+  // uint8_t advSaturation;      // offset 46
+  // uint8_t advACE;             // offset 47
+  // --- PRO: ADV7280 ACE Parameters (5 bytes) ---
+  // uint8_t advACELumaGain;     // offset 48
+  // uint8_t advACEChromaGain;   // offset 49
+  // uint8_t advACEChromaMax;    // offset 50
+  // uint8_t advACEGammaGain;    // offset 51
+  // uint8_t advACEResponseSpeed;// offset 52
+  // --- PRO: ADV7280 Video Filter Parameters (6 bytes) ---
+  // uint8_t advFilterYShaping;  // offset 53
+  // uint8_t advFilterCShaping;  // offset 54
+  // uint8_t advFilterWYShaping; // offset 55
+  // uint8_t advFilterWYOverride;// offset 56
+  // uint8_t advFilterCombNTSC;  // offset 57
+  // uint8_t advFilterCombPAL;   // offset 58
+  // --- Reserved (69 bytes) ---
+  // uint8_t reserved[69];       // offset 59-127
+  const slotSize = 128;  // Must match SlotMeta struct
+  const numSlots = 36;   // SLOTS_TOTAL
   const buffer = Buffer.alloc(slotSize * numSlots);
 
   for (let i = 0; i < numSlots; i++) {
@@ -32,19 +67,59 @@ const createMockSlotsData = () => {
     // Slot name (25 bytes, null-terminated or space-padded)
     const name = `Slot ${i}`;
     buffer.write(name, offset, 25, 'ascii');
-    // Fill the rest with spaces (optional, but clean)
+    // Fill the rest with spaces
     for (let j = name.length; j < 25; j++) {
       buffer.writeUInt8(0x20, offset + j); // space
     }
 
-    // Slot data
+    // --- Original GBS-Control fields ---
     buffer.writeUInt8(0x01, offset + 25); // presetID
     buffer.writeUInt8(0x00, offset + 26); // scanlines (0 = off)
     buffer.writeUInt8(0x30, offset + 27); // scanlinesStrength
-    buffer.writeUInt8(i, offset + 28);     // slot index
+    buffer.writeUInt8(i, offset + 28);    // slot index
     buffer.writeUInt8(0x01, offset + 29); // wantVdsLineFilter
     buffer.writeUInt8(0x00, offset + 30); // wantStepResponse
     buffer.writeUInt8(0x00, offset + 31); // wantPeaking
+
+    // --- PRO: GBS Processing options ---
+    buffer.writeUInt8(0x01, offset + 32); // wantFullHeight (default 1)
+    buffer.writeUInt8(0x00, offset + 33); // deintMode (default 0=Adaptive)
+    buffer.writeUInt8(0x00, offset + 34); // enableFrameTimeLock (default 0)
+    buffer.writeUInt8(0x00, offset + 35); // frameTimeLockMethod (default 0)
+    buffer.writeUInt8(0x00, offset + 36); // PalForce60 (default 0)
+    buffer.writeUInt8(0x7B, offset + 37); // adcGain (default 0x7B)
+    buffer.writeUInt8(0x00, offset + 38); // wantSharpness (default 0)
+
+    // --- PRO: GBS Color balance ---
+    buffer.writeUInt8(0x80, offset + 39); // gbsColorR (default 128)
+    buffer.writeUInt8(0x80, offset + 40); // gbsColorG (default 128)
+    buffer.writeUInt8(0x80, offset + 41); // gbsColorB (default 128)
+
+    // --- PRO: ADV7280 settings ---
+    buffer.writeUInt8(0x00, offset + 42); // advSmooth (default 0)
+    buffer.writeUInt8(0x00, offset + 43); // advI2P (default 0)
+    buffer.writeUInt8(0x80, offset + 44); // advBrightness (default 128)
+    buffer.writeUInt8(0x80, offset + 45); // advContrast (default 128)
+    buffer.writeUInt8(0x80, offset + 46); // advSaturation (default 128)
+    buffer.writeUInt8(0x00, offset + 47); // advACE (default 0)
+
+    // --- PRO: ADV7280 ACE Parameters ---
+    buffer.writeUInt8(13, offset + 48);   // advACELumaGain (default 13)
+    buffer.writeUInt8(8, offset + 49);    // advACEChromaGain (default 8)
+    buffer.writeUInt8(8, offset + 50);    // advACEChromaMax (default 8)
+    buffer.writeUInt8(8, offset + 51);    // advACEGammaGain (default 8)
+    buffer.writeUInt8(15, offset + 52);   // advACEResponseSpeed (default 15)
+
+    // --- PRO: ADV7280 Video Filter Parameters ---
+    buffer.writeUInt8(1, offset + 53);    // advFilterYShaping (default 1=AutoNarrow)
+    buffer.writeUInt8(0, offset + 54);    // advFilterCShaping (default 0=Auto1.5M)
+    buffer.writeUInt8(9, offset + 55);    // advFilterWYShaping (default 9=SVHS-8)
+    buffer.writeUInt8(1, offset + 56);    // advFilterWYOverride (default 1=Manual)
+    buffer.writeUInt8(0, offset + 57);    // advFilterCombNTSC (default 0=Narrow)
+    buffer.writeUInt8(1, offset + 58);    // advFilterCombPAL (default 1=Medium)
+
+    // --- Reserved (69 bytes, offset 59-127) ---
+    // Already zeroed by Buffer.alloc
   }
 
   return buffer;
@@ -404,6 +479,74 @@ const handleRequest = (req, res) => {
         return;
       }
 
+      // =====================================================================
+      // Video Filters API - fy, fc, fo, fb, fd
+      // =====================================================================
+
+      // Handle Video Filter Y Shaping (fy parameter)
+      const fy = parseInt(params.get('fy'));
+      if (!isNaN(fy) && fy >= 0 && fy <= 30) {
+        if (currentInputType === 5) {
+          currentFilterWY = fy;  // S-Video
+          console.log(`  ├─ ⚡ Pro: Set WY Filter to ${fy}`);
+        } else {
+          currentFilterY = fy;   // Composite
+          console.log(`  ├─ ⚡ Pro: Set Y Filter to ${fy}`);
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
+      // Handle Video Filter C Shaping (fc parameter)
+      const fc = parseInt(params.get('fc'));
+      if (!isNaN(fc) && fc >= 0 && fc <= 7) {
+        currentFilterC = fc;
+        console.log(`  ├─ ⚡ Pro: Set C Filter to ${fc}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
+      // Handle Video Filter Override (fo parameter)
+      const fo = parseInt(params.get('fo'));
+      if (!isNaN(fo) && (fo === 0 || fo === 1)) {
+        currentFilterWYOverride = fo;
+        console.log(`  ├─ ⚡ Pro: Set WY Override to ${fo ? 'Manual' : 'Auto'}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
+      // Handle Video Filter Comb (fb parameter)
+      const fb = parseInt(params.get('fb'));
+      if (!isNaN(fb) && fb >= 0 && fb <= 3) {
+        currentFilterComb = fb;
+        console.log(`  ├─ ⚡ Pro: Set Comb Filter to ${fb}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
+      // Handle Video Filter Defaults (fd parameter)
+      const fd = parseInt(params.get('fd'));
+      if (!isNaN(fd) && fd === 1) {
+        currentFilterY = 1;
+        currentFilterC = 0;
+        currentFilterWY = 9;
+        currentFilterWYOverride = 1;
+        currentFilterComb = 1;
+        console.log(`  ├─ ⚡ Pro: Reset Video Filters to defaults`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
       // Handle ADV Controller - Custom I2C command
       const c = params.get('c');
       if (c) {
@@ -564,6 +707,13 @@ let currentACEChromaMax = 8; // 0-15, default 8
 let currentACEGammaGain = 8; // 0-15, default 8
 let currentACEResponseSpeed = 15; // 0-15, default 15
 
+// Video Filter state
+let currentFilterY = 1;           // AV default (AutoNarrow)
+let currentFilterC = 0;           // AV default (Auto1.5M)
+let currentFilterWY = 9;          // SV default (SVHS-8)
+let currentFilterWYOverride = 1;  // SV default (Manual)
+let currentFilterComb = 1;        // Default (Medium)
+
 // Helper to convert value 0-31 to hex char (0-9, A-V)
 const toHexChar32 = (val) => {
   if (val < 10) return String.fromCharCode(48 + val); // '0'-'9'
@@ -576,8 +726,9 @@ const toHexChar16 = (val) => {
   return String.fromCharCode(65 + val - 10); // 'A'-'F'
 };
 
-// Build Pro status message (12 chars)
+// Build Pro status message (17 chars)
 // Format: $[input][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+//         [yFilter][cFilter][wyFilter][wyOverride][comb]
 const buildProStatusMessage = () => {
   let formatChar;
   if (currentFormat <= 9) {
@@ -588,7 +739,13 @@ const buildProStatusMessage = () => {
     formatChar = 'B';
   }
 
-  return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}${toHexChar16(currentACEResponseSpeed)}`;
+  // Base message (12 chars) + 5 filter chars = 17 chars
+  return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}` +
+         `${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}` +
+         `${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}` +
+         `${toHexChar16(currentACEResponseSpeed)}` +
+         `${toHexChar32(currentFilterY)}${toHexChar16(currentFilterC)}` +
+         `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterComb)}`;
 };
 
 // Broadcast status to all connected WebSocket clients

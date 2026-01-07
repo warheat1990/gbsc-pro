@@ -342,34 +342,20 @@ void externalClockGenResetClock()
         SerialM.println(activeDisplayClock, HEX);
     }
 
-    // Disable CKIN before programming Si5351 to prevent clock glitches
-    GBS::PAD_CKIN_ENZ::write(1);
-
-    // Workaround: at certain frequencies the library may glitch, pre-setting
-    // an intermediate frequency first helps avoid clock doubling issues
+    // problem: around 108MHz the library seems to double the clock
+    // maybe there are regs to check for this and resetPLL
     if (rto->freqExtClockGen == 108000000) {
         Si.setFreq(0, 87000000);
-        delay(1);
+        delay(1); // quick fix
     }
+    // same thing it seems at 40500000
     if (rto->freqExtClockGen == 40500000) {
         Si.setFreq(0, 48500000);
-        delay(1);
+        delay(1); // quick fix
     }
 
     Si.setFreq(0, rto->freqExtClockGen);
-    Si.enable(0);
-
-    // Wait for PLL lock before re-enabling CKIN
-    if (!Si.waitForLock()) {
-        Si.reset();
-        if (!Si.waitForLock()) {
-            SerialM.println(F("Si5351 lock timeout!"));
-        }
-    }
-
-    // Re-enable CKIN now that PLL is locked
-    GBS::PAD_CKIN_ENZ::write(0);
-
+    GBS::PAD_CKIN_ENZ::write(0); // 0 = clock input enable (pin40)
     FrameSync::clearFrequency();
 
     SerialM.print(F("clock gen reset: "));
@@ -410,12 +396,7 @@ void externalClockGenSyncInOutRate()
     uint32_t old = rto->freqExtClockGen;
     FrameSync::initFrequency(ofr, old);
 
-    // Calculate new frequency with ratio clamping (±5%)
-    float ratio = sfr / ofr;
-    if (ratio < 0.95f) ratio = 0.95f;
-    if (ratio > 1.05f) ratio = 1.05f;
-
-    setExternalClockGenFrequencySmooth((uint32_t)(ratio * (float)rto->freqExtClockGen));
+    setExternalClockGenFrequencySmooth((sfr / ofr) * rto->freqExtClockGen);
 
     int32_t diff = rto->freqExtClockGen - old;
 
@@ -434,6 +415,8 @@ void externalClockGenSyncInOutRate()
 
 void externalClockGenDetectAndInitialize()
 {
+    const uint8_t xtal_cl = 0xD2; // 10pF, other choices are 8pF (0x92) and 6pF (0x52) NOTE: Per AN619, the low bytes should be written 0b010010
+
     // MHz: 27, 32.4, 40.5, 54, 64.8, 81, 108, 129.6, 162
     rto->freqExtClockGen = 81000000;
     rto->extClockGenDetected = 0;
@@ -469,13 +452,10 @@ void externalClockGenDetectAndInitialize()
     }
 
     Si.init(25000000L); // many Si5351 boards come with 25MHz crystal; 27000000L for one with 27MHz
-
-    // Auto-discover optimal XTAL load capacitance (tests 10pF, 8pF, 6pF)
-    uint8_t best_cl = Si.autoDiscoverXtalCL(rto->freqExtClockGen);
-    SerialM.print(F("Si5351 XTAL CL: "));
-    SerialM.println(best_cl == SI5351_XTAL_CL_10PF ? F("10pF") :
-                    best_cl == SI5351_XTAL_CL_8PF  ? F("8pF")  : F("6pF"));
-
+    Wire.beginTransmission(SIADDR);
+    Wire.write(183);    // XTAL_CL
+    Wire.write(xtal_cl);
+    Wire.endTransmission();
     Si.setPower(0, SIOUT_6mA);
     Si.setFreq(0, rto->freqExtClockGen);
     Si.disable(0);
@@ -6513,9 +6493,10 @@ void runSyncWatcher()
                 }
                 boolean wantPassThroughMode = uopt->presetPreference == 10;
 
-                if (((rto->videoStandardInput == 1 || rto->videoStandardInput == 3) && (detectedVideoMode == 2 || detectedVideoMode == 4)) ||
-                    rto->videoStandardInput == 0 ||
-                    ((rto->videoStandardInput == 2 || rto->videoStandardInput == 4) && (detectedVideoMode == 1 || detectedVideoMode == 3))) {
+                // Enable HDMI sync fix when changing between different video formats
+                // This includes: NTSC/PAL (1/2) <-> EDTV (3/4), and interlaced <-> progressive (2<->4, 1<->3)
+                if (rto->videoStandardInput == 0 ||
+                    rto->videoStandardInput != detectedVideoMode) {
                     rto->useHdmiSyncFix = 1;
                     //SerialM.println("hdmi sync fix: yes");
                 } else {
@@ -10620,6 +10601,99 @@ void startWebserver()
             uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
             ADV_sendACEDefaults();
             SerialM.println(F("ACE parameters reset to defaults"));
+            saveUserPrefs();
+            request->send(200, "application/json", "true");
+            return;
+        }
+
+        // =====================================================================
+        // Video Filters API - fy, fc, fo, fb, fd
+        // =====================================================================
+
+        // Handle Video Filter Y Shaping (fy parameter)
+        // AV: 0-30, SV: 2-19 (raw value, firmware handles based on input type)
+        if (request->hasArg("fy")) {
+            uint8_t val = request->arg("fy").toInt();
+            if (val <= 30) {
+                if (uopt->activeInputType == InputTypeSV) {
+                    // S-Video uses WY register (2-19)
+                    uopt->advFilterWYShaping = val;
+                    ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
+                    SerialM.print(F("Filter WY Shaping: "));
+                    SerialM.println(uopt->advFilterWYShaping);
+                } else {
+                    // Composite uses Y register (0-30)
+                    uopt->advFilterYShaping = val;
+                    ADV_sendFilterYShaping(uopt->advFilterYShaping);
+                    SerialM.print(F("Filter Y Shaping: "));
+                    SerialM.println(uopt->advFilterYShaping);
+                }
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Video Filter C Shaping (fc parameter) - Composite only
+        // 0-7
+        if (request->hasArg("fc")) {
+            uint8_t val = request->arg("fc").toInt();
+            if (val <= 7 && uopt->activeInputType == InputTypeAV) {
+                uopt->advFilterCShaping = val;
+                ADV_sendFilterCShaping(uopt->advFilterCShaping);
+                SerialM.print(F("Filter C Shaping: "));
+                SerialM.println(uopt->advFilterCShaping);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Video Filter WY Override (fo parameter) - S-Video only
+        // 0=Auto, 1=Manual
+        if (request->hasArg("fo")) {
+            uint8_t val = request->arg("fo").toInt();
+            if (val <= 1 && uopt->activeInputType == InputTypeSV) {
+                uopt->advFilterWYOverride = val;
+                ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
+                SerialM.print(F("Filter WY Override: "));
+                SerialM.println(uopt->advFilterWYOverride ? "Manual" : "Auto");
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Video Filter Comb Bandwidth (fb parameter)
+        // 0-3 (Narrow, Medium, Wide, Widest) - unified for PAL and NTSC
+        if (request->hasArg("fb")) {
+            uint8_t val = request->arg("fb").toInt();
+            if (val <= 3) {
+                uopt->advFilterCombPAL = val;
+                uopt->advFilterCombNTSC = val;
+                ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                SerialM.print(F("Filter Comb BW: "));
+                SerialM.println(val);
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Video Filter Defaults (fd parameter)
+        // Reset all filter parameters to defaults
+        if (request->hasArg("fd")) {
+            ADV_sendFilterDefaults();
+            SerialM.println(F("Filter parameters reset to defaults"));
             saveUserPrefs();
             request->send(200, "application/json", "true");
             return;

@@ -31,8 +31,8 @@
 // Firmware Version Strings
 // ====================================================================================
 
-#define GBS_FW_VERSION "2.1.0beta"  // GBS Control firmware version (ESP8266)
-#define ADV_FW_VERSION "2.1.0beta"  // ADV Controller firmware version (HC32)
+#define GBS_FW_VERSION "2.2.0"  // GBS Control firmware version (ESP8266)
+#define ADV_FW_VERSION "2.2.0"  // ADV Controller firmware version (HC32)
 
 // ====================================================================================
 // Registry Headers (types and enums)

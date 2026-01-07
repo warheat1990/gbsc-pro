@@ -66,29 +66,6 @@
 #define SIOUT_6mA 2
 #define SIOUT_8mA 3
 
-// ============================================================================
-// GBSC-Pro Si5351 Stability Enhancements
-// ============================================================================
-
-// Si5351 Status Register (0x00)
-// Bit 7 (0x80): SYS_INIT - System initialization in progress
-// Bit 5 (0x20): LOL_A - Loss of Lock PLL A
-// Bit 4 (0x10): LOL_B - Loss of Lock PLL B
-#define SI5351_STATUS_REG       0x00
-#define SI5351_STATUS_SYS_INIT  0x80
-#define SI5351_STATUS_LOL_A     0x20
-#define SI5351_STATUS_LOL_B     0x10
-
-// Si5351 Crystal Load Capacitance Register (183)
-// Values: 0x52=6pF, 0x92=8pF, 0xD2=10pF
-#define SI5351_XTAL_CL_REG      183
-#define SI5351_XTAL_CL_6PF      0x52
-#define SI5351_XTAL_CL_8PF      0x92
-#define SI5351_XTAL_CL_10PF     0xD2
-
-// Lock detection timeout in milliseconds
-#define SI5351_LOCK_TIMEOUT_MS  80
-
 // registers base (2mA by default)
 #define SICLK0_R   76       // 0b01001100
 #define SICLK12_R 108       // 0b01101100
@@ -182,33 +159,6 @@ class Si5351mcu {
         inline uint32_t getXtalCurrent( void ) {
           return int_xtal;
         };
-
-        // ====================================================================
-        // GBSC-Pro Si5351 Stability Enhancements
-        // ====================================================================
-
-        // Wait for PLL lock (SYS_INIT=0 and LOL_A=0)
-        // Returns true if locked within timeout, false otherwise
-        bool waitForLock(uint16_t timeout_ms = SI5351_LOCK_TIMEOUT_MS);
-
-        // Read status register (0x00)
-        uint8_t readStatus(void);
-
-        // Check if PLL is locked (SYS_INIT=0 and LOL_A=0)
-        bool isLocked(void);
-
-        // Set XTAL load capacitance (6pF, 8pF, or 10pF)
-        void setXtalCL(uint8_t cl_value);
-
-        // Get current XTAL load capacitance setting
-        uint8_t getXtalCL(void);
-
-        // Auto-discover best XTAL load capacitance
-        // Tests 10pF, 8pF, 6pF and returns the one that locks fastest
-        uint8_t autoDiscoverXtalCL(uint32_t test_freq = 108000000L);
-
-        // Store the discovered best XTAL CL value
-        uint8_t bestXtalCL = SI5351_XTAL_CL_10PF;
 
 };
 

@@ -23,7 +23,6 @@ menu_items = [
     {
         "tag": "OM_STATUS_CUSTOM",
         "en-US": "Main Menu",
-        "zh-CN": "主菜单",
         # should not be larger than 12 (or adjust according to MENU_STATUS_BAR_HEIGHT)
         "size": 12,
     },
@@ -35,7 +34,7 @@ menu_items = [
     },
     {
         "tag": "OM_SCREEN_SAVER",
-        "en-US": "Press Any Key",
+        "en-US": "Press any key",
     },
     {
         "tag": "OM_RESOLUTION",

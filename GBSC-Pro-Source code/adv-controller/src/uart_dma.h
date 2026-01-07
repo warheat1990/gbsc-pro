@@ -45,7 +45,7 @@
 #define USART_FCG_ENABLE() (FCG_Fcg1PeriphClockCmd(FCG1_PERIPH_USART4, ENABLE))
 
 #define USART_BAUDRATE     (115200UL)
-// RX idle timeout: 250 bits → ~6.7ms (must be > 4.2ms for 48-byte packets)
+// RX idle timeout: 250 bits → ~6.7ms idle time to detect end of packet
 #define USART_TIMEOUT_BITS (250U)
 
 #define USART_TX_CPLT_IRQn    (INT002_IRQn)
@@ -61,7 +61,7 @@
 #define DMATMR0_CH           (TMR0_CH_B)
 #define DMATMR0_FCG_ENABLE() (FCG_Fcg2PeriphClockCmd(FCG2_PERIPH_TMR0_2, ENABLE))
 
-#define APP_FRAME_LEN_MAX (48U)
+#define APP_FRAME_LEN_MAX (4096U)
 
 extern __IO en_flag_status_t m_enRxFrameEnd;
 extern uint8_t dma_au8RxBuf[APP_FRAME_LEN_MAX];

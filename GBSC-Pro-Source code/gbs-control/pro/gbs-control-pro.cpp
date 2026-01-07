@@ -322,15 +322,11 @@ static const InputConfig inputConfigs[] = {
 // Unified input switching function
 // mode: -1 = use send(), >= 0 = use sendWithMode(mode)
 static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
-    // SV/AV inputs trigger ADV_Init() on HC32, need longer delay (300ms)
-    // Other inputs use default 25ms delay
-    uint16_t delayMs = (cfg.type == InputTypeSV || cfg.type == InputTypeAV) ? 300 : ADV_PACKET_DELAY_MS;
-
     // Send packet to ADV
     if (mode < 0) {
-        advController.send(cfg.packet, delayMs);
+        advController.send(cfg.packet);
     } else {
-        advController.sendWithMode(cfg.packet, mode, delayMs);
+        advController.sendWithMode(cfg.packet, mode);
     }
 
     // Set input state (using uopt->activeInputType)
@@ -425,9 +421,8 @@ void applySavedInputSource(void) {
     const InputConfig& cfg = inputConfigs[cfgIndex];
 
     // SV/AV need ADV packet at boot (ADV controller needs to know input type)
-    // Use 300ms delay because SV/AV trigger ADV_Init() on HC32
     if (uopt->activeInputType == InputTypeSV || uopt->activeInputType == InputTypeAV) {
-        advController.send(cfg.packet, 300);
+        advController.send(cfg.packet);
     }
 
     applyInputHardwareConfig(cfg);
@@ -536,8 +531,10 @@ void broadcastProStatus(WebSocketsServer& ws)
 {
     // Extended message format:
     // $[input][format][i2p][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+    //  [yFilter][cFilter][wyFilter][wyOverride][comb]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
-    constexpr size_t MESSAGE_LEN = 12;
+    //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb
+    constexpr size_t MESSAGE_LEN = 17;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -570,8 +567,15 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[7] = toHexChar32(uopt->advACELumaGain);       // 0-31 -> '0'-'9','A'-'V'
     buffer[8] = toHexChar16(uopt->advACEChromaGain);     // 0-15 -> '0'-'9','A'-'F'
     buffer[9] = toHexChar16(uopt->advACEChromaMax);      // 0-15 -> '0'-'9','A'-'F'
-    buffer[10] = toHexChar16(uopt->advACEGammaGain);    // 0-15 -> '0'-'9','A'-'F'
+    buffer[10] = toHexChar16(uopt->advACEGammaGain);     // 0-15 -> '0'-'9','A'-'F'
     buffer[11] = toHexChar16(uopt->advACEResponseSpeed); // 0-15 -> '0'-'9','A'-'F'
+
+    // Video Filter parameters (hex encoded)
+    buffer[12] = toHexChar32(uopt->advFilterYShaping);    // 0-30 for AV Y filter
+    buffer[13] = toHexChar16(uopt->advFilterCShaping);    // 0-7 for AV C filter
+    buffer[14] = toHexChar16(uopt->advFilterWYShaping);   // 2-19 for SV WY filter (raw value)
+    buffer[15] = '0' + (uopt->advFilterWYOverride ? 1 : 0); // 0=Auto, 1=Manual
+    buffer[16] = toHexChar16(uopt->advFilterCombPAL);     // 0-3 unified comb filter
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }
