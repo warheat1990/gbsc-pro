@@ -19,4 +19,4 @@ venv/
 # Claude Code
 .claude/
 .claudeignore
-CLAUDE_CODE_SETUP.md
+CLAUDE.md

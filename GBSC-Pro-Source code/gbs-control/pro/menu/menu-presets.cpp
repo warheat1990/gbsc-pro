@@ -165,10 +165,17 @@ static void applySelectedPreset(OLEDMenuManager *manager) {
 bool presetsVirtualMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *, OLEDMenuNav nav, bool isFirstTime) {
     OLEDDisplay *display = manager->getDisplay();
 
-    // Handle freeze state (after preset loading)
+    // Handle freeze state (after preset loading or "no presets" message)
     if (presetLoading) {
         if (millis() - oledMenuFreezeStartTime >= oledMenuFreezeTimeoutInMS) {
             presetLoading = false;
+            // If no presets, exit menu after showing message
+            if (presetCount == 0) {
+                presetMenuActive = false;
+                manager->unfreeze();
+                manager->goBack();
+                return false;
+            }
             drawPresetList(display);
         }
         return false;
