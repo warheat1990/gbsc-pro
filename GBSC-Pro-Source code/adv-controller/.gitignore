@@ -1,7 +1,0 @@
-# Build output
-build/
-
-# J-Link debug
-*.jlink
-*.JLinkLog
-JLinkLog.txt

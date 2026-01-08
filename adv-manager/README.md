@@ -1,6 +1,8 @@
 # ADV Manager
 
-An experimental GUI application for interfacing with **ADV7280** (Video Decoder) and **ADV7391** (Video Encoder) processors via serial connection.
+GUI application for debugging **ADV7280** (Video Decoder) and **ADV7391** (Video Encoder) registers via serial connection.
+
+Part of the [GBSC-Pro custom firmware](../README.md) by Brisma.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyQt6](https://img.shields.io/badge/PyQt6-6.4+-green.svg)

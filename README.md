@@ -1,67 +1,92 @@
 <p align="center">
-    <img alt="gbsc-pro" src="https://github.com/RetroScaler/gbsc-pro/blob/c3da796360191a26cdcb62a284621f66431251a0/source/gbsc-pro%20logo.png" />
+    <img alt="gbsc-pro" src="assets/gbsc-pro%20logo.png" />
 </p>
 
 ---
 
-The GBS Control Pro Video Converter is a versatile video signal conversion device designed to seamlessly connect retro game consoles, DVD players, and other vintage equipment to modern HD displays. With support for up to 1080p HD output, it transforms your classic gaming experience. It is based on [gbs-control](https://github.com/ramapcsx2/gbs-control) by ramapcsx2
+Custom firmware for the GBSC-Pro video upscaler by **Brisma**.
+
+Converts retro console video signals to HDMI up to 1080p with low latency, advanced color processing, and extensive customization options.
+
+Based on [RetroScaler/gbsc-pro](https://github.com/RetroScaler/gbsc-pro), which is a fork of [gbs-control](https://github.com/ramapcsx2/gbs-control) by ramapcsx2.
 
 ## Links
 
- [Multi-language Manual](https://www.retroscaler.com/?page_id=480) | [Compatibility List](https://github.com/RetroScaler/gbsc-pro/blob/main/source/GBSC-pro%20Compatibility%20List%20%20Firmware%20Version%201.2.md) | [GitHub](https://github.com/RetroScaler/gbsc-pro) | [Discord](https://discord.com/invite/2MMWRkVRbk) | [Video Tutorial](https://www.youtube.com/playlist?list=PLQ6X-Dl0NtDnZm5v3n3IgvNOSrBsg7s7T)
+[Manual](https://www.retroscaler.com/?page_id=480) | [Discord](https://discord.com/invite/2MMWRkVRbk) | [Video Tutorial](https://www.youtube.com/playlist?list=PLQ6X-Dl0NtDnZm5v3n3IgvNOSrBsg7s7T)
 
-## Support the Project  
-This project is open-source and free to use. If you'd like to support future development, **pre-assembled hardware kits** are available for purchase:  
-- [Official Store](https://www.aliexpress.com/item/3256808268415575.html?spm=a2g0o.store_pc_home.singleImageText_2011250187871.0&gatewayAdapt=4itemAdapt) (ships globally)  
+## Features
 
-Alternatively, you can [build it yourself](https://github.com/RetroScaler/gbsc-pro/tree/main/Gerber) using the open-source design files. 
+### Video Input
+- **S-Video** and **Composite** (active processing via ADV7280)
+- **RGB**: RGBS, RGsB, RGBHV with auto sync detection
+- **Component** (YPbPr)
+- **VGA** passthrough
 
-## Community Participation
-If you would like to discuss features, issues or anything else related to **gbsc pro** please [create an issue](https://github.com/RetroScaler/gbsc-pro/issues/new) or join the [OpenStick RetroScaler Discord](https://discord.com/invite/2MMWRkVRbk) support channel.
-![](source/product-01.jpg)
+### Video Output
+- HDMI up to **1080p**
+- Multiple output resolutions: 480p, 720p, 960p, 1024p, 1080p
 
-## **Features**:
+### Image Processing
+- **I2P (Interlace to Progressive)**: Motion-adaptive deinterlacing
+- **ACE (Adaptive Contrast Enhancement)**: Dynamic contrast/saturation
+- **Video Filters**: Shaping filter, comb filter, CTI for S-Video/Composite
+- **Scanlines**: Adjustable intensity and style
+- **BCSH**: Brightness, Contrast, Saturation, Hue control
+- **ADC Gain**: Y/U/V gain with persistent settings
+- **Color standard**: ITU-R BT.601 compliant
 
-**Multiple Input Signal Support**
+### User Interface
+- **TV OSD**: On-screen display via STV9426 (4 themes: Classic, Dark, Light, Retro)
+- **OLED Menu**: IR remote with key repeat support
+- **Web UI**: WiFi-based control panel
+- **36 Profile Slots**: A-Z, 0-9 with per-input settings
+- **Developer menu**: Advanced hardware settings and I2C commands
 
-Accepts a variety of input signal types, including S-Video, Composite,RGBS,Scart, Component, and VGA, making it easy to connect various retrogame consoles and DVD players.
+### System
+- **Auto-switching**: Automatic input detection
+- **Low latency**: Real-time signal processing
+- **Preset system**: Save/load complete configurations
+- **Volume control**: PT2257 audio IC support
 
-**Automatic Sync Signal Detection**
+## Components
 
-Automatically detects and enables sync signals from RGBS、RGsB and RGBHV, allowing you to achieve the best display     experience without any complicated setup.
+### [gbs-control/](gbs-control/)
+**ESP8266 firmware** - Main controller running on the ESP8266. Handles the TV5725 video scaler, TV OSD (STV9426), OLED menu with IR remote, web interface, and communicates with the ADV controller via UART.
 
-**Smart Remote Control Operation**
+### [adv-controller/](adv-controller/)
+**HC32F460 firmware** - Secondary controller managing the ADV7280 (video decoder for S-Video/Composite) and ADV7391 (video encoder). Receives commands from the ESP8266 and controls the ADV chips via I2C.
 
-Adjust output resolution and image settings effortlessly with the included   remote control, enhancing your overall user experience.
+### [adv-manager/](adv-manager/)
+**Python GUI** - Desktop application for debugging ADV7280/ADV7391 registers via serial connection. Useful for testing video processing settings without reflashing firmware.
 
-**Scan Line Control**
+### [hardware/](hardware/)
+**Hardware resources** - PCB design files (Gerber), BOM, datasheets for all ICs, and an ADV CLI simulator for testing without physical hardware.
 
-The GBSC Pro offers an adjustable scan line feature, allowing users to easily modify the display intensity to enhance image clarity.
+## Building
 
-**Preset Functionality**
+```bash
+# ESP8266 firmware
+cd gbs-control && pio run
 
-Quickly save and load settings to ensure consistency and efficiency, streamline the workflow, and meet individual user needs.
+# HC32 firmware
+cd adv-controller && make
 
-**WiFi Connectivity**
+# Web interface
+cd gbs-control/public && npm run build
+```
 
-Enjoy convenient device control and settings adjustments via WiFi,  allowing you to make parameter changes anytime, anywhere.
+## Hardware
 
-**Image Sharpness Enhancement**
+Pre-assembled kits available at [Official Store](https://www.aliexpress.com/item/3256808268415575.html).
 
-This new feature increases image sharpness, delivering clearer visuals and  richer details compared to older models.
+Or [build it yourself](hardware/gerber/) using the open-source design files.
 
-**User-Friendly Interface**
+![](assets/product-01.jpg)
 
-The intuitive menu design ensures quick setup and configuration, making it suitable for users of all skill levels.
+## Community
 
-**Low Latency Real-Time Processing**
+[Create an issue](https://github.com/brisma/gbsc-pro/issues/new) or join the [Discord](https://discord.com/invite/2MMWRkVRbk).
 
-Utilizing advanced signal processing technology, this converter ensures low-latency output, making it especially ideal for gamers.
+## Thanks
 
-**Durable Design**
-
-Crafted from high-quality materials, the GBS Control Pro is built for durability and stability.
-
-## Special Thanks to...
-
-- @ramapcsx2 ： for [gbs-control](https://github.com/ramapcsx2/gbs-control) ❤️
+- [@ramapcsx2](https://github.com/ramapcsx2) for [gbs-control](https://github.com/ramapcsx2/gbs-control)
