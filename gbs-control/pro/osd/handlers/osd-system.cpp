@@ -65,10 +65,19 @@ void handle_SysSettings_Page4(void)
     OSD_drawDashRange(1, 16, 22);
     OSD_writeStringAtRow(2, 1, "EnableFrameTimeLock");
     OSD_drawDashRange(2, 20, 22);
+    OSD_writeStringAtRow(3, 1, "HDMI Limited Range");
+    OSD_drawDashRange(3, 19, 22);
 }
 
 void handle_SysSettings_Page4_Values(void)
 {
     OSD_writeOnOff(1, uopt->enableFrameTimeLock);
     OSD_writeOnOff(2, !uopt->disableExternalClockGenerator);
+    // HDMI Limited Range: 0=OFF, 1=HD, 2=SD, 3=ALL
+    switch (uopt->hdmiLimitedRange) {
+        case 0: OSD_writeStringAtRow(3, 23, "OFF"); break;
+        case 1: OSD_writeStringAtRow(3, 23, "-HD"); break;
+        case 2: OSD_writeStringAtRow(3, 23, "-SD"); break;
+        case 3: OSD_writeStringAtRow(3, 23, "ALL"); break;
+    }
 }

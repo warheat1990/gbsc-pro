@@ -41,8 +41,10 @@ const Structs = {
         { name: "advFilterWYOverride", type: "byte", size: 1 },
         { name: "advFilterCombNTSC", type: "byte", size: 1 },
         { name: "advFilterCombPAL", type: "byte", size: 1 },
+        // --- HDMI Limited Range ---
+        { name: "hdmiLimitedRange", type: "byte", size: 1 },
         // --- Reserved for future expansion ---
-        { name: "reserved", type: "byte", size: 69 },
+        { name: "reserved", type: "byte", size: 68 },
     ],
 };
 // =====================================================================
@@ -263,8 +265,8 @@ const createWebSocket = () => {
         GBSControl.isWsActive = true;
         const [messageDataAt0, messageDataAt1, messageDataAt2, messageDataAt3, messageDataAt4, messageDataAt5,] = message.data;
         if (messageDataAt0 === "$") {
-            // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
-            // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
+            // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
+            // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange
             const inputType = messageDataAt1;
             const formatChar = messageDataAt2;
             const line2xChar = messageDataAt3;
@@ -282,6 +284,8 @@ const createWebSocket = () => {
             const wyFilterChar = message.data[14] || "9"; // SV default 9 (SVHS-8), raw value
             const wyOverrideChar = message.data[15] || "1"; // SV default 1 (Manual)
             const combFilterChar = message.data[16] || "1"; // Default 1 (Medium)
+            // HDMI Limited Range (position 17)
+            const hdmiLimitedRangeChar = message.data[17] || "1"; // Default 1 (HD)
             // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
             const fromHexChar = (c) => {
                 if (c >= '0' && c <= '9')
@@ -373,6 +377,13 @@ const createWebSocket = () => {
             if (combValueEl) {
                 const combVal = fromHexChar(combFilterChar);
                 combValueEl.textContent = combNames[combVal] || "Medium";
+            }
+            // Update HDMI Limited Range value
+            const hdmiLimitedRangeValueEl = document.getElementById("gbs-hdmi-limited-range-value");
+            if (hdmiLimitedRangeValueEl) {
+                const hdmiLimitedRangeNames = ["OFF", "HD", "SD", "ALL"];
+                const hdmiVal = parseInt(hdmiLimitedRangeChar, 10);
+                hdmiLimitedRangeValueEl.textContent = hdmiLimitedRangeNames[hdmiVal] || "OFF";
             }
             // Update format button
             // Format: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'

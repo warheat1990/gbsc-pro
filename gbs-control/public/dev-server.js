@@ -55,8 +55,10 @@ const createMockSlotsData = () => {
   // uint8_t advFilterWYOverride;// offset 56
   // uint8_t advFilterCombNTSC;  // offset 57
   // uint8_t advFilterCombPAL;   // offset 58
-  // --- Reserved (69 bytes) ---
-  // uint8_t reserved[69];       // offset 59-127
+  // --- HDMI Limited Range ---
+  // uint8_t hdmiLimitedRange;   // offset 59
+  // --- Reserved (68 bytes) ---
+  // uint8_t reserved[68];       // offset 60-127
   const slotSize = 128;  // Must match SlotMeta struct
   const numSlots = 36;   // SLOTS_TOTAL
   const buffer = Buffer.alloc(slotSize * numSlots);
@@ -118,7 +120,10 @@ const createMockSlotsData = () => {
     buffer.writeUInt8(0, offset + 57);    // advFilterCombNTSC (default 0=Narrow)
     buffer.writeUInt8(1, offset + 58);    // advFilterCombPAL (default 1=Medium)
 
-    // --- Reserved (69 bytes, offset 59-127) ---
+    // --- HDMI Limited Range ---
+    buffer.writeUInt8(1, offset + 59);    // hdmiLimitedRange (default 1=HD)
+
+    // --- Reserved (68 bytes, offset 60-127) ---
     // Already zeroed by Buffer.alloc
   }
 
@@ -246,7 +251,7 @@ const handleRequest = (req, res) => {
 
   if (url.pathname.startsWith('/uc')) {
     const commandFull = url.searchParams.toString().split('&')[0];
-    const command = commandFull.split('=')[0]; // Extract just the command letter
+    const command = decodeURIComponent(commandFull.split('=')[0]); // Extract and decode command
     console.log(`  ├─ ⚙️  User Command: ${command}`);
 
     if (command === 'W') {
@@ -258,6 +263,14 @@ const handleRequest = (req, res) => {
       if (currentSharpness) {
         console.log(`  ├─ ⚙️  Peaking is now locked (disabled by Sharpness)`);
       }
+      broadcastStatus();
+    }
+
+    if (command === '%') {
+      // Cycle HDMI Limited Range: 0=Off, 1=HD, 2=SD, 3=All
+      currentHdmiLimitedRange = (currentHdmiLimitedRange + 1) % 4;
+      const hdmiLimitedRangeNames = ['OFF', 'HD', 'SD', 'ALL'];
+      console.log(`  ├─ ⚙️  HDMI Limited Range: ${hdmiLimitedRangeNames[currentHdmiLimitedRange]}`);
       broadcastStatus();
     }
 
@@ -714,6 +727,9 @@ let currentFilterWY = 9;          // SV default (SVHS-8)
 let currentFilterWYOverride = 1;  // SV default (Manual)
 let currentFilterComb = 1;        // Default (Medium)
 
+// HDMI Limited Range state
+let currentHdmiLimitedRange = 1;  // 0=Off, 1=HD, 2=SD, 3=All (default 1=HD)
+
 // Helper to convert value 0-31 to hex char (0-9, A-V)
 const toHexChar32 = (val) => {
   if (val < 10) return String.fromCharCode(48 + val); // '0'-'9'
@@ -726,9 +742,9 @@ const toHexChar16 = (val) => {
   return String.fromCharCode(65 + val - 10); // 'A'-'F'
 };
 
-// Build Pro status message (17 chars)
+// Build Pro status message (18 chars)
 // Format: $[input][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
-//         [yFilter][cFilter][wyFilter][wyOverride][comb]
+//         [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
 const buildProStatusMessage = () => {
   let formatChar;
   if (currentFormat <= 9) {
@@ -739,13 +755,14 @@ const buildProStatusMessage = () => {
     formatChar = 'B';
   }
 
-  // Base message (12 chars) + 5 filter chars = 17 chars
+  // Base message (12 chars) + 5 filter chars + 1 hdmiLimitedRange = 18 chars
   return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}` +
          `${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}` +
          `${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}` +
          `${toHexChar16(currentACEResponseSpeed)}` +
          `${toHexChar32(currentFilterY)}${toHexChar16(currentFilterC)}` +
-         `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterComb)}`;
+         `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterComb)}` +
+         `${currentHdmiLimitedRange}`;
 };
 
 // Broadcast status to all connected WebSocket clients

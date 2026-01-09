@@ -36,7 +36,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
+                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
@@ -254,7 +254,7 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_ClockGenerator (last item - wraps to Compatibility)
+    // OLED_SystemSettings_ClockGenerator
     else if (oled_menuItem == OLED_SystemSettings_ClockGenerator) {
         showMenuToggle("Menu->System", "Clock generator", !uopt->disableExternalClockGenerator);
         OSD_handleCommand(OSD_CMD_SYS_PAGE4_VALUES);
@@ -268,12 +268,49 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_FrameTimeLock);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     userCommand = 'X';
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_HdmiLimitedRange (last item - wraps to Compatibility)
+    else if (oled_menuItem == OLED_SystemSettings_HdmiLimitedRange) {
+        static const char* hdmiLimitedLabels[] = {"Off", "HD", "SD", "All"};
+        showMenuValue("Menu->System", "HDMI Limited Range", hdmiLimitedLabels[uopt->hdmiLimitedRange]);
+        OSD_handleCommand(OSD_CMD_SYS_PAGE4_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_OK:
+                    uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 1) % 4;
+                    saveUserPrefs();
+                    applyPresets(rto->videoStandardInput);
+                    break;
+                case IR_KEY_LEFT:
+                    uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 3) % 4;
+                    saveUserPrefs();
+                    applyPresets(rto->videoStandardInput);
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings);

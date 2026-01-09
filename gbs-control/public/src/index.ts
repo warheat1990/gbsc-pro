@@ -52,8 +52,10 @@ const Structs: StructDescriptors = {
     { name: "advFilterWYOverride", type: "byte", size: 1 }, // 0-1, default 1 (Manual)
     { name: "advFilterCombNTSC", type: "byte", size: 1 },   // 0-3, default 0
     { name: "advFilterCombPAL", type: "byte", size: 1 },    // 0-3, default 1
+    // --- HDMI Limited Range ---
+    { name: "hdmiLimitedRange", type: "byte", size: 1 },    // 0=Off, 1=HD, 2=SD, 3=All
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 69 },
+    { name: "reserved", type: "byte", size: 68 },
   ],
 };
 
@@ -312,8 +314,8 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
-      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
+      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
+      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
@@ -332,6 +334,9 @@ const createWebSocket = () => {
       const wyFilterChar: string = message.data[14] || "9";     // SV default 9 (SVHS-8), raw value
       const wyOverrideChar: string = message.data[15] || "1";   // SV default 1 (Manual)
       const combFilterChar: string = message.data[16] || "1";   // Default 1 (Medium)
+
+      // HDMI Limited Range (position 17)
+      const hdmiLimitedRangeChar: string = message.data[17] || "1";  // Default 1 (HD)
 
       // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
       const fromHexChar = (c: string): number => {
@@ -428,6 +433,14 @@ const createWebSocket = () => {
       if (combValueEl) {
         const combVal = fromHexChar(combFilterChar);
         combValueEl.textContent = combNames[combVal] || "Medium";
+      }
+
+      // Update HDMI Limited Range value
+      const hdmiLimitedRangeValueEl = document.getElementById("gbs-hdmi-limited-range-value");
+      if (hdmiLimitedRangeValueEl) {
+        const hdmiLimitedRangeNames = ["OFF", "HD", "SD", "ALL"];
+        const hdmiVal = parseInt(hdmiLimitedRangeChar, 10);
+        hdmiLimitedRangeValueEl.textContent = hdmiLimitedRangeNames[hdmiVal] || "OFF";
       }
 
       // Update format button

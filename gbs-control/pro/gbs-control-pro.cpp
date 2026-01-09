@@ -531,10 +531,10 @@ void broadcastProStatus(WebSocketsServer& ws)
 {
     // Extended message format:
     // $[input][format][i2p][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
-    //  [yFilter][cFilter][wyFilter][wyOverride][comb]
+    //  [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
-    //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb
-    constexpr size_t MESSAGE_LEN = 17;
+    //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange
+    constexpr size_t MESSAGE_LEN = 18;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -576,6 +576,7 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[14] = toHexChar16(uopt->advFilterWYShaping);   // 2-19 for SV WY filter (raw value)
     buffer[15] = '0' + (uopt->advFilterWYOverride ? 1 : 0); // 0=Auto, 1=Manual
     buffer[16] = toHexChar16(uopt->advFilterCombPAL);     // 0-3 unified comb filter
+    buffer[17] = '0' + uopt->hdmiLimitedRange;            // 0-3 HDMI Limited Range
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

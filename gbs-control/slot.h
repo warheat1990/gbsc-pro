@@ -46,8 +46,10 @@ typedef struct
     uint8_t advFilterWYOverride; // 0=Auto, 1=Manual (default 1=Manual)
     uint8_t advFilterCombNTSC;   // 0-3 (default 0=Narrow)
     uint8_t advFilterCombPAL;    // 0-3 (default 1=Medium)
+    // --- HDMI Limited Range ---
+    uint8_t hdmiLimitedRange;    // 0=Off, 1=HD, 2=SD, 3=All (default 1)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[69];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[68];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)

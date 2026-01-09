@@ -998,6 +998,49 @@ void applyRGBPatches()
     }
 }
 
+/// Apply HDMI Limited Range compensation for MS9288 converter.
+/// The MS9288 sets AVI InfoFrame quantization based on resolution VIC code.
+/// We pre-compress to Limited Range so the TV's expansion restores Full Range.
+/// Mode: 0=Off, 1=HD only (720p/1080p), 2=SD only (480p/576p/960p/1024p), 3=All
+void applyHdmiLimitedRange()
+{
+    if (uopt->hdmiLimitedRange == 0 || rto->outModeHdBypass) {
+        return;
+    }
+
+    uint8_t pid = rto->presetID;
+    bool isHD = (pid == 0x03 || pid == 0x13 ||    // 1280x720
+                 pid == 0x05 || pid == 0x15);      // 1920x1080
+    bool isSD = (pid == 0x01 || pid == 0x11 ||    // 1280x960
+                 pid == 0x02 || pid == 0x12 ||    // 1280x1024
+                 pid == 0x04 ||                    // 720x480
+                 pid == 0x14);                     // 768x576
+
+    bool needsCompensation = false;
+    if (uopt->hdmiLimitedRange == 1 && isHD) needsCompensation = true;
+    if (uopt->hdmiLimitedRange == 2 && isSD) needsCompensation = true;
+    if (uopt->hdmiLimitedRange == 3 && (isHD || isSD)) needsCompensation = true;
+
+    if (needsCompensation) {
+        // Pre-compress Full Range (0-255) to Limited Range (16-235)
+        // so TV's expansion restores the original Full Range.
+        // Formula: output = input * 219/256 + 16
+        // Factor: 219/256 ≈ 0.855 (use 110/128 = 0.859375 for integer math)
+        uint8_t currentGain = GBS::VDS_Y_GAIN::read();
+        int8_t currentOffset = (int8_t)GBS::VDS_Y_OFST::read();
+
+        uint16_t newGain = ((uint16_t)currentGain * 110) / 128;
+
+        // Offset: scale existing offset and add 16 for black level lift
+        int16_t newOffset = (((int16_t)currentOffset * 110) / 128) + 16;
+        if (newOffset > 127) newOffset = 127;
+
+        GBS::VDS_Y_GAIN::write((uint8_t)newGain);
+        GBS::VDS_Y_OFST::write((uint8_t)(int8_t)newOffset);
+        SerialM.println(F("HDMI Limited Range applied"));
+    }
+}
+
 /// Write ADC gain registers, and save in adco->r_gain to properly transfer it
 /// across loading presets or passthrough.
 void setAdcGain(uint8_t gain) {
@@ -4029,6 +4072,9 @@ void doPostPresetLoadSteps()
     // Pro: Apply GBS color balance
     applyRGBtoYUVConversion();
 
+    // HDMI Limited Range (must be after applyRGBtoYUVConversion)
+    applyHdmiLimitedRange();
+
     SerialM.print(F("\npreset applied: "));
     if (rto->presetID == 0x01 || rto->presetID == 0x11)
         SerialM.print(F("1280x960"));
@@ -4209,6 +4255,8 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.advFilterWYOverride = uopt->advFilterWYOverride;
     slotData.advFilterCombNTSC = uopt->advFilterCombNTSC;
     slotData.advFilterCombPAL = uopt->advFilterCombPAL;
+    // HDMI Limited Range
+    slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
 
     // Update name if provided
     if (name != NULL) {
@@ -4300,6 +4348,8 @@ bool loadSlotSettings()
     uopt->advFilterWYOverride = (slotData.advFilterWYOverride <= 1) ? slotData.advFilterWYOverride : ADV_FILTER_WY_OVERRIDE_DEFAULT;
     uopt->advFilterCombNTSC = (slotData.advFilterCombNTSC <= 3) ? slotData.advFilterCombNTSC : ADV_FILTER_COMB_NTSC_DEFAULT;
     uopt->advFilterCombPAL = (slotData.advFilterCombPAL <= 3) ? slotData.advFilterCombPAL : ADV_FILTER_COMB_PAL_DEFAULT;
+    // HDMI Limited Range
+    uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
 
     return true;
 }
@@ -7431,6 +7481,8 @@ void loadDefaultUserOptions()
     uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
     uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
     uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+    // HDMI Limited Range
+    uopt->hdmiLimitedRange = 1;
 }
 
 //RF_PRE_INIT() {
@@ -7854,6 +7906,9 @@ void setup()
             if (uopt->advACEGammaGain > 15) uopt->advACEGammaGain = 8;
             uopt->advACEResponseSpeed = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
             if (uopt->advACEResponseSpeed > 15) uopt->advACEResponseSpeed = 15;
+            // HDMI Limited Range
+            uopt->hdmiLimitedRange = (uint8_t)(f.read() - '0');
+            if (uopt->hdmiLimitedRange > 3) uopt->hdmiLimitedRange = 1;
 
             f.close();
         }
@@ -9828,6 +9883,12 @@ void handleType2Command(char argument)
             }
             saveUserPrefs();
             break;
+        case '%':
+            // HDMI Limited Range: cycle 0=Off, 1=HD, 2=SD, 3=All
+            uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 1) % 4;
+            saveUserPrefs();
+            applyPresets(rto->videoStandardInput);
+            break;
         case 'z':
             // sog slicer level
             if (rto->currentLevelSOG > 0) {
@@ -11089,6 +11150,8 @@ void saveUserPrefs()
     f.write(uopt->advACEGammaGain % 10 + '0');
     f.write(uopt->advACEResponseSpeed / 10 + '0');
     f.write(uopt->advACEResponseSpeed % 10 + '0');
+    // HDMI Limited Range
+    f.write(uopt->hdmiLimitedRange + '0');
     f.close();
 }
 

@@ -100,6 +100,8 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advFilterWYShaping;     /* WY Shaping Filter for S-Video (2-19, default 19=SVHS 18) */ \
     uint8_t advFilterWYOverride;    /* WY Override (0=Auto, 1=Manual, default 1) */ \
     uint8_t advFilterCombNTSC;      /* Comb Filter NTSC bandwidth (0-3, default 0=Narrow) */ \
-    uint8_t advFilterCombPAL;       /* Comb Filter PAL bandwidth (0-3, default 1=Medium) */
+    uint8_t advFilterCombPAL;       /* Comb Filter PAL bandwidth (0-3, default 1=Medium) */ \
+    /* HDMI Limited Range */ \
+    uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */
 
 #endif // OPTIONS_PRO_H_

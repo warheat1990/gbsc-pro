@@ -1311,6 +1311,27 @@
                 </td>
               </tr>
               <tr>
+                <td>
+                  HDMI Limited Range
+                  <!-- prettier-ignore -->
+                  <ul class="gbs-help">
+                    <li>Workaround for MS9288 and similar VGA-to-HDMI converters that mark certain resolutions as Limited Range.</li>
+                    <li>OFF: No compensation. HD: Apply to 720p/1080p. SD: Apply to 480p/576p/960p/1024p. ALL: Apply to all resolutions.</li>
+                    <li>If colors appear washed out or clipped at certain resolutions, try cycling through these options.</li>
+                  </ul>
+                </td>
+                <td
+                  gbs-message="%"
+                  gbs-message-type="user"
+                  gbs-click="normal"
+                  style="cursor: pointer; padding-left: 8px;"
+                  gbs-hdmi-limited-range
+                  id="gbs-hdmi-limited-range-value"
+                >
+                  OFF
+                </td>
+              </tr>
+              <tr>
                 <td colspan="2" class="gbs-preferences__child">
                   Active FrameTime Lock
                   <!-- prettier-ignore -->
