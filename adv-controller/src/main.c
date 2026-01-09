@@ -9,6 +9,7 @@
 #include "debug_uart.h"
 #include "adv_cli.h"
 #include "flash.h"
+#include "fault_handler.h"
 
 #define LL_PERIPH_SEL (LL_PERIPH_GPIO | LL_PERIPH_FCG | LL_PERIPH_PWC_CLK_RMU | LL_PERIPH_EFM | LL_PERIPH_SRAM)
 
@@ -111,6 +112,9 @@ int main(void)
 
     printf("\r\n[SYSTEM] ADV Controller ready\r\n");
 
+    /* Initialize watchdog for crash recovery */
+    WDT_Config();
+
     ADV_Enable(adv_sw);
     LED_SetSignal(Input_signal);
 
@@ -121,6 +125,7 @@ int main(void)
 
         if (g_u16_sys_timer >= SYS_TIMEOUT_100MS)
         {
+            WDT_Refresh();  /* Feed watchdog every 100ms */
             ADV_DetectLoop();
             FLASH_Task();
             g_u16_sys_timer = 0;

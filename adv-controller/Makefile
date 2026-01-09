@@ -39,6 +39,7 @@ C_SOURCES = \
     $(SRC_DIR)/debug_uart.c \
     $(SRC_DIR)/adv_cli.c \
     $(SRC_DIR)/flash.c \
+    $(SRC_DIR)/fault_handler.c \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll.c \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_clk.c \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_efm.c \
@@ -56,6 +57,7 @@ C_SOURCES = \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_icg.c \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_aos.c \
     $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_dma.c \
+    $(LIB_DIR)/hc32_ll_driver/src/hc32_ll_wdt.c \
     $(LIB_DIR)/bsp/ev_hc32f460_lqfp100_v2/ev_hc32f460_lqfp100_v2.c \
     $(LIB_DIR)/cmsis/Device/HDSC/hc32f4xx/Source/system_hc32f460.c
 

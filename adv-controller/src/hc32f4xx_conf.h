@@ -49,7 +49,7 @@ extern "C"
 #define LL_TRNG_ENABLE             (DDL_OFF)
 #define LL_USART_ENABLE            (DDL_ON)
 #define LL_USB_ENABLE              (DDL_OFF)
-#define LL_WDT_ENABLE              (DDL_OFF)
+#define LL_WDT_ENABLE              (DDL_ON)
 
 #define BSP_EV_HC32F460_LQFP100_V2 (4U)
 #define BSP_EV_HC32F4XX            (BSP_EV_HC32F460_LQFP100_V2)
