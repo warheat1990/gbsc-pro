@@ -59,6 +59,9 @@ Based on [RetroScaler/gbsc-pro](https://github.com/RetroScaler/gbsc-pro), which 
 ### [adv-manager/](adv-manager/)
 **Python GUI** - Desktop application for debugging ADV7280/ADV7391 registers via serial connection. Useful for testing video processing settings without reflashing firmware.
 
+### [gbsc-pro-flasher/](gbsc-pro-flasher/)
+**Firmware Flash Tool** - Cross-platform GUI/CLI tool to flash both ESP8266 and HC32 firmware. Auto-detects connected devices and supports drag & drop. Works on Windows, macOS, and Linux.
+
 ### [hardware/](hardware/)
 **Hardware resources** - PCB design files (Gerber), BOM, datasheets for all ICs, and an ADV CLI simulator for testing without physical hardware.
 

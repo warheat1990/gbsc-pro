@@ -1,0 +1,11 @@
+# GBSC Pro Flasher - Dependencies
+# Install with: pip install -r requirements.txt
+
+# Required - Serial communication
+pyserial>=3.5
+
+# Required for ESP8266 flashing
+esptool>=4.0
+
+# Optional - GUI interface (CLI works without this)
+PyQt6>=6.4.0
