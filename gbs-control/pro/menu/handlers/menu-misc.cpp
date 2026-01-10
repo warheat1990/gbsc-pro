@@ -67,6 +67,12 @@ void Volume_setInitialKey(uint32_t key)
     volumeLastKey = key;
     volumeLastRepeatTime = millis();
 
+    // Auto-unmute when adjusting volume
+    if (uopt->audioMuted) {
+        PT2257_mute(false);
+        uopt->audioMuted = 0;
+    }
+
     // Apply volume change immediately (volume: 0=mute, 50=max)
     if (key == IR_KEY_VOL_UP) {
         uopt->volume = MIN(uopt->volume + 1, 50);

@@ -27,7 +27,10 @@ extern void resetSyncProcessor();
 bool IR_handleSystemSettings()
 {
     // OLED_SystemSettings_SyncStripper (first item - wraps from HdmiLimitedRange)
+    // Note: Sync Stripper only applies to RGB inputs, not AV/SV
     if (oled_menuItem == OLED_SystemSettings_SyncStripper) {
+        bool syncStripperAvailable = (uopt->activeInputType != InputTypeSV) &&
+                                      (uopt->activeInputType != InputTypeAV);
         showMenuToggle("Menu->System", "Sync Stripper", uopt->advSyncStripper == 1);
         OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
 
@@ -45,15 +48,17 @@ bool IR_handleSystemSettings()
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    uopt->advSyncStripper = !uopt->advSyncStripper;
-                    if (uopt->advSyncStripper > 1)
-                        uopt->advSyncStripper = 1;
-                    ADV_sendSyncStripper(uopt->advSyncStripper);
-                    saveUserPrefs();
-                    if (GBS::ADC_INPUT_SEL::read()) {
-                        resetSyncProcessor();
-                        delay(50);
-                        applyVideoModePreset();
+                    if (syncStripperAvailable) {
+                        uopt->advSyncStripper = !uopt->advSyncStripper;
+                        if (uopt->advSyncStripper > 1)
+                            uopt->advSyncStripper = 1;
+                        ADV_sendSyncStripper(uopt->advSyncStripper);
+                        saveUserPrefs();
+                        if (GBS::ADC_INPUT_SEL::read()) {
+                            resetSyncProcessor();
+                            delay(50);
+                            applyVideoModePreset();
+                        }
                     }
                     break;
                 case IR_KEY_EXIT:

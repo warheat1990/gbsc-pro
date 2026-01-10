@@ -1,11 +1,4 @@
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
-var Structs = {
+const Structs = {
     slots: [
         // --- ORIGINAL GBS-CONTROL ---
         { name: "name", type: "string", size: 25 },
@@ -52,13 +45,13 @@ var Structs = {
         { name: "hdmiLimitedRange", type: "byte", size: 1 },
         // --- Reserved for future expansion ---
         { name: "reserved", type: "byte", size: 68 },
-    ]
+    ],
 };
 // =====================================================================
 // Video Filter Name Constants
 // =====================================================================
 // Y Filter names for Composite (YSFM register 0x17) - 31 values (0-30)
-var yFilterNamesAV = [
+const yFilterNamesAV = [
     "AutoWide", "AutoNarrow",
     "SVHS-1", "SVHS-2", "SVHS-3", "SVHS-4", "SVHS-5", "SVHS-6",
     "SVHS-7", "SVHS-8", "SVHS-9", "SVHS-10", "SVHS-11", "SVHS-12",
@@ -67,48 +60,48 @@ var yFilterNamesAV = [
     "NTSC-NN1", "NTSC-NN2", "NTSC-NN3", "NTSC-WN1", "NTSC-WN2", "NTSC-WN3"
 ];
 // WY Filter names for S-Video (WYSFM register 0x18) - 18 values (raw 2-19, array index 0-17)
-var yFilterNamesSV = [
+const yFilterNamesSV = [
     "SVHS-1", "SVHS-2", "SVHS-3", "SVHS-4", "SVHS-5", "SVHS-6",
     "SVHS-7", "SVHS-8", "SVHS-9", "SVHS-10", "SVHS-11", "SVHS-12",
     "SVHS-13", "SVHS-14", "SVHS-15", "SVHS-16", "SVHS-17", "SVHS-18"
 ];
 // C Filter names (CSFM register 0x18) - 8 values (0-7)
-var cFilterNames = [
+const cFilterNames = [
     "Auto1.5M", "Auto2.2M", "SH1", "SH2", "SH3", "SH4", "SH5", "Wideband"
 ];
 // Comb Filter bandwidth names - 4 values (0-3)
-var combNames = ["Narrow", "Medium", "Wide", "Widest"];
-var StructParser = {
+const combNames = ["Narrow", "Medium", "Wide", "Widest"];
+const StructParser = {
     pos: 0,
-    parseStructArray: function (buff, structsDescriptors, struct) {
-        var _this = this;
-        var currentStruct = structsDescriptors[struct];
+    parseStructArray(buff, structsDescriptors, struct) {
+        const currentStruct = structsDescriptors[struct];
         this.pos = 0;
         buff = new Uint8Array(buff);
         if (currentStruct) {
-            var structSize = StructParser.getSize(structsDescriptors, struct);
-            return __spreadArrays(Array(buff.byteLength / structSize)).map(function () {
-                return currentStruct.reduce(function (acc, structItem) {
-                    acc[structItem.name] = _this.getValue(buff, structItem);
+            const structSize = StructParser.getSize(structsDescriptors, struct);
+            return [...Array(buff.byteLength / structSize)].map(() => {
+                return currentStruct.reduce((acc, structItem) => {
+                    acc[structItem.name] = this.getValue(buff, structItem);
                     return acc;
                 }, {});
             });
         }
         return null;
     },
-    getValue: function (buff, structItem) {
+    getValue(buff, structItem) {
         switch (structItem.type) {
             case "byte":
-                var byteValue = buff[this.pos];
+                const byteValue = buff[this.pos];
                 this.pos += structItem.size; // Skip all bytes (handles reserved fields)
                 return byteValue;
             case "string":
-                var currentPos_1 = this.pos;
+                const currentPos = this.pos;
                 this.pos += structItem.size;
-                return __spreadArrays(Array(structItem.size)).map(function () { return " "; })
-                    .map(function (_char, index) {
-                    if (buff[currentPos_1 + index] > 31) {
-                        return String.fromCharCode(buff[currentPos_1 + index]);
+                return [...Array(structItem.size)]
+                    .map(() => " ")
+                    .map((_char, index) => {
+                    if (buff[currentPos + index] > 31) {
+                        return String.fromCharCode(buff[currentPos + index]);
                     }
                     return "";
                 })
@@ -116,16 +109,16 @@ var StructParser = {
                     .trim();
         }
     },
-    getSize: function (structsDescriptors, struct) {
-        var currentStruct = structsDescriptors[struct];
-        return currentStruct.reduce(function (acc, prop) {
+    getSize(structsDescriptors, struct) {
+        const currentStruct = structsDescriptors[struct];
+        return currentStruct.reduce((acc, prop) => {
             acc += prop.size;
             return acc;
         }, 0);
-    }
+    },
 };
 /* GBSControl Global Object*/
-var GBSControl = {
+const GBSControl = {
     buttonMapping: {
         1: "button1280x960",
         2: "button1280x1024",
@@ -133,7 +126,7 @@ var GBSControl = {
         4: "button720x480",
         5: "button1920x1080",
         // PRO: 6 (15kHzScaleDown) and 8 (PassThrough) not supported
-        9: "buttonLoadCustomPreset"
+        9: "buttonLoadCustomPreset",
     },
     controlKeysMobileMode: "move",
     controlKeysMobile: {
@@ -142,22 +135,22 @@ var GBSControl = {
             left: "7",
             up: "*",
             right: "6",
-            down: "/"
+            down: "/",
         },
         scale: {
             type: "loadDoc",
             left: "h",
             up: "4",
             right: "z",
-            down: "5"
+            down: "5",
         },
         borders: {
             type: "loadUser",
             left: "B",
             up: "C",
             right: "A",
-            down: "D"
-        }
+            down: "D",
+        },
     },
     dataQueued: 0,
     isWsActive: false,
@@ -199,22 +192,22 @@ var GBSControl = {
         promptOk: null,
         promptCancel: null,
         promptContent: null,
-        promptInput: null
+        promptInput: null,
     },
     updateTerminalTimer: 0,
     webSocketServerUrl: "",
     wifi: {
         mode: "ap",
-        ssid: ""
+        ssid: "",
     },
     ws: null,
     wsCheckTimer: 0,
     wsConnectCounter: 0,
     wsNoSuccessConnectingCounter: 0,
-    wsTimeout: 0
+    wsTimeout: 0,
 };
 /** websocket services */
-var checkWebSocketServer = function () {
+const checkWebSocketServer = () => {
     if (!GBSControl.isWsActive) {
         if (GBSControl.ws) {
             /*
@@ -238,7 +231,7 @@ var checkWebSocketServer = function () {
         }
     }
 };
-var timeOutWs = function () {
+const timeOutWs = () => {
     console.log("timeOutWs");
     if (GBSControl.ws) {
         GBSControl.ws.close();
@@ -246,13 +239,13 @@ var timeOutWs = function () {
     GBSControl.isWsActive = false;
     displayWifiWarning(true);
 };
-var createWebSocket = function () {
+const createWebSocket = () => {
     if (GBSControl.ws && checkReadyState()) {
         return;
     }
     GBSControl.wsNoSuccessConnectingCounter = 0;
     GBSControl.ws = new WebSocket(GBSControl.webSocketServerUrl, ["arduino"]);
-    GBSControl.ws.onopen = function () {
+    GBSControl.ws.onopen = () => {
         console.log("ws onopen");
         displayWifiWarning(false);
         GBSControl.wsConnectCounter++;
@@ -261,42 +254,42 @@ var createWebSocket = function () {
         GBSControl.isWsActive = true;
         GBSControl.wsNoSuccessConnectingCounter = 0;
     };
-    GBSControl.ws.onclose = function () {
+    GBSControl.ws.onclose = () => {
         console.log("ws.onclose");
         clearTimeout(GBSControl.wsTimeout);
         GBSControl.isWsActive = false;
     };
-    GBSControl.ws.onmessage = function (message) {
+    GBSControl.ws.onmessage = (message) => {
         clearTimeout(GBSControl.wsTimeout);
         GBSControl.wsTimeout = setTimeout(timeOutWs, 2700);
         GBSControl.isWsActive = true;
-        var _a = message.data, messageDataAt0 = _a[0], messageDataAt1 = _a[1], messageDataAt2 = _a[2], messageDataAt3 = _a[3], messageDataAt4 = _a[4], messageDataAt5 = _a[5];
+        const [messageDataAt0, messageDataAt1, messageDataAt2, messageDataAt3, messageDataAt4, messageDataAt5,] = message.data;
         if (messageDataAt0 === "$") {
             // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
             // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
-            var inputType = messageDataAt1;
-            var formatChar = messageDataAt2;
-            var line2xChar = messageDataAt3;
-            var smoothChar = messageDataAt4;
-            var sharpnessChar = messageDataAt5;
-            var aceChar = message.data[6] || "0";
-            var lumaGainChar = message.data[7] || "D"; // Default 13 (D in hex-ish)
-            var chromaGainChar = message.data[8] || "8";
-            var chromaMaxChar = message.data[9] || "8";
-            var gammaGainChar = message.data[10] || "8";
-            var responseSpeedChar = message.data[11] || "F"; // Default 15 (F in hex)
+            const inputType = messageDataAt1;
+            const formatChar = messageDataAt2;
+            const line2xChar = messageDataAt3;
+            const smoothChar = messageDataAt4;
+            const sharpnessChar = messageDataAt5;
+            const aceChar = message.data[6] || "0";
+            const lumaGainChar = message.data[7] || "D"; // Default 13 (D in hex-ish)
+            const chromaGainChar = message.data[8] || "8";
+            const chromaMaxChar = message.data[9] || "8";
+            const gammaGainChar = message.data[10] || "8";
+            const responseSpeedChar = message.data[11] || "F"; // Default 15 (F in hex)
             // Video Filter parameters (positions 12-16)
-            var yFilterChar = message.data[12] || "1"; // AV default 1 (AutoNarrow)
-            var cFilterChar = message.data[13] || "0"; // AV default 0 (Auto1.5M)
-            var wyFilterChar = message.data[14] || "9"; // SV default 9 (SVHS-8), raw value
-            var wyOverrideChar = message.data[15] || "1"; // SV default 1 (Manual)
-            var combFilterChar = message.data[16] || "1"; // Default 1 (Medium)
+            const yFilterChar = message.data[12] || "1"; // AV default 1 (AutoNarrow)
+            const cFilterChar = message.data[13] || "0"; // AV default 0 (Auto1.5M)
+            const wyFilterChar = message.data[14] || "9"; // SV default 9 (SVHS-8), raw value
+            const wyOverrideChar = message.data[15] || "1"; // SV default 1 (Manual)
+            const combFilterChar = message.data[16] || "1"; // Default 1 (Medium)
             // HDMI Limited Range (position 17)
-            var hdmiLimitedRangeChar = message.data[17] || "1"; // Default 1 (HD)
+            const hdmiLimitedRangeChar = message.data[17] || "1"; // Default 1 (HD)
             // Sync Stripper (position 18)
-            var syncStripperChar = message.data[18] || "1"; // Default 1 (ON)
+            const syncStripperChar = message.data[18] || "1"; // Default 1 (ON)
             // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
-            var fromHexChar = function (c) {
+            const fromHexChar = (c) => {
                 if (c >= '0' && c <= '9')
                     return parseInt(c, 10);
                 if (c >= 'A' && c <= 'V')
@@ -304,48 +297,48 @@ var createWebSocket = function () {
                 return 0;
             };
             // Update input source buttons
-            var allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
-            allInputButtons.forEach(function (btn) { return btn.removeAttribute("active"); });
-            var currentButton = document.querySelector("[gbs-pro-i=\"" + inputType + "\"]");
+            const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
+            allInputButtons.forEach((btn) => btn.removeAttribute("active"));
+            const currentButton = document.querySelector(`[gbs-pro-i="${inputType}"]`);
             if (currentButton) {
                 currentButton.setAttribute("active", "");
             }
             // Show/hide Composite/S-Video Options section based on input type
             // Show section only for S-Video (5) and Composite (6)
-            var isCVInput = inputType === "5" || inputType === "6";
-            var cvSection = document.getElementById("gbs-pro-cv-section");
+            const isCVInput = inputType === "5" || inputType === "6";
+            const cvSection = document.getElementById("gbs-pro-cv-section");
             if (cvSection) {
                 cvSection.style.display = isCVInput ? "block" : "none";
             }
             // Show/hide ACE Settings section based on input type and ACE enabled
-            var aceSection = document.getElementById("gbs-pro-ace-section");
+            const aceSection = document.getElementById("gbs-pro-ace-section");
             if (aceSection) {
                 aceSection.style.display = (isCVInput && aceChar === "1") ? "block" : "none";
             }
             // Show/hide Video Filters section (always visible for CV input)
-            var isSV = inputType === "5";
-            var filtersSection = document.getElementById("gbs-pro-filters-section");
+            const isSV = inputType === "5";
+            const filtersSection = document.getElementById("gbs-pro-filters-section");
             if (filtersSection) {
                 filtersSection.style.display = isCVInput ? "block" : "none";
             }
             // Show/hide C Filter vs Override based on input type
-            var cFilterRow = document.getElementById("gbs-pro-filter-cfilter-row");
-            var overrideRow = document.getElementById("gbs-pro-filter-override-row");
+            const cFilterRow = document.getElementById("gbs-pro-filter-cfilter-row");
+            const overrideRow = document.getElementById("gbs-pro-filter-override-row");
             if (cFilterRow && overrideRow) {
                 cFilterRow.style.display = isSV ? "none" : "flex";
                 overrideRow.style.display = isSV ? "table" : "none";
             }
             // Update Y Filter value (different for AV vs SV)
-            var yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
-            var yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
-            var yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
-            var isOverrideOn = wyOverrideChar === "1";
+            const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+            const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+            const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+            const isOverrideOn = wyOverrideChar === "1";
             if (yFilterValueEl) {
                 if (isSV) {
                     // S-Video: when Override is OFF, show "Auto" and disable buttons
                     if (isOverrideOn) {
-                        var wyVal = fromHexChar(wyFilterChar);
-                        var svIndex = Math.max(0, Math.min(17, wyVal - 2));
+                        const wyVal = fromHexChar(wyFilterChar);
+                        const svIndex = Math.max(0, Math.min(17, wyVal - 2));
                         yFilterValueEl.textContent = yFilterNamesSV[svIndex] || "SVHS-8";
                     }
                     else {
@@ -354,27 +347,27 @@ var createWebSocket = function () {
                 }
                 else {
                     // Composite: yFilterChar is value 0-30
-                    var yVal = fromHexChar(yFilterChar);
+                    const yVal = fromHexChar(yFilterChar);
                     yFilterValueEl.textContent = yFilterNamesAV[yVal] || "AutoNarrow";
                 }
             }
             // Disable Y Filter buttons in SV mode when Override is OFF
             if (yFilterDecBtn && yFilterIncBtn) {
-                var disabled = isSV && !isOverrideOn;
+                const disabled = isSV && !isOverrideOn;
                 yFilterDecBtn.disabled = disabled;
                 yFilterIncBtn.disabled = disabled;
             }
             // Update C Filter value (AV only)
-            var cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
+            const cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
             if (cFilterValueEl) {
-                var cVal = fromHexChar(cFilterChar);
+                const cVal = fromHexChar(cFilterChar);
                 cFilterValueEl.textContent = cFilterNames[cVal] || "Auto1.5M";
             }
             // Update Override toggle state (SV only)
-            var overrideToggle = document.getElementById("gbs-pro-filter-override");
-            var overrideTr = document.getElementById("gbs-pro-filter-override-tr");
+            const overrideToggle = document.getElementById("gbs-pro-filter-override");
+            const overrideTr = document.getElementById("gbs-pro-filter-override-tr");
             if (overrideToggle && overrideTr) {
-                var isManual = wyOverrideChar === "1";
+                const isManual = wyOverrideChar === "1";
                 overrideToggle.textContent = isManual ? "toggle_on" : "toggle_off";
                 if (isManual)
                     overrideTr.setAttribute("active", "");
@@ -382,21 +375,21 @@ var createWebSocket = function () {
                     overrideTr.removeAttribute("active");
             }
             // Update Comb Filter value
-            var combValueEl = document.getElementById("gbs-pro-filter-comb-value");
+            const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
             if (combValueEl) {
-                var combVal = fromHexChar(combFilterChar);
+                const combVal = fromHexChar(combFilterChar);
                 combValueEl.textContent = combNames[combVal] || "Medium";
             }
             // Update HDMI Limited Range value
-            var hdmiLimitedRangeValueEl = document.getElementById("gbs-hdmi-limited-range-value");
+            const hdmiLimitedRangeValueEl = document.getElementById("gbs-hdmi-limited-range-value");
             if (hdmiLimitedRangeValueEl) {
-                var hdmiLimitedRangeNames = ["OFF", "HD", "SD", "ALL"];
-                var hdmiVal = parseInt(hdmiLimitedRangeChar, 10);
+                const hdmiLimitedRangeNames = ["OFF", "HD", "SD", "ALL"];
+                const hdmiVal = parseInt(hdmiLimitedRangeChar, 10);
                 hdmiLimitedRangeValueEl.textContent = hdmiLimitedRangeNames[hdmiVal] || "OFF";
             }
             // Update format button
             // Format: 0-9 = '0'-'9', 10 = 'A', 11 = 'B'
-            var formatValue = void 0;
+            let formatValue;
             if (formatChar >= '0' && formatChar <= '9') {
                 formatValue = parseInt(formatChar, 10);
             }
@@ -409,18 +402,18 @@ var createWebSocket = function () {
             else {
                 formatValue = 0; // Default to Auto
             }
-            var formatButton = document.getElementById("gbs-pro-format");
+            const formatButton = document.getElementById("gbs-pro-format");
             if (formatButton) {
-                var formatNames = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
+                const formatNames = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
                 formatButton.setAttribute("gbs-pro-format-value", formatValue.toString());
-                var textDiv = formatButton.querySelector("div:not(.gbs-icon)");
+                const textDiv = formatButton.querySelector("div:not(.gbs-icon)");
                 if (textDiv) {
                     textDiv.textContent = formatNames[formatValue];
                 }
             }
             // Update 2X button
-            var btn2x = document.getElementById("gbs-pro-2x");
-            var is2XEnabled = line2xChar === "1";
+            const btn2x = document.getElementById("gbs-pro-2x");
+            const is2XEnabled = line2xChar === "1";
             if (btn2x) {
                 if (is2XEnabled) {
                     btn2x.setAttribute("active", "");
@@ -430,7 +423,7 @@ var createWebSocket = function () {
                 }
             }
             // Update Smooth button (smooth only works when 2X is enabled)
-            var btnSmooth = document.getElementById("gbs-pro-smooth");
+            const btnSmooth = document.getElementById("gbs-pro-smooth");
             if (btnSmooth) {
                 // Disable smooth button if 2X is not enabled
                 btnSmooth.disabled = !is2XEnabled;
@@ -443,7 +436,7 @@ var createWebSocket = function () {
                 }
             }
             // Update ACE button
-            var btnACE = document.getElementById("gbs-pro-ace");
+            const btnACE = document.getElementById("gbs-pro-ace");
             if (btnACE) {
                 if (aceChar === "1") {
                     btnACE.setAttribute("active", "");
@@ -453,11 +446,11 @@ var createWebSocket = function () {
                 }
             }
             // Update ACE parameter values in UI
-            var lumaValueSpan = document.getElementById("gbs-pro-ace-luma-value");
-            var chromaValueSpan = document.getElementById("gbs-pro-ace-chroma-value");
-            var chromamaxValueSpan = document.getElementById("gbs-pro-ace-chromamax-value");
-            var gammaValueSpan = document.getElementById("gbs-pro-ace-gamma-value");
-            var responseValueSpan = document.getElementById("gbs-pro-ace-response-value");
+            const lumaValueSpan = document.getElementById("gbs-pro-ace-luma-value");
+            const chromaValueSpan = document.getElementById("gbs-pro-ace-chroma-value");
+            const chromamaxValueSpan = document.getElementById("gbs-pro-ace-chromamax-value");
+            const gammaValueSpan = document.getElementById("gbs-pro-ace-gamma-value");
+            const responseValueSpan = document.getElementById("gbs-pro-ace-response-value");
             if (lumaValueSpan)
                 lumaValueSpan.textContent = fromHexChar(lumaGainChar).toString();
             if (chromaValueSpan)
@@ -469,8 +462,8 @@ var createWebSocket = function () {
             if (responseValueSpan)
                 responseValueSpan.textContent = fromHexChar(responseSpeedChar).toString();
             // Update Sharpness & Peaking Lock
-            var isSharpnessActive = sharpnessChar === '1';
-            var btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
+            const isSharpnessActive = sharpnessChar === '1';
+            const btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
             if (btnSharpness) {
                 if (isSharpnessActive) {
                     btnSharpness.setAttribute("active", "");
@@ -480,7 +473,7 @@ var createWebSocket = function () {
                 }
             }
             // Peaking is locked (disabled) when Sharpness is active
-            var btnPeaking = document.querySelector('[gbs-toggle="peaking"]');
+            const btnPeaking = document.querySelector('[gbs-toggle="peaking"]');
             if (btnPeaking) {
                 if (isSharpnessActive) {
                     btnPeaking.disabled = true;
@@ -492,14 +485,17 @@ var createWebSocket = function () {
                     btnPeaking.style.opacity = "1";
                 }
             }
-            // Update Sync Stripper toggle
-            var syncStripperToggle = document.querySelector('[gbs-toggle-switch="syncStripper"]');
+            // Update Sync Stripper toggle (only available for RGB inputs, not AV/SV)
+            const syncStripperToggle = document.querySelector('[gbs-toggle-switch="syncStripper"]');
             if (syncStripperToggle) {
-                var isSyncStripperOn = syncStripperChar === "1";
+                const isSyncStripperOn = syncStripperChar === "1";
+                const isSyncStripperAvailable = inputType !== "5" && inputType !== "6"; // Not SV/AV
                 syncStripperToggle.textContent = isSyncStripperOn ? "toggle_on" : "toggle_off";
-                var syncStripperRow = syncStripperToggle.parentElement;
+                syncStripperToggle.style.opacity = isSyncStripperAvailable ? "1" : "0.5";
+                syncStripperToggle.style.pointerEvents = isSyncStripperAvailable ? "auto" : "none";
+                const syncStripperRow = syncStripperToggle.parentElement;
                 if (syncStripperRow) {
-                    if (isSyncStripperOn) {
+                    if (isSyncStripperOn && isSyncStripperAvailable) {
                         syncStripperRow.setAttribute("active", "");
                     }
                     else {
@@ -517,23 +513,26 @@ var createWebSocket = function () {
             }
         }
         else {
-            var presetId = GBSControl.buttonMapping[messageDataAt1];
-            var presetEl = document.querySelector("[gbs-element-ref=\"" + presetId + "\"]");
-            var activePresetButton = presetEl
+            const presetId = GBSControl.buttonMapping[messageDataAt1];
+            const presetEl = document.querySelector(`[gbs-element-ref="${presetId}"]`);
+            const activePresetButton = presetEl
                 ? presetEl.getAttribute("gbs-element-ref")
                 : "none";
             GBSControl.ui.presetButtonList.forEach(toggleButtonActive(activePresetButton));
-            var slotId = "slot-" + messageDataAt2;
-            var activeSlotButton = document.querySelector("[gbs-element-ref=\"" + slotId + "\"]");
+            const slotId = "slot-" + messageDataAt2;
+            const activeSlotButton = document.querySelector(`[gbs-element-ref="${slotId}"]`);
             if (activeSlotButton) {
                 GBSControl.ui.slotButtonList.forEach(toggleButtonActive(slotId));
             }
             if (messageDataAt3 && messageDataAt4 && messageDataAt5) {
-                var optionByte0_1 = messageDataAt3.charCodeAt(0);
-                var optionByte1_1 = messageDataAt4.charCodeAt(0);
-                var optionByte2_1 = messageDataAt5.charCodeAt(0);
-                var optionButtonList = __spreadArrays(nodelistToArray(GBSControl.ui.toggleList), nodelistToArray(GBSControl.ui.toggleSwichList));
-                var toggleMethod_1 = function (button, mode) {
+                const optionByte0 = messageDataAt3.charCodeAt(0);
+                const optionByte1 = messageDataAt4.charCodeAt(0);
+                const optionByte2 = messageDataAt5.charCodeAt(0);
+                const optionButtonList = [
+                    ...nodelistToArray(GBSControl.ui.toggleList),
+                    ...nodelistToArray(GBSControl.ui.toggleSwichList),
+                ];
+                const toggleMethod = (button, mode) => {
                     if (button.tagName === "TD") {
                         button.innerText = mode ? "toggle_on" : "toggle_off";
                     }
@@ -545,24 +544,24 @@ var createWebSocket = function () {
                         button.removeAttribute("active");
                     }
                 };
-                optionButtonList.forEach(function (button) {
-                    var toggleData = button.getAttribute("gbs-toggle") ||
+                optionButtonList.forEach((button) => {
+                    const toggleData = button.getAttribute("gbs-toggle") ||
                         button.getAttribute("gbs-toggle-switch");
                     switch (toggleData) {
                         case "adcAutoGain":
-                            toggleMethod_1(button, (optionByte0_1 & 0x01) == 0x01);
+                            toggleMethod(button, (optionByte0 & 0x01) == 0x01);
                             break;
                         case "scanlines":
-                            toggleMethod_1(button, (optionByte0_1 & 0x02) == 0x02);
+                            toggleMethod(button, (optionByte0 & 0x02) == 0x02);
                             break;
                         case "vdsLineFilter":
-                            toggleMethod_1(button, (optionByte0_1 & 0x04) == 0x04);
+                            toggleMethod(button, (optionByte0 & 0x04) == 0x04);
                             break;
                         case "peaking":
-                            toggleMethod_1(button, (optionByte0_1 & 0x08) == 0x08);
+                            toggleMethod(button, (optionByte0 & 0x08) == 0x08);
                             break;
                         case "palForce60":
-                            toggleMethod_1(button, (optionByte0_1 & 0x10) == 0x10);
+                            toggleMethod(button, (optionByte0 & 0x10) == 0x10);
                             break;
                         // PRO: wantOutputComponent not supported
                         // case "wantOutputComponent":
@@ -570,36 +569,36 @@ var createWebSocket = function () {
                         //   break;
                         /** 1 */
                         case "matched":
-                            toggleMethod_1(button, (optionByte1_1 & 0x01) == 0x01);
+                            toggleMethod(button, (optionByte1 & 0x01) == 0x01);
                             break;
                         case "frameTimeLock":
-                            toggleMethod_1(button, (optionByte1_1 & 0x02) == 0x02);
+                            toggleMethod(button, (optionByte1 & 0x02) == 0x02);
                             break;
                         case "motionAdaptive":
-                            toggleMethod_1(button, (optionByte1_1 & 0x04) == 0x04);
+                            toggleMethod(button, (optionByte1 & 0x04) == 0x04);
                             break;
                         case "bob":
-                            toggleMethod_1(button, (optionByte1_1 & 0x04) != 0x04);
+                            toggleMethod(button, (optionByte1 & 0x04) != 0x04);
                             break;
                         // case "tap6":
                         //   toggleMethod(button, (optionByte1 & 0x08) != 0x04);
                         //   break;
                         case "step":
-                            toggleMethod_1(button, (optionByte1_1 & 0x10) == 0x10);
+                            toggleMethod(button, (optionByte1 & 0x10) == 0x10);
                             break;
                         case "fullHeight":
-                            toggleMethod_1(button, (optionByte1_1 & 0x20) == 0x20);
+                            toggleMethod(button, (optionByte1 & 0x20) == 0x20);
                             break;
                         /** 2 */
                         case "enableCalibrationADC":
-                            toggleMethod_1(button, (optionByte2_1 & 0x01) == 0x01);
+                            toggleMethod(button, (optionByte2 & 0x01) == 0x01);
                             break;
                         // PRO: preferScalingRgbhv not supported
                         // case "preferScalingRgbhv":
                         //   toggleMethod(button, (optionByte2 & 0x02) == 0x02);
                         //   break;
                         case "disableExternalClockGenerator":
-                            toggleMethod_1(button, (optionByte2_1 & 0x04) == 0x04);
+                            toggleMethod(button, (optionByte2 & 0x04) == 0x04);
                             break;
                     }
                 });
@@ -607,7 +606,7 @@ var createWebSocket = function () {
         }
     };
 };
-var checkReadyState = function () {
+const checkReadyState = () => {
     if (GBSControl.ws.readyState == 2) {
         GBSControl.wsNoSuccessConnectingCounter++;
         if (GBSControl.wsNoSuccessConnectingCounter >= 7) {
@@ -635,38 +634,38 @@ var checkReadyState = function () {
         return true;
     }
 };
-var createIntervalChecks = function () {
+const createIntervalChecks = () => {
     GBSControl.wsCheckTimer = setInterval(checkWebSocketServer, 500);
     GBSControl.updateTerminalTimer = setInterval(updateTerminal, 50);
 };
 /* API services */
-var loadDoc = function (link) {
-    return fetch("http://" + GBSControl.serverIP + "/sc?" + link + "&nocache=" + new Date().getTime());
+const loadDoc = (link) => {
+    return fetch(`http://${GBSControl.serverIP}/sc?${link}&nocache=${new Date().getTime()}`);
 };
-var loadUser = function (link) {
+const loadUser = (link) => {
     if (link == "a" || link == "1") {
         GBSControl.isWsActive = false;
         GBSControl.ui.terminal.value += "\nRestart\n";
         GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
     }
-    return fetch("http://" + GBSControl.serverIP + "/uc?" + link + "&nocache=" + new Date().getTime());
+    return fetch(`http://${GBSControl.serverIP}/uc?${link}&nocache=${new Date().getTime()}`);
 };
 /** SLOT management */
-var savePreset = function () {
-    var currentSlot = document.querySelector('[gbs-role="slot"][active]');
+const savePreset = () => {
+    const currentSlot = document.querySelector('[gbs-role="slot"][active]');
     if (!currentSlot) {
         return;
     }
-    var key = currentSlot.getAttribute("gbs-element-ref");
-    var currentIndex = currentSlot.getAttribute("gbs-slot-id");
+    const key = currentSlot.getAttribute("gbs-element-ref");
+    const currentIndex = currentSlot.getAttribute("gbs-slot-id");
     gbsPrompt("Assign a slot name", GBSControl.structs.slots[currentIndex].name || key)
-        .then(function (currentName) {
+        .then((currentName) => {
         if (currentName && currentName.trim() !== "Empty") {
             currentSlot.setAttribute("gbs-name", currentName);
-            fetch("/slot/save?index=" + currentIndex + "&name=" + currentName.substring(0, 24) + "&" + +new Date()).then(function () {
-                loadUser("4").then(function () {
-                    setTimeout(function () {
-                        fetchSlotNames().then(function (success) {
+            fetch(`/slot/save?index=${currentIndex}&name=${currentName.substring(0, 24)}&${+new Date()}`).then(() => {
+                loadUser("4").then(() => {
+                    setTimeout(() => {
+                        fetchSlotNames().then((success) => {
                             if (success) {
                                 updateSlotNames();
                             }
@@ -675,25 +674,26 @@ var savePreset = function () {
                 });
             });
         }
-    })["catch"](function () { });
+    })
+        .catch(() => { });
 };
-var loadPreset = function () {
-    loadUser("3").then(function () {
+const loadPreset = () => {
+    loadUser("3").then(() => {
         if (GBSStorage.read("customSlotFilters") === true) {
-            setTimeout(function () {
-                fetch("/gbs/restore-filters?" + +new Date());
+            setTimeout(() => {
+                fetch(`/gbs/restore-filters?${+new Date()}`);
             }, 250);
         }
     });
 };
-var removePreset = function () {
-    fetch("/slot/remove?0&nocache=" + new Date().getTime()).then(function () {
-        setTimeout(function () {
+const removePreset = () => {
+    fetch(`/slot/remove?0&nocache=${new Date().getTime()}`).then(() => {
+        setTimeout(() => {
             clearTimeout(GBSControl.wsTimeout);
             // GBSControl.wsTimeout = setTimeout(timeOutWs, 6000); //TODO: calc timeout
-            fetch("/slot/remove?1&nocache=" + new Date().getTime()).then(function () {
-                setTimeout(function () {
-                    fetchSlotNames().then(function (success) {
+            fetch(`/slot/remove?1&nocache=${new Date().getTime()}`).then(() => {
+                setTimeout(() => {
+                    fetchSlotNames().then((success) => {
                         if (success) {
                             updateSlotNames();
                         }
@@ -703,35 +703,45 @@ var removePreset = function () {
         }, 200);
     });
 };
-var getSlotsHTML = function () {
+const getSlotsHTML = () => {
     // prettier-ignore
     // PRO: 36 slots only (A-Z = 0-25, 0-9 = 26-35)
     return [
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    ].map(function (chr, idx) {
-        return "<button\n    class=\"gbs-button gbs-button__slot\"\n    gbs-slot-id=\"" + idx + "\"\n    gbs-message=\"" + chr + "\"\n    gbs-message-type=\"setSlot\"\n    gbs-click=\"normal\"\n    gbs-element-ref=\"slot-" + chr + "\"\n    gbs-meta=\"1024&#xa;x768\"\n    gbs-role=\"slot\"\n    gbs-name=\"slot-" + idx + "\"\n  ></button>";
+    ].map((chr, idx) => {
+        return `<button
+    class="gbs-button gbs-button__slot"
+    gbs-slot-id="${idx}"
+    gbs-message="${chr}"
+    gbs-message-type="setSlot"
+    gbs-click="normal"
+    gbs-element-ref="slot-${chr}"
+    gbs-meta="1024&#xa;x768"
+    gbs-role="slot"
+    gbs-name="slot-${idx}"
+  ></button>`;
     }).join('');
 };
-var setSlot = function (slot) {
-    fetch("/slot/set?slot=" + slot + "&" + +new Date());
+const setSlot = (slot) => {
+    fetch(`/slot/set?slot=${slot}&${+new Date()}`);
 };
-var updateSlotNames = function () {
-    var structs = GBSControl.structs;
+const updateSlotNames = () => {
+    const structs = GBSControl.structs;
     if (!structs)
         return;
     // Find the last non-Empty slot (scanning from the end)
-    var lastUsedSlotIndex = -1;
-    for (var i = GBSControl.maxSlots - 1; i >= 0; i--) {
+    let lastUsedSlotIndex = -1;
+    for (let i = GBSControl.maxSlots - 1; i >= 0; i--) {
         if (structs.slots[i].name.trim() !== "Empty") {
             lastUsedSlotIndex = i;
             break;
         }
     }
     // Show slots up to lastUsedSlotIndex + 1 extra Empty slot for new saves
-    var visibleSlots = lastUsedSlotIndex + 2; // +1 for index, +1 for extra Empty
-    for (var i = 0; i < GBSControl.maxSlots; i++) {
-        var el = document.querySelector("[gbs-slot-id=\"" + i + "\"]");
+    const visibleSlots = lastUsedSlotIndex + 2; // +1 for index, +1 for extra Empty
+    for (let i = 0; i < GBSControl.maxSlots; i++) {
+        const el = document.querySelector(`[gbs-slot-id="${i}"]`);
         el.setAttribute("gbs-name", structs.slots[i].name);
         el.setAttribute("gbs-meta", getSlotPresetName(parseInt(structs.slots[i].presetID, 10)));
         // Hide slots beyond the visible range
@@ -743,21 +753,21 @@ var updateSlotNames = function () {
         }
     }
 };
-var fetchSlotNames = function () {
-    return fetch("/bin/slots.bin?" + +new Date())
-        .then(function (response) { return response.arrayBuffer(); })
-        .then(function (arrayBuffer) {
+const fetchSlotNames = () => {
+    return fetch(`/bin/slots.bin?${+new Date()}`)
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => {
         if (arrayBuffer.byteLength ===
             StructParser.getSize(Structs, "slots") * GBSControl.maxSlots) {
             GBSControl.structs = {
-                slots: StructParser.parseStructArray(arrayBuffer, Structs, "slots")
+                slots: StructParser.parseStructArray(arrayBuffer, Structs, "slots"),
             };
             return true;
         }
         return false;
     });
 };
-var getSlotPresetName = function (presetID) {
+const getSlotPresetName = (presetID) => {
     switch (presetID) {
         case 0x01:
         case 0x011:
@@ -787,51 +797,46 @@ var getSlotPresetName = function (presetID) {
             return "CUSTOM";
     }
 };
-var fetchSlotNamesErrorRetry = function () {
+const fetchSlotNamesErrorRetry = () => {
     setTimeout(fetchSlotNamesAndInit, 1000);
 };
-var fetchSlotNamesAndInit = function () {
+const fetchSlotNamesAndInit = () => {
     fetchSlotNames()
-        .then(function (success) {
+        .then((success) => {
         if (!success) {
             fetchSlotNamesErrorRetry();
             return;
         }
         initUIElements();
-        wifiGetStatus().then(function () {
+        wifiGetStatus().then(() => {
             initUI();
             updateSlotNames();
             createWebSocket();
             createIntervalChecks();
             setTimeout(hideLoading, 1000);
         });
-    }, fetchSlotNamesErrorRetry)["catch"](fetchSlotNamesErrorRetry);
+    }, fetchSlotNamesErrorRetry)
+        .catch(fetchSlotNamesErrorRetry);
 };
 /** Promises */
-var serial = function (funcs) {
-    return funcs.reduce(function (promise, func) {
-        return promise.then(function (result) {
-            return func().then(Array.prototype.concat.bind(result));
-        });
-    }, Promise.resolve([]));
-};
+const serial = (funcs) => funcs.reduce((promise, func) => promise.then((result) => func().then(Array.prototype.concat.bind(result))), Promise.resolve([]));
 /** helpers */
-var toggleHelp = function () {
-    var help = GBSStorage.read("help") || false;
+const toggleHelp = () => {
+    let help = GBSStorage.read("help") || false;
     GBSStorage.write("help", !help);
     updateHelp(!help);
 };
-var toggleDeveloperMode = function () {
-    var developerMode = GBSStorage.read("developerMode") || false;
+const toggleDeveloperMode = () => {
+    const developerMode = GBSStorage.read("developerMode") || false;
     GBSStorage.write("developerMode", !developerMode);
     updateDeveloperMode(!developerMode);
 };
-var toggleCustomSlotFilters = function () {
-    var customSlotFilters = GBSStorage.read("customSlotFilters");
+const toggleCustomSlotFilters = () => {
+    const customSlotFilters = GBSStorage.read("customSlotFilters");
     GBSStorage.write("customSlotFilters", !customSlotFilters);
     updateCustomSlotFilters(!customSlotFilters);
 };
-var updateHelp = function (help) {
+const updateHelp = (help) => {
     if (help) {
         document.body.classList.remove("gbs-help-hide");
     }
@@ -839,8 +844,8 @@ var updateHelp = function (help) {
         document.body.classList.add("gbs-help-hide");
     }
 };
-var updateDeveloperMode = function (developerMode) {
-    var el = document.querySelector('[gbs-section="developer"]');
+const updateDeveloperMode = (developerMode) => {
+    const el = document.querySelector('[gbs-section="developer"]');
     if (developerMode) {
         el.removeAttribute("hidden");
         GBSControl.ui.developerSwitch.setAttribute("active", "");
@@ -853,8 +858,7 @@ var updateDeveloperMode = function (developerMode) {
     }
     GBSControl.ui.developerSwitch.querySelector(".gbs-icon").innerText = developerMode ? "toggle_on" : "toggle_off";
 };
-var updateCustomSlotFilters = function (customFilters) {
-    if (customFilters === void 0) { customFilters = GBSStorage.read("customSlotFilters") === true; }
+const updateCustomSlotFilters = (customFilters = GBSStorage.read("customSlotFilters") === true) => {
     if (customFilters) {
         GBSControl.ui.customSlotFilters.setAttribute("active", "");
     }
@@ -863,156 +867,161 @@ var updateCustomSlotFilters = function (customFilters) {
     }
     GBSControl.ui.customSlotFilters.querySelector(".gbs-icon").innerText = customFilters ? "toggle_on" : "toggle_off";
 };
-var GBSStorage = {
+const GBSStorage = {
     lsObject: {},
-    write: function (key, value) {
+    write(key, value) {
         GBSStorage.lsObject = GBSStorage.lsObject || {};
         GBSStorage.lsObject[key] = value;
         localStorage.setItem("GBSControlSlotNames", JSON.stringify(GBSStorage.lsObject));
     },
-    read: function (key) {
+    read(key) {
         GBSStorage.lsObject = JSON.parse(localStorage.getItem("GBSControlSlotNames") || "{}");
         return GBSStorage.lsObject[key];
-    }
+    },
 };
-var nodelistToArray = function (nodelist) {
+const nodelistToArray = (nodelist) => {
     return Array.prototype.slice.call(nodelist);
 };
-var toggleButtonActive = function (id) { return function (button, _index, _array) {
+const toggleButtonActive = (id) => (button, _index, _array) => {
     button.removeAttribute("active");
     if (button.getAttribute("gbs-element-ref") === id) {
         button.setAttribute("active", "");
     }
-}; };
-var displayWifiWarning = function (mode) {
+};
+const displayWifiWarning = (mode) => {
     GBSControl.ui.webSocketConnectionWarning.style.display = mode
         ? "block"
         : "none";
 };
-var updateTerminal = function () {
+const updateTerminal = () => {
     if (GBSControl.queuedText.length > 0) {
-        requestAnimationFrame(function () {
+        requestAnimationFrame(() => {
             GBSControl.ui.terminal.value += GBSControl.queuedText;
             GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
             GBSControl.queuedText = "";
         });
     }
 };
-var updateViewPort = function () {
+const updateViewPort = () => {
     document.documentElement.style.setProperty("--viewport-height", window.innerHeight + "px");
 };
-var hideLoading = function () {
+const hideLoading = () => {
     GBSControl.ui.loader.setAttribute("style", "display:none");
 };
-var checkFetchResponseStatus = function (response) {
+const checkFetchResponseStatus = (response) => {
     if (!response.ok) {
-        throw new Error("HTTP " + response.status + " - " + response.statusText);
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
     }
     return response;
 };
-var readLocalFile = function (file) {
-    var reader = new FileReader();
-    reader.addEventListener("load", function (event) {
+const readLocalFile = (file) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", (event) => {
         doRestore(reader.result);
     });
     reader.readAsArrayBuffer(file);
 };
 /** backup / restore */
-var doBackup = function () {
-    var backupFiles;
-    var done = 0;
-    var total = 0;
+const doBackup = () => {
+    let backupFiles;
+    let done = 0;
+    let total = 0;
     fetch("/filesystem/dir")
-        .then(function (r) { return r.json(); })
-        .then(function (files) {
+        .then((r) => r.json())
+        .then((files) => {
         backupFiles = files;
         total = files.length;
-        var funcs = files.map(function (path) { return function () {
-            return fetch("/filesystem/download?file=" + path + "&" + +new Date()).then(function (response) {
-                GBSControl.ui.progressBackup.setAttribute("gbs-progress", done + "/" + total);
+        const funcs = files.map((path) => () => {
+            return fetch(`/filesystem/download?file=${path}&${+new Date()}`).then((response) => {
+                GBSControl.ui.progressBackup.setAttribute("gbs-progress", `${done}/${total}`);
                 done++;
                 return checkFetchResponseStatus(response) && response.arrayBuffer();
             });
-        }; });
+        });
         return serial(funcs);
     })
-        .then(function (files) {
-        var headerDescriptor = files.reduce(function (acc, f, index) {
+        .then((files) => {
+        const headerDescriptor = files.reduce((acc, f, index) => {
             acc[backupFiles[index]] = f.byteLength;
             return acc;
         }, {});
-        var backupFilesJSON = JSON.stringify(headerDescriptor);
-        var backupFilesJSONSize = backupFilesJSON.length;
-        var mainHeader = [
+        const backupFilesJSON = JSON.stringify(headerDescriptor);
+        const backupFilesJSONSize = backupFilesJSON.length;
+        const mainHeader = [
             (backupFilesJSONSize >> 24) & 255,
             (backupFilesJSONSize >> 16) & 255,
             (backupFilesJSONSize >> 8) & 255,
             (backupFilesJSONSize >> 0) & 255,
         ];
-        var outputArray = __spreadArrays(mainHeader, backupFilesJSON.split("").map(function (c) { return c.charCodeAt(0); }), files.reduce(function (acc, f, index) {
-            acc = acc.concat(Array.from(new Uint8Array(f)));
-            return acc;
-        }, []));
-        downloadBlob(new Blob([new Uint8Array(outputArray)]), "gbs-control.backup-" + +new Date() + ".bin");
-        GBSControl.ui.progressBackup.setAttribute("gbs-progress", "");
+        const outputArray = [
+            ...mainHeader,
+            ...backupFilesJSON.split("").map((c) => c.charCodeAt(0)),
+            ...files.reduce((acc, f, index) => {
+                acc = acc.concat(Array.from(new Uint8Array(f)));
+                return acc;
+            }, []),
+        ];
+        downloadBlob(new Blob([new Uint8Array(outputArray)]), `gbs-control.backup-${+new Date()}.bin`);
+        GBSControl.ui.progressBackup.setAttribute("gbs-progress", ``);
     });
 };
-var doRestore = function (file) {
-    var backupInput = GBSControl.ui.backupInput;
-    var fileBuffer = new Uint8Array(file);
-    var headerCheck = fileBuffer.slice(4, 6);
+const doRestore = (file) => {
+    const { backupInput } = GBSControl.ui;
+    const fileBuffer = new Uint8Array(file);
+    const headerCheck = fileBuffer.slice(4, 6);
     if (headerCheck[0] !== 0x7b || headerCheck[1] !== 0x22) {
         backupInput.setAttribute("disabled", "");
         gbsAlert("Invalid Backup File")
-            .then(function () {
+            .then(() => {
             backupInput.removeAttribute("disabled");
-        }, function () {
+        }, () => {
             backupInput.removeAttribute("disabled");
-        })["catch"](function () {
+        })
+            .catch(() => {
             backupInput.removeAttribute("disabled");
         });
         return;
     }
-    var b0 = fileBuffer[0], b1 = fileBuffer[1], b2 = fileBuffer[2], b3 = fileBuffer[3];
-    var headerSize = (b0 << 24) + (b1 << 16) + (b2 << 8) + b3;
-    var headerString = Array.from(fileBuffer.slice(4, headerSize + 4))
-        .map(function (c) { return String.fromCharCode(c); })
+    const b0 = fileBuffer[0], b1 = fileBuffer[1], b2 = fileBuffer[2], b3 = fileBuffer[3];
+    const headerSize = (b0 << 24) + (b1 << 16) + (b2 << 8) + b3;
+    const headerString = Array.from(fileBuffer.slice(4, headerSize + 4))
+        .map((c) => String.fromCharCode(c))
         .join("");
-    var headerObject = JSON.parse(headerString);
-    var files = Object.keys(headerObject);
-    var pos = headerSize + 4;
-    var total = files.length;
-    var done = 0;
-    var funcs = files.map(function (fileName) { return function () {
-        var fileContents = fileBuffer.slice(pos, pos + headerObject[fileName]);
-        var formData = new FormData();
+    const headerObject = JSON.parse(headerString);
+    const files = Object.keys(headerObject);
+    let pos = headerSize + 4;
+    let total = files.length;
+    let done = 0;
+    const funcs = files.map((fileName) => () => {
+        const fileContents = fileBuffer.slice(pos, pos + headerObject[fileName]);
+        const formData = new FormData();
         formData.append("file", new Blob([fileContents], { type: "application/octet-stream" }), fileName.substr(1));
         return fetch("/filesystem/upload", {
             method: "POST",
-            body: formData
-        }).then(function (response) {
-            GBSControl.ui.progressRestore.setAttribute("gbs-progress", done + "/" + total);
+            body: formData,
+        }).then((response) => {
+            GBSControl.ui.progressRestore.setAttribute("gbs-progress", `${done}/${total}`);
             done++;
             pos += headerObject[fileName];
             return response;
         });
-    }; });
-    serial(funcs).then(function () {
-        GBSControl.ui.progressRestore.setAttribute("gbs-progress", "");
-        loadUser("a").then(function () {
+    });
+    serial(funcs).then(() => {
+        GBSControl.ui.progressRestore.setAttribute("gbs-progress", ``);
+        loadUser("a").then(() => {
             gbsAlert("Restarting GBSControl.\nPlease wait until wifi reconnects then click OK")
-                .then(function () {
+                .then(() => {
                 window.location.reload();
-            })["catch"](function () { });
+            })
+                .catch(() => { });
         });
     });
 };
-var downloadBlob = function (blob, name) {
-    if (name === void 0) { name = "file.txt"; }
+const downloadBlob = (blob, name = "file.txt") => {
     // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
-    var blobUrl = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
     // Create a link element
-    var link = document.createElement("a");
+    const link = document.createElement("a");
     // Set link's href to point to the Blob URL
     link.href = blobUrl;
     link.download = name;
@@ -1023,16 +1032,16 @@ var downloadBlob = function (blob, name) {
     link.dispatchEvent(new MouseEvent("click", {
         bubbles: true,
         cancelable: true,
-        view: window
+        view: window,
     }));
     // Remove link from body
     document.body.removeChild(link);
 };
 /** WIFI management */
-var wifiGetStatus = function () {
-    return fetch("/wifi/status?" + +new Date())
-        .then(function (r) { return r.json(); })
-        .then(function (wifiStatus) {
+const wifiGetStatus = () => {
+    return fetch(`/wifi/status?${+new Date()}`)
+        .then((r) => r.json())
+        .then((wifiStatus) => {
         GBSControl.wifi = wifiStatus;
         if (GBSControl.wifi.mode === "ap") {
             GBSControl.ui.wifiApButton.setAttribute("active", "");
@@ -1046,60 +1055,64 @@ var wifiGetStatus = function () {
             GBSControl.ui.wifiApButton.classList.remove("gbs-button__secondary");
             GBSControl.ui.wifiStaButton.setAttribute("active", "");
             GBSControl.ui.wifiStaButton.classList.add("gbs-button__secondary");
-            GBSControl.ui.wifiStaSSID.innerHTML = "" + GBSControl.wifi.ssid;
+            GBSControl.ui.wifiStaSSID.innerHTML = `${GBSControl.wifi.ssid}`;
         }
     });
 };
-var wifiConnect = function () {
-    var ssid = GBSControl.ui.wifiSSDInput.value;
-    var password = GBSControl.ui.wifiPasswordInput.value;
+const wifiConnect = () => {
+    const ssid = GBSControl.ui.wifiSSDInput.value;
+    const password = GBSControl.ui.wifiPasswordInput.value;
     if (!password.length) {
         GBSControl.ui.wifiPasswordInput.classList.add("gbs-wifi__input--error");
         return;
     }
-    var formData = new FormData();
+    const formData = new FormData();
     formData.append("n", ssid);
     formData.append("p", password);
     fetch("/wifi/connect", {
         method: "POST",
-        body: formData
-    }).then(function () {
-        gbsAlert("GBSControl will restart and will connect to " + ssid + ". Please wait some seconds then press OK")
-            .then(function () {
+        body: formData,
+    }).then(() => {
+        gbsAlert(`GBSControl will restart and will connect to ${ssid}. Please wait some seconds then press OK`)
+            .then(() => {
             window.location.href = "http://gbscontrol.local/";
-        })["catch"](function () { });
+        })
+            .catch(() => { });
     });
 };
-var wifiScanSSID = function () {
+const wifiScanSSID = () => {
     GBSControl.ui.wifiStaButton.setAttribute("disabled", "");
     GBSControl.ui.wifiListTable.innerHTML = "";
     if (!GBSControl.scanSSIDDone) {
-        fetch("/wifi/list?" + +new Date()).then(function () {
+        fetch(`/wifi/list?${+new Date()}`).then(() => {
             GBSControl.scanSSIDDone = true;
             setTimeout(wifiScanSSID, 3000);
         });
         return;
     }
-    fetch("/wifi/list?" + +new Date())
-        .then(function (e) { return e.text(); })
-        .then(function (result) {
+    fetch(`/wifi/list?${+new Date()}`)
+        .then((e) => e.text())
+        .then((result) => {
         GBSControl.scanSSIDDone = false;
         return result.length
             ? result
                 .split("\n")
-                .map(function (line) { return line.split(","); })
-                .map(function (_a) {
-                var strength = _a[0], encripted = _a[1], ssid = _a[2];
-                return { strength: strength, encripted: encripted, ssid: ssid };
+                .map((line) => line.split(","))
+                .map(([strength, encripted, ssid]) => {
+                return { strength, encripted, ssid };
             })
             : [];
     })
-        .then(function (ssids) {
-        return ssids.reduce(function (acc, ssid) {
-            return acc + "<tr gbs-ssid=\"" + ssid.ssid + "\">\n        <td class=\"gbs-icon\" style=\"opacity:" + parseInt(ssid.strength, 10) / 100 + "\">wifi</td>\n        <td>" + ssid.ssid + "</td>\n        <td class=\"gbs-icon\">" + (ssid.encripted ? "lock" : "lock_open") + "</td>\n      </tr>";
+        .then((ssids) => {
+        return ssids.reduce((acc, ssid) => {
+            return `${acc}<tr gbs-ssid="${ssid.ssid}">
+        <td class="gbs-icon" style="opacity:${parseInt(ssid.strength, 10) / 100}">wifi</td>
+        <td>${ssid.ssid}</td>
+        <td class="gbs-icon">${ssid.encripted ? "lock" : "lock_open"}</td>
+      </tr>`;
         }, "");
     })
-        .then(function (html) {
+        .then((html) => {
         GBSControl.ui.wifiStaButton.removeAttribute("disabled");
         if (html.length) {
             GBSControl.ui.wifiListTable.innerHTML = html;
@@ -1108,33 +1121,34 @@ var wifiScanSSID = function () {
         }
     });
 };
-var wifiSelectSSID = function (event) {
+const wifiSelectSSID = (event) => {
     GBSControl.ui
         .wifiSSDInput.value = event.target.parentElement.getAttribute("gbs-ssid");
     GBSControl.ui.wifiPasswordInput.classList.remove("gbs-wifi__input--error");
     GBSControl.ui.wifiList.setAttribute("hidden", "");
     GBSControl.ui.wifiConnect.removeAttribute("hidden");
 };
-var wifiSetAPMode = function () {
+const wifiSetAPMode = () => {
     if (GBSControl.wifi.mode === "ap") {
         return;
     }
-    var formData = new FormData();
+    const formData = new FormData();
     formData.append("n", "dummy");
     fetch("/wifi/connect", {
         method: "POST",
-        body: formData
-    }).then(function () {
+        body: formData,
+    }).then(() => {
         gbsAlert("Switching to AP mode. Please connect to gbscontrol SSID and then click OK")
-            .then(function () {
+            .then(() => {
             window.location.href = "http://192.168.4.1";
-        })["catch"](function () { });
+        })
+            .catch(() => { });
     });
 };
 /** button click management */
-var controlClick = function (control) { return function () {
-    var controlKey = control.getAttribute("gbs-control-key");
-    var target = GBSControl.controlKeysMobile[GBSControl.controlKeysMobileMode];
+const controlClick = (control) => () => {
+    const controlKey = control.getAttribute("gbs-control-key");
+    const target = GBSControl.controlKeysMobile[GBSControl.controlKeysMobileMode];
     switch (target.type) {
         case "loadDoc":
             loadDoc(target[controlKey]);
@@ -1143,136 +1157,136 @@ var controlClick = function (control) { return function () {
             loadUser(target[controlKey]);
             break;
     }
-}; };
-var controlMouseDown = function (control) { return function () {
+};
+const controlMouseDown = (control) => () => {
     clearInterval(control["__interval"]);
-    var click = controlClick(control);
+    const click = controlClick(control);
     click();
     control["__interval"] = setInterval(click, 300);
-}; };
-var controlMouseUp = function (control) { return function () {
-    clearInterval(control["__interval"]);
-}; };
-/** inits */
-var initMenuButtons = function () {
-    var menuButtons = nodelistToArray(document.querySelector(".gbs-menu").querySelectorAll("button"));
-    var sections = nodelistToArray(document.querySelectorAll("section"));
-    var scroll = document.querySelector(".gbs-scroll");
-    menuButtons.forEach(function (button) {
-        return button.addEventListener("click", function () {
-            var section = button.getAttribute("gbs-section");
-            sections.forEach(function (section) { return section.setAttribute("hidden", ""); });
-            document
-                .querySelector("section[name=\"" + section + "\"]")
-                .removeAttribute("hidden");
-            menuButtons.forEach(function (btn) { return btn.removeAttribute("active"); });
-            button.setAttribute("active", "");
-            scroll.scrollTo(0, 1);
-        });
-    });
 };
-var initGBSButtons = function () {
-    var actions = {
+const controlMouseUp = (control) => () => {
+    clearInterval(control["__interval"]);
+};
+/** inits */
+const initMenuButtons = () => {
+    const menuButtons = nodelistToArray(document.querySelector(".gbs-menu").querySelectorAll("button"));
+    const sections = nodelistToArray(document.querySelectorAll("section"));
+    const scroll = document.querySelector(".gbs-scroll");
+    menuButtons.forEach((button) => button.addEventListener("click", () => {
+        const section = button.getAttribute("gbs-section");
+        sections.forEach((section) => section.setAttribute("hidden", ""));
+        document
+            .querySelector(`section[name="${section}"]`)
+            .removeAttribute("hidden");
+        menuButtons.forEach((btn) => btn.removeAttribute("active"));
+        button.setAttribute("active", "");
+        scroll.scrollTo(0, 1);
+    }));
+};
+const initGBSButtons = () => {
+    const actions = {
         user: loadUser,
         action: loadDoc,
-        setSlot: setSlot
+        setSlot,
     };
-    var buttons = nodelistToArray(document.querySelectorAll("[gbs-click]"));
-    buttons.forEach(function (button) {
-        var clickMode = button.getAttribute("gbs-click");
-        var message = button.getAttribute("gbs-message");
-        var messageType = button.getAttribute("gbs-message-type");
-        var action = actions[messageType];
+    const buttons = nodelistToArray(document.querySelectorAll("[gbs-click]"));
+    buttons.forEach((button) => {
+        const clickMode = button.getAttribute("gbs-click");
+        const message = button.getAttribute("gbs-message");
+        const messageType = button.getAttribute("gbs-message-type");
+        const action = actions[messageType];
         if (clickMode === "normal") {
-            button.addEventListener("click", function () {
+            button.addEventListener("click", () => {
                 action(message);
             });
         }
         if (clickMode === "repeat") {
-            var callback_1 = function () {
+            const callback = () => {
                 action(message);
             };
-            button.addEventListener(!("ontouchstart" in window) ? "mousedown" : "touchstart", function () {
-                callback_1();
+            button.addEventListener(!("ontouchstart" in window) ? "mousedown" : "touchstart", () => {
+                callback();
                 clearInterval(button["__interval"]);
-                button["__interval"] = setInterval(callback_1, 300);
+                button["__interval"] = setInterval(callback, 300);
             });
-            button.addEventListener(!("ontouchstart" in window) ? "mouseup" : "touchend", function () {
+            button.addEventListener(!("ontouchstart" in window) ? "mouseup" : "touchend", () => {
                 clearInterval(button["__interval"]);
             });
         }
     });
 };
-var initProButtons = function () {
-    var proButtons = document.querySelectorAll("[gbs-pro-i]");
-    proButtons.forEach(function (button) {
-        var i = button.getAttribute("gbs-pro-i");
-        button.addEventListener("click", function () {
-            var allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
-            allInputButtons.forEach(function (btn) { return btn.removeAttribute("active"); });
+const initProButtons = () => {
+    const proButtons = document.querySelectorAll("[gbs-pro-i]");
+    proButtons.forEach((button) => {
+        const i = button.getAttribute("gbs-pro-i");
+        button.addEventListener("click", () => {
+            const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
+            allInputButtons.forEach((btn) => btn.removeAttribute("active"));
             button.setAttribute("active", "");
-            var formData = new URLSearchParams();
+            const formData = new URLSearchParams();
             formData.append("i", i || "");
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data !== "true") {
                     console.error("Pro API error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API error:", error);
             });
         });
     });
     // Handle format button cycling
-    var formatButton = document.getElementById("gbs-pro-format");
+    const formatButton = document.getElementById("gbs-pro-format");
     if (formatButton) {
-        var formatNames_1 = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
-        formatButton.addEventListener("click", function () {
-            var currentValue = parseInt(formatButton.getAttribute("gbs-pro-format-value") || "0", 10);
+        const formatNames = ["Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"];
+        formatButton.addEventListener("click", () => {
+            let currentValue = parseInt(formatButton.getAttribute("gbs-pro-format-value") || "0", 10);
             // Cycle to next format (0-11)
             currentValue = (currentValue + 1) % 12;
             // Update button display
             formatButton.setAttribute("gbs-pro-format-value", currentValue.toString());
-            var textDiv = formatButton.querySelector("div:not(.gbs-icon)");
+            const textDiv = formatButton.querySelector("div:not(.gbs-icon)");
             if (textDiv) {
-                textDiv.textContent = formatNames_1[currentValue];
+                textDiv.textContent = formatNames[currentValue];
             }
             // Send to API
-            var formData = new URLSearchParams();
+            const formData = new URLSearchParams();
             formData.append("f", currentValue.toString());
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data !== "true") {
                     console.error("Pro API format error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API format error:", error);
             });
         });
     }
     // Handle 2X toggle
-    var btn2x = document.getElementById("gbs-pro-2x");
-    var btnSmooth = document.getElementById("gbs-pro-smooth");
+    const btn2x = document.getElementById("gbs-pro-2x");
+    const btnSmooth = document.getElementById("gbs-pro-smooth");
     if (btn2x) {
-        btn2x.addEventListener("click", function () {
-            var isActive = btn2x.hasAttribute("active");
-            var newState = isActive ? "0" : "1";
-            var formData = new URLSearchParams();
+        btn2x.addEventListener("click", () => {
+            const isActive = btn2x.hasAttribute("active");
+            const newState = isActive ? "0" : "1";
+            const formData = new URLSearchParams();
             formData.append("x", newState);
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data === "true") {
                     if (newState === "1") {
                         btn2x.setAttribute("active", "");
@@ -1295,24 +1309,25 @@ var initProButtons = function () {
                 else {
                     console.error("Pro API 2X error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API 2X error:", error);
             });
         });
     }
     // Handle Smooth toggle
     if (btnSmooth) {
-        btnSmooth.addEventListener("click", function () {
-            var isActive = btnSmooth.hasAttribute("active");
-            var newState = isActive ? "0" : "1";
-            var formData = new URLSearchParams();
+        btnSmooth.addEventListener("click", () => {
+            const isActive = btnSmooth.hasAttribute("active");
+            const newState = isActive ? "0" : "1";
+            const formData = new URLSearchParams();
             formData.append("s", newState);
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data === "true") {
                     if (newState === "1") {
                         btnSmooth.setAttribute("active", "");
@@ -1324,26 +1339,27 @@ var initProButtons = function () {
                 else {
                     console.error("Pro API Smooth error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API Smooth error:", error);
             });
         });
     }
     // Handle ACE toggle
-    var btnACE = document.getElementById("gbs-pro-ace");
-    var aceSection = document.getElementById("gbs-pro-ace-section");
+    const btnACE = document.getElementById("gbs-pro-ace");
+    const aceSection = document.getElementById("gbs-pro-ace-section");
     if (btnACE) {
-        btnACE.addEventListener("click", function () {
-            var isActive = btnACE.hasAttribute("active");
-            var newState = isActive ? "0" : "1";
-            var formData = new URLSearchParams();
+        btnACE.addEventListener("click", () => {
+            const isActive = btnACE.hasAttribute("active");
+            const newState = isActive ? "0" : "1";
+            const formData = new URLSearchParams();
             formData.append("a", newState);
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data === "true") {
                     if (newState === "1") {
                         btnACE.setAttribute("active", "");
@@ -1359,53 +1375,55 @@ var initProButtons = function () {
                 else {
                     console.error("Pro API ACE error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API ACE error:", error);
             });
         });
     }
     // ACE Settings parameter handlers
-    var aceParams = {
-        luma: { param: "al", max: 31, "default": 13 },
-        chroma: { param: "ac", max: 15, "default": 8 },
-        chromamax: { param: "am", max: 15, "default": 8 },
-        gamma: { param: "ag", max: 15, "default": 8 },
-        response: { param: "ar", max: 15, "default": 15 }
+    const aceParams = {
+        luma: { param: "al", max: 31, default: 13 },
+        chroma: { param: "ac", max: 15, default: 8 },
+        chromamax: { param: "am", max: 15, default: 8 },
+        gamma: { param: "ag", max: 15, default: 8 },
+        response: { param: "ar", max: 15, default: 15 },
     };
-    var sendACEParam = function (param, value) {
-        var formData = new URLSearchParams();
+    const sendACEParam = (param, value) => {
+        const formData = new URLSearchParams();
         formData.append(param, value.toString());
         fetch("/pro", {
             method: "POST",
-            body: formData
+            body: formData,
         })
-            .then(function (response) { return response.text(); })
-            .then(function (data) {
+            .then((response) => response.text())
+            .then((data) => {
             if (data !== "true") {
                 console.error("Pro API ACE param error:", data);
             }
-        })["catch"](function (error) {
+        })
+            .catch((error) => {
             console.error("Pro API ACE param error:", error);
         });
     };
     // Setup handlers for each ACE parameter
-    var aceParamNames = ["luma", "chroma", "chromamax", "gamma", "response"];
-    aceParamNames.forEach(function (name) {
-        var config = aceParams[name];
-        var incBtn = document.getElementById("gbs-pro-ace-" + name + "-inc");
-        var decBtn = document.getElementById("gbs-pro-ace-" + name + "-dec");
-        var valueSpan = document.getElementById("gbs-pro-ace-" + name + "-value");
+    const aceParamNames = ["luma", "chroma", "chromamax", "gamma", "response"];
+    aceParamNames.forEach((name) => {
+        const config = aceParams[name];
+        const incBtn = document.getElementById(`gbs-pro-ace-${name}-inc`);
+        const decBtn = document.getElementById(`gbs-pro-ace-${name}-dec`);
+        const valueSpan = document.getElementById(`gbs-pro-ace-${name}-value`);
         if (incBtn && decBtn && valueSpan) {
-            incBtn.addEventListener("click", function () {
-                var val = parseInt(valueSpan.textContent || "0", 10);
+            incBtn.addEventListener("click", () => {
+                let val = parseInt(valueSpan.textContent || "0", 10);
                 if (val < config.max) {
                     val++;
                     valueSpan.textContent = val.toString();
                     sendACEParam(config.param, val);
                 }
             });
-            decBtn.addEventListener("click", function () {
-                var val = parseInt(valueSpan.textContent || "0", 10);
+            decBtn.addEventListener("click", () => {
+                let val = parseInt(valueSpan.textContent || "0", 10);
                 if (val > 0) {
                     val--;
                     valueSpan.textContent = val.toString();
@@ -1415,52 +1433,53 @@ var initProButtons = function () {
         }
     });
     // ACE Reset to Defaults button
-    var aceDefaultBtn = document.getElementById("gbs-pro-ace-default");
+    const aceDefaultBtn = document.getElementById("gbs-pro-ace-default");
     if (aceDefaultBtn) {
-        aceDefaultBtn.addEventListener("click", function () {
-            var formData = new URLSearchParams();
+        aceDefaultBtn.addEventListener("click", () => {
+            const formData = new URLSearchParams();
             formData.append("ad", "1");
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data === "true") {
                     // Update UI to show default values
-                    aceParamNames.forEach(function (name) {
-                        var config = aceParams[name];
-                        var valueSpan = document.getElementById("gbs-pro-ace-" + name + "-value");
+                    aceParamNames.forEach((name) => {
+                        const config = aceParams[name];
+                        const valueSpan = document.getElementById(`gbs-pro-ace-${name}-value`);
                         if (valueSpan) {
-                            valueSpan.textContent = config["default"].toString();
+                            valueSpan.textContent = config.default.toString();
                         }
                     });
                 }
                 else {
                     console.error("Pro API ACE defaults error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API ACE defaults error:", error);
             });
         });
     }
     // Handle Sync Stripper toggle
-    var syncStripperToggle = document.querySelector('[gbs-pro-toggle="syncstripper"]');
+    const syncStripperToggle = document.querySelector('[gbs-pro-toggle="syncstripper"]');
     if (syncStripperToggle) {
-        syncStripperToggle.addEventListener("click", function () {
-            var isActive = syncStripperToggle.textContent === "toggle_on";
-            var newState = isActive ? "0" : "1";
-            var formData = new URLSearchParams();
+        syncStripperToggle.addEventListener("click", () => {
+            const isActive = syncStripperToggle.textContent === "toggle_on";
+            const newState = isActive ? "0" : "1";
+            const formData = new URLSearchParams();
             formData.append("ss", newState);
             fetch("/pro", {
                 method: "POST",
-                body: formData
+                body: formData,
             })
-                .then(function (response) { return response.text(); })
-                .then(function (data) {
+                .then((response) => response.text())
+                .then((data) => {
                 if (data === "true") {
                     syncStripperToggle.textContent = isActive ? "toggle_off" : "toggle_on";
-                    var row = syncStripperToggle.parentElement;
+                    const row = syncStripperToggle.parentElement;
                     if (row) {
                         if (isActive) {
                             row.removeAttribute("active");
@@ -1473,65 +1492,67 @@ var initProButtons = function () {
                 else {
                     console.error("Pro API Sync Stripper error:", data);
                 }
-            })["catch"](function (error) {
+            })
+                .catch((error) => {
                 console.error("Pro API Sync Stripper error:", error);
             });
         });
     }
 };
-var initClearButton = function () {
-    GBSControl.ui.outputClear.addEventListener("click", function () {
+const initClearButton = () => {
+    GBSControl.ui.outputClear.addEventListener("click", () => {
         GBSControl.ui.terminal.value = "";
     });
 };
-var initCustomI2C = function () {
-    var input = document.getElementById("customI2CInput");
-    var sendBtn = document.getElementById("customI2CSend");
+const initCustomI2C = () => {
+    const input = document.getElementById("customI2CInput");
+    const sendBtn = document.getElementById("customI2CSend");
     if (!input || !sendBtn)
         return;
-    var sendCustomI2C = function () {
-        var hexStr = input.value.trim();
+    const sendCustomI2C = () => {
+        const hexStr = input.value.trim();
         if (!hexStr)
             return;
         // Validate: count bytes, must be multiple of 3 and max 30 (10 triplets)
-        var bytes = hexStr.split(',').map(function (v) { return v.trim(); }).filter(function (v) { return v; });
+        const bytes = hexStr.split(',').map(v => v.trim()).filter(v => v);
         if (bytes.length === 0 || bytes.length % 3 !== 0) {
             if (GBSControl.ui.terminal) {
-                GBSControl.ui.terminal.value += "> Custom I2C ERROR: must be triplets (addr,reg,val)\n";
+                GBSControl.ui.terminal.value += `> Custom I2C ERROR: must be triplets (addr,reg,val)\n`;
                 GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
             }
             return;
         }
         if (bytes.length > 30) {
             if (GBSControl.ui.terminal) {
-                GBSControl.ui.terminal.value += "> Custom I2C ERROR: max 10 triplets (30 bytes)\n";
+                GBSControl.ui.terminal.value += `> Custom I2C ERROR: max 10 triplets (30 bytes)\n`;
                 GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
             }
             return;
         }
-        var formData = new URLSearchParams();
+        const formData = new URLSearchParams();
         formData.append("c", hexStr);
         fetch("/pro", {
             method: "POST",
-            body: formData
+            body: formData,
         })
-            .then(function (response) { return response.text(); })
-            .then(function (data) {
+            .then((response) => response.text())
+            .then((data) => {
             if (data === "true") {
-                GBSControl.ui.terminal.value += "> ADV Controller - Custom I2C: " + hexStr + "\n";
+                GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C: ${hexStr}\n`;
                 GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
             }
             else {
-                GBSControl.ui.terminal.value += "> ADV Controller - Custom I2C ERROR: " + hexStr + "\n";
+                GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C ERROR: ${hexStr}\n`;
                 GBSControl.ui.terminal.scrollTop = GBSControl.ui.terminal.scrollHeight;
             }
-        })["catch"](function (error) {
+        })
+            .catch((error) => {
             console.error("ADV Controller - Custom I2C error:", error);
-            GBSControl.ui.terminal.value += "> ADV Controller - Custom I2C FAILED: " + error + "\n";
+            GBSControl.ui.terminal.value += `> ADV Controller - Custom I2C FAILED: ${error}\n`;
         });
     };
     sendBtn.addEventListener("click", sendCustomI2C);
-    input.addEventListener("keydown", function (event) {
+    input.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             sendCustomI2C();
         }
@@ -1540,35 +1561,36 @@ var initCustomI2C = function () {
 // =====================================================================
 // Video Filters Button Handlers
 // =====================================================================
-var initVideoFilters = function () {
+const initVideoFilters = () => {
     // Helper to send filter parameter to /pro API
-    var sendFilterParam = function (param, value) {
-        var formData = new URLSearchParams();
+    const sendFilterParam = (param, value) => {
+        const formData = new URLSearchParams();
         formData.append(param, value.toString());
         fetch("/pro", { method: "POST", body: formData })
-            .then(function (response) { return response.text(); })
-            .then(function (data) {
+            .then((response) => response.text())
+            .then((data) => {
             if (data !== "true")
                 console.error("Filter API error:", data);
-        })["catch"](function (error) { return console.error("Filter API error:", error); });
+        })
+            .catch((error) => console.error("Filter API error:", error));
     };
     // Helper to check if S-Video mode
-    var isSVMode = function () {
-        var overrideRow = document.getElementById("gbs-pro-filter-override-row");
+    const isSVMode = () => {
+        const overrideRow = document.getElementById("gbs-pro-filter-override-row");
         return overrideRow ? overrideRow.style.display !== "none" : false;
     };
     // Y Filter +/- buttons (different behavior for AV vs SV)
-    var yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
-    var yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
-    var yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
-    var updateYFilter = function (delta) {
+    const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+    const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+    const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+    const updateYFilter = (delta) => {
         if (!yFilterValueEl)
             return;
-        var isSV = isSVMode();
+        const isSV = isSVMode();
         if (isSV) {
             // S-Video: array index 0-17, raw value 2-19
-            var currentName = yFilterValueEl.textContent || "SVHS-8";
-            var idx = yFilterNamesSV.indexOf(currentName);
+            const currentName = yFilterValueEl.textContent || "SVHS-8";
+            let idx = yFilterNamesSV.indexOf(currentName);
             if (idx < 0)
                 idx = 7;
             idx = Math.max(0, Math.min(yFilterNamesSV.length - 1, idx + delta));
@@ -1577,8 +1599,8 @@ var initVideoFilters = function () {
         }
         else {
             // Composite: 0-30
-            var currentName = yFilterValueEl.textContent || "AutoNarrow";
-            var idx = yFilterNamesAV.indexOf(currentName);
+            const currentName = yFilterValueEl.textContent || "AutoNarrow";
+            let idx = yFilterNamesAV.indexOf(currentName);
             if (idx < 0)
                 idx = 1;
             idx = Math.max(0, Math.min(yFilterNamesAV.length - 1, idx + delta));
@@ -1587,18 +1609,18 @@ var initVideoFilters = function () {
         }
     };
     if (yFilterDecBtn)
-        yFilterDecBtn.addEventListener("click", function () { return updateYFilter(-1); });
+        yFilterDecBtn.addEventListener("click", () => updateYFilter(-1));
     if (yFilterIncBtn)
-        yFilterIncBtn.addEventListener("click", function () { return updateYFilter(1); });
+        yFilterIncBtn.addEventListener("click", () => updateYFilter(1));
     // C Filter +/- buttons (Composite only)
-    var cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
-    var cFilterDecBtn = document.getElementById("gbs-pro-filter-cfilter-dec");
-    var cFilterIncBtn = document.getElementById("gbs-pro-filter-cfilter-inc");
-    var updateCFilter = function (delta) {
+    const cFilterValueEl = document.getElementById("gbs-pro-filter-cfilter-value");
+    const cFilterDecBtn = document.getElementById("gbs-pro-filter-cfilter-dec");
+    const cFilterIncBtn = document.getElementById("gbs-pro-filter-cfilter-inc");
+    const updateCFilter = (delta) => {
         if (!cFilterValueEl)
             return;
-        var currentName = cFilterValueEl.textContent || "Auto1.5M";
-        var idx = cFilterNames.indexOf(currentName);
+        const currentName = cFilterValueEl.textContent || "Auto1.5M";
+        let idx = cFilterNames.indexOf(currentName);
         if (idx < 0)
             idx = 0;
         idx = Math.max(0, Math.min(cFilterNames.length - 1, idx + delta));
@@ -1606,17 +1628,17 @@ var initVideoFilters = function () {
         sendFilterParam("fc", idx);
     };
     if (cFilterDecBtn)
-        cFilterDecBtn.addEventListener("click", function () { return updateCFilter(-1); });
+        cFilterDecBtn.addEventListener("click", () => updateCFilter(-1));
     if (cFilterIncBtn)
-        cFilterIncBtn.addEventListener("click", function () { return updateCFilter(1); });
+        cFilterIncBtn.addEventListener("click", () => updateCFilter(1));
     // Override toggle (S-Video only)
-    var overrideToggle = document.getElementById("gbs-pro-filter-override");
+    const overrideToggle = document.getElementById("gbs-pro-filter-override");
     if (overrideToggle) {
-        overrideToggle.addEventListener("click", function () {
-            var isManual = overrideToggle.textContent === "toggle_on";
-            var newState = isManual ? "0" : "1";
+        overrideToggle.addEventListener("click", () => {
+            const isManual = overrideToggle.textContent === "toggle_on";
+            const newState = isManual ? "0" : "1";
             overrideToggle.textContent = isManual ? "toggle_off" : "toggle_on";
-            var row = overrideToggle.parentElement;
+            const row = overrideToggle.parentElement;
             if (row) {
                 if (isManual)
                     row.removeAttribute("active");
@@ -1624,9 +1646,9 @@ var initVideoFilters = function () {
                     row.setAttribute("active", "");
             }
             // Update Y Filter buttons and value based on new Override state
-            var yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
-            var yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
-            var yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
+            const yFilterDecBtn = document.getElementById("gbs-pro-filter-yfilter-dec");
+            const yFilterIncBtn = document.getElementById("gbs-pro-filter-yfilter-inc");
+            const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
             if (yFilterDecBtn && yFilterIncBtn) {
                 yFilterDecBtn.disabled = isManual; // isManual means we're turning OFF
                 yFilterIncBtn.disabled = isManual;
@@ -1638,14 +1660,14 @@ var initVideoFilters = function () {
         });
     }
     // Comb Filter +/- buttons
-    var combValueEl = document.getElementById("gbs-pro-filter-comb-value");
-    var combDecBtn = document.getElementById("gbs-pro-filter-comb-dec");
-    var combIncBtn = document.getElementById("gbs-pro-filter-comb-inc");
-    var updateCombFilter = function (delta) {
+    const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
+    const combDecBtn = document.getElementById("gbs-pro-filter-comb-dec");
+    const combIncBtn = document.getElementById("gbs-pro-filter-comb-inc");
+    const updateCombFilter = (delta) => {
         if (!combValueEl)
             return;
-        var currentName = combValueEl.textContent || "Medium";
-        var idx = combNames.indexOf(currentName);
+        const currentName = combValueEl.textContent || "Medium";
+        let idx = combNames.indexOf(currentName);
         if (idx < 0)
             idx = 1;
         idx = Math.max(0, Math.min(combNames.length - 1, idx + delta));
@@ -1653,41 +1675,41 @@ var initVideoFilters = function () {
         sendFilterParam("fb", idx);
     };
     if (combDecBtn)
-        combDecBtn.addEventListener("click", function () { return updateCombFilter(-1); });
+        combDecBtn.addEventListener("click", () => updateCombFilter(-1));
     if (combIncBtn)
-        combIncBtn.addEventListener("click", function () { return updateCombFilter(1); });
+        combIncBtn.addEventListener("click", () => updateCombFilter(1));
     // Reset to defaults button
-    var filterDefaultBtn = document.getElementById("gbs-pro-filter-default");
+    const filterDefaultBtn = document.getElementById("gbs-pro-filter-default");
     if (filterDefaultBtn) {
-        filterDefaultBtn.addEventListener("click", function () {
+        filterDefaultBtn.addEventListener("click", () => {
             sendFilterParam("fd", "1");
         });
     }
 };
-var initControlMobileKeys = function () {
-    var controls = document.querySelectorAll("[gbs-control-target]");
-    var controlsKeys = document.querySelectorAll("[gbs-control-key]");
-    controls.forEach(function (control) {
-        control.addEventListener("click", function () {
+const initControlMobileKeys = () => {
+    const controls = document.querySelectorAll("[gbs-control-target]");
+    const controlsKeys = document.querySelectorAll("[gbs-control-key]");
+    controls.forEach((control) => {
+        control.addEventListener("click", () => {
             GBSControl.controlKeysMobileMode = control.getAttribute("gbs-control-target");
-            controls.forEach(function (crtl) {
+            controls.forEach((crtl) => {
                 crtl.removeAttribute("active");
             });
             control.setAttribute("active", "");
         });
     });
-    controlsKeys.forEach(function (control) {
+    controlsKeys.forEach((control) => {
         control.addEventListener(!("ontouchstart" in window) ? "mousedown" : "touchstart", controlMouseDown(control));
         control.addEventListener(!("ontouchstart" in window) ? "mouseup" : "touchend", controlMouseUp(control));
     });
 };
-var initLegendHelpers = function () {
-    nodelistToArray(document.querySelectorAll(".gbs-fieldset__legend--help")).forEach(function (e) {
+const initLegendHelpers = () => {
+    nodelistToArray(document.querySelectorAll(".gbs-fieldset__legend--help")).forEach((e) => {
         e.addEventListener("click", toggleHelp);
     });
 };
-var initUnloadListener = function () {
-    window.addEventListener("unload", function () {
+const initUnloadListener = () => {
+    window.addEventListener("unload", () => {
         clearInterval(GBSControl.wsCheckTimer);
         if (GBSControl.ws) {
             if (GBSControl.ws.readyState == 0 || GBSControl.ws.readyState == 1) {
@@ -1696,11 +1718,11 @@ var initUnloadListener = function () {
         }
     });
 };
-var initSlotButtons = function () {
+const initSlotButtons = () => {
     GBSControl.ui.slotContainer.innerHTML = getSlotsHTML();
     GBSControl.ui.slotButtonList = nodelistToArray(document.querySelectorAll('[gbs-role="slot"]'));
 };
-var initUIElements = function () {
+const initUIElements = () => {
     GBSControl.ui = {
         terminal: document.getElementById("outputTextArea"),
         webSocketConnectionWarning: document.getElementById("websocketWarning"),
@@ -1733,15 +1755,15 @@ var initUIElements = function () {
         promptOk: document.querySelector("[gbs-prompt-ok]"),
         promptCancel: document.querySelector("[gbs-prompt-cancel]"),
         promptContent: document.querySelector("[gbs-prompt-content]"),
-        promptInput: document.querySelector('[gbs-input="prompt-input"]')
+        promptInput: document.querySelector('[gbs-input="prompt-input"]'),
     };
 };
-var initGeneralListeners = function () {
-    window.addEventListener("resize", function () {
+const initGeneralListeners = () => {
+    window.addEventListener("resize", () => {
         updateViewPort();
     });
-    GBSControl.ui.backupInput.addEventListener("change", function (event) {
-        var fileList = event.target["files"];
+    GBSControl.ui.backupInput.addEventListener("change", (event) => {
+        const fileList = event.target["files"];
         readLocalFile(fileList[0]);
         GBSControl.ui.backupInput.value = "";
     });
@@ -1752,13 +1774,13 @@ var initGeneralListeners = function () {
     GBSControl.ui.wifiStaButton.addEventListener("click", wifiScanSSID);
     GBSControl.ui.developerSwitch.addEventListener("click", toggleDeveloperMode);
     GBSControl.ui.customSlotFilters.addEventListener("click", toggleCustomSlotFilters);
-    GBSControl.ui.alertOk.addEventListener("click", function () {
+    GBSControl.ui.alertOk.addEventListener("click", () => {
         GBSControl.ui.alert.setAttribute("hidden", "");
         gbsAlertPromise.resolve();
     });
-    GBSControl.ui.promptOk.addEventListener("click", function () {
+    GBSControl.ui.promptOk.addEventListener("click", () => {
         GBSControl.ui.prompt.setAttribute("hidden", "");
-        var value = GBSControl.ui.promptInput.value;
+        const value = GBSControl.ui.promptInput.value;
         if (value !== undefined || value.length > 0) {
             gbsPromptPromise.resolve(GBSControl.ui.promptInput.value);
         }
@@ -1766,14 +1788,14 @@ var initGeneralListeners = function () {
             gbsPromptPromise.reject();
         }
     });
-    GBSControl.ui.promptCancel.addEventListener("click", function () {
+    GBSControl.ui.promptCancel.addEventListener("click", () => {
         GBSControl.ui.prompt.setAttribute("hidden", "");
         gbsPromptPromise.reject();
     });
-    GBSControl.ui.promptInput.addEventListener("keydown", function (event) {
+    GBSControl.ui.promptInput.addEventListener("keydown", (event) => {
         if (event.keyCode === 13) {
             GBSControl.ui.prompt.setAttribute("hidden", "");
-            var value = GBSControl.ui.promptInput.value;
+            const value = GBSControl.ui.promptInput.value;
             if (value !== undefined || value.length > 0) {
                 gbsPromptPromise.resolve(GBSControl.ui.promptInput.value);
             }
@@ -1786,8 +1808,8 @@ var initGeneralListeners = function () {
         }
     });
 };
-var initDeveloperMode = function () {
-    var devMode = GBSStorage.read("developerMode");
+const initDeveloperMode = () => {
+    const devMode = GBSStorage.read("developerMode");
     if (devMode === undefined) {
         GBSStorage.write("developerMode", false);
         updateDeveloperMode(false);
@@ -1796,19 +1818,19 @@ var initDeveloperMode = function () {
         updateDeveloperMode(devMode);
     }
 };
-var initHelp = function () {
-    var help = GBSStorage.read("help");
+const initHelp = () => {
+    let help = GBSStorage.read("help");
     if (help === undefined) {
         help = false;
         GBSStorage.write("help", help);
     }
     updateHelp(help);
 };
-var gbsAlertPromise = {
+const gbsAlertPromise = {
     resolve: null,
-    reject: null
+    reject: null,
 };
-var alertKeyListener = function (event) {
+const alertKeyListener = (event) => {
     if (event.keyCode === 13) {
         gbsAlertPromise.resolve();
     }
@@ -1816,39 +1838,38 @@ var alertKeyListener = function (event) {
         gbsAlertPromise.reject();
     }
 };
-var gbsAlert = function (text) {
+const gbsAlert = (text) => {
     GBSControl.ui.alertContent.textContent = text;
     GBSControl.ui.alert.removeAttribute("hidden");
     document.addEventListener("keyup", alertKeyListener);
-    return new Promise(function (resolve, reject) {
-        gbsAlertPromise.resolve = function (e) {
+    return new Promise((resolve, reject) => {
+        gbsAlertPromise.resolve = (e) => {
             document.removeEventListener("keyup", alertKeyListener);
             GBSControl.ui.alert.setAttribute("hidden", "");
             return resolve(e);
         };
-        gbsAlertPromise.reject = function () {
+        gbsAlertPromise.reject = () => {
             document.removeEventListener("keyup", alertKeyListener);
             GBSControl.ui.alert.setAttribute("hidden", "");
             return reject();
         };
     });
 };
-var gbsPromptPromise = {
+const gbsPromptPromise = {
     resolve: null,
-    reject: null
+    reject: null,
 };
-var gbsPrompt = function (text, defaultValue) {
-    if (defaultValue === void 0) { defaultValue = ""; }
+const gbsPrompt = (text, defaultValue = "") => {
     GBSControl.ui.promptContent.textContent = text;
     GBSControl.ui.prompt.removeAttribute("hidden");
     GBSControl.ui.promptInput.value = defaultValue;
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         gbsPromptPromise.resolve = resolve;
         gbsPromptPromise.reject = reject;
         GBSControl.ui.promptInput.focus();
     });
 };
-var initUI = function () {
+const initUI = () => {
     updateCustomSlotFilters();
     initGeneralListeners();
     updateViewPort();
@@ -1865,10 +1886,10 @@ var initUI = function () {
     initDeveloperMode();
     initHelp();
 };
-var main = function () {
-    var ip = location.hostname;
+const main = () => {
+    const ip = location.hostname;
     GBSControl.serverIP = ip;
-    GBSControl.webSocketServerUrl = "ws://" + ip + ":81/";
+    GBSControl.webSocketServerUrl = `ws://${ip}:81/`;
     document
         .querySelector(".gbs-loader img")
         .setAttribute("src", document.head

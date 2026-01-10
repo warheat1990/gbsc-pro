@@ -543,14 +543,17 @@ const createWebSocket = () => {
         }
       }
 
-      // Update Sync Stripper toggle
-      const syncStripperToggle = document.querySelector('[gbs-toggle-switch="syncStripper"]');
+      // Update Sync Stripper toggle (only available for RGB inputs, not AV/SV)
+      const syncStripperToggle = document.querySelector('[gbs-toggle-switch="syncStripper"]') as HTMLElement | null;
       if (syncStripperToggle) {
         const isSyncStripperOn = syncStripperChar === "1";
+        const isSyncStripperAvailable = inputType !== "5" && inputType !== "6"; // Not SV/AV
         syncStripperToggle.textContent = isSyncStripperOn ? "toggle_on" : "toggle_off";
+        syncStripperToggle.style.opacity = isSyncStripperAvailable ? "1" : "0.5";
+        syncStripperToggle.style.pointerEvents = isSyncStripperAvailable ? "auto" : "none";
         const syncStripperRow = syncStripperToggle.parentElement;
         if (syncStripperRow) {
-          if (isSyncStripperOn) {
+          if (isSyncStripperOn && isSyncStripperAvailable) {
             syncStripperRow.setAttribute("active", "");
           } else {
             syncStripperRow.removeAttribute("active");
