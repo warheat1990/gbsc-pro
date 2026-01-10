@@ -47,7 +47,6 @@ void ADV_SetInput(uint8_t input);
 void ADV_SetI2P(uint8_t enable);
 void ADV_SetSmooth(uint8_t smooth);
 void ADV_SetBCSH(void);
-void ADV_SetOutput(uint8_t output);
 void ADV_SetACE(uint8_t ace);
 
 /* ACE (Adaptive Contrast Enhancement) parameter variables */
@@ -85,17 +84,14 @@ void ADV_SetFilterParams(void);                 /* Apply all filter parameters *
 void ADV_SetFilterDefaults(void);               /* Reset filter parameters to defaults */
 
 /* Detection and monitoring */
-void ADV_ReadKeyChange(void);
 void ADV_DetectLoop(void);
 void ADV_ResetStatus(void);
-void ADV_Info(void);
 
 /*******************************************************************************
  * Analog Switch Control Functions
  ******************************************************************************/
 
 void ASW_SetSwitches(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t state);
-void ASW_SetSwitchesNot02(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t state);
 void ASW_SetAVConnect(uint8_t sw);
 
 /*******************************************************************************

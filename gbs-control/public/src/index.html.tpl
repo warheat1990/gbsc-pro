@@ -1312,6 +1312,23 @@
               </tr>
               <tr>
                 <td>
+                  Sync Stripper
+                  <!-- prettier-ignore -->
+                  <ul class="gbs-help">
+                    <li>Enable LM1881 sync stripper for RGB sources.</li>
+                    <li>Useful for sources with dirty or non-standard sync signals.</li>
+                  </ul>
+                </td>
+                <td
+                  gbs-pro-toggle="syncstripper"
+                  class="gbs-icon"
+                  gbs-toggle-switch="syncStripper"
+                >
+                  toggle_on
+                </td>
+              </tr>
+              <tr>
+                <td>
                   HDMI Limited Range
                   <!-- prettier-ignore -->
                   <ul class="gbs-help">

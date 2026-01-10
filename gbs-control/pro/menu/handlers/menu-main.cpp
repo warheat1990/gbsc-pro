@@ -175,7 +175,7 @@ bool IR_handleMainMenu()
                     Menu_navigateTo(OLED_Preferences);
                     break;
                 case IR_KEY_OK:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
                     break;
                 case IR_KEY_EXIT:
                     exitMenu();

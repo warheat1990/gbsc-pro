@@ -32,7 +32,7 @@
 #define ADV_PACKET_SIZE     7
 
 // Command bytes
-#define ADV_CMD_SOURCE      'S'   // Input source / line mode / smooth / compatibility
+#define ADV_CMD_SOURCE      'S'   // Input source / line mode / smooth / sync stripper
 #define ADV_CMD_TVMODE      'T'   // TV mode (video format)
 #define ADV_CMD_BCSH        'N'   // Brightness/Contrast/Saturation/Hue register write
 #define ADV_CMD_CUSTOM      'C'   // Custom I2C batch command
@@ -58,8 +58,8 @@ static const unsigned char ADV_I2P_On[4]            = {ADV_HEADER_0, ADV_HEADER_
 static const unsigned char ADV_I2P_Off[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x31};
 static const unsigned char ADV_Smooth_On[4]         = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x90};
 static const unsigned char ADV_Smooth_Off[4]        = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x91};
-static const unsigned char ADV_Compatibility_On[4]  = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA0};
-static const unsigned char ADV_Compatibility_Off[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA1};
+static const unsigned char ADV_SyncStripper_On[4]   = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA0};
+static const unsigned char ADV_SyncStripper_Off[4]  = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0xA1};
 static const unsigned char ADV_ACE_On[4]            = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x80};
 static const unsigned char ADV_ACE_Off[4]           = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x81};
 static const unsigned char ADV_BCSH[4]              = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_BCSH, 0x00};

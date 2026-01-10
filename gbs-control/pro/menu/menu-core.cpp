@@ -378,13 +378,13 @@ void OLED_initSettingsMenu(OLEDMenuItem *root) {
     const char *settingLabels[8] = {
         "I2P_Off", "I2P_On ",
         "Smooth_Off", "Smooth_On ",
-        "Compatibility_Off", "Compatibility_On ",
+        "SyncStrip_Off", "SyncStrip_On ",
         "ACE_Off", "ACE_On "
     };
     uint8_t settingTags[8] = {
         MT_I2P_OFF, MT_I2P_ON,
         MT_SMOOTH_OFF, MT_SMOOTH_ON,
-        MT_COMPATIBILITY_OFF, MT_COMPATIBILITY_ON,
+        MT_SYNCSTRIPPER_OFF, MT_SYNCSTRIPPER_ON,
         MT_ACE_OFF, MT_ACE_ON
     };
 
@@ -471,8 +471,8 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
         case MT_I2P_ON:            preset = SETTING_PresetPreference::MT_I2P_ON;            break;
         case MT_SMOOTH_OFF:        preset = SETTING_PresetPreference::MT_SMOOTH_OFF;        break;
         case MT_SMOOTH_ON:         preset = SETTING_PresetPreference::MT_SMOOTH_ON;         break;
-        case MT_COMPATIBILITY_OFF: preset = SETTING_PresetPreference::MT_COMPATIBILITY_OFF; break;
-        case MT_COMPATIBILITY_ON:  preset = SETTING_PresetPreference::MT_COMPATIBILITY_ON;  break;
+        case MT_SYNCSTRIPPER_OFF:  preset = SETTING_PresetPreference::MT_SYNCSTRIPPER_OFF;  break;
+        case MT_SYNCSTRIPPER_ON:   preset = SETTING_PresetPreference::MT_SYNCSTRIPPER_ON;   break;
         case MT_ACE_OFF:           preset = SETTING_PresetPreference::MT_ACE_OFF;           break;
         case MT_ACE_ON:            preset = SETTING_PresetPreference::MT_ACE_ON;            break;
         default: break;
@@ -500,13 +500,13 @@ bool OLED_handleSettingSelection(OLEDMenuManager *manager, OLEDMenuItem *item, O
                 ADV_sendSmooth(true);
             }
             break;
-        case SETTING_PresetPreference::MT_COMPATIBILITY_OFF:
-            uopt->advCompatibility = 0;
-            ADV_sendCompatibility(uopt->advCompatibility);
+        case SETTING_PresetPreference::MT_SYNCSTRIPPER_OFF:
+            uopt->advSyncStripper = 0;
+            ADV_sendSyncStripper(uopt->advSyncStripper);
             break;
-        case SETTING_PresetPreference::MT_COMPATIBILITY_ON:
-            uopt->advCompatibility = 1;
-            ADV_sendCompatibility(uopt->advCompatibility);
+        case SETTING_PresetPreference::MT_SYNCSTRIPPER_ON:
+            uopt->advSyncStripper = 1;
+            ADV_sendSyncStripper(uopt->advSyncStripper);
             break;
         case SETTING_PresetPreference::MT_ACE_OFF:
             uopt->advACE = 0;

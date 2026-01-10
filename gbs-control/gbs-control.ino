@@ -7422,6 +7422,30 @@ void calibrateAdcOffset()
     //Serial.println(millis() - overallTimer);
 }
 
+// Delete all user slots and preset files from LittleFS
+void deleteAllSlotsAndPresets()
+{
+    // Delete slots metadata file
+    LittleFS.remove(SLOTS_FILE);
+
+    // Delete all preset files for each slot (A-Z, 0-9)
+    const char* presetPrefixes[] = {
+        "/preset_ntsc.", "/preset_pal.", "/preset_ntsc_480p.",
+        "/preset_pal_576p.", "/preset_ntsc_720p.", "/preset_ntsc_1080p.",
+        "/preset_medium_res.", "/preset_vga_upscale.", "/preset_unknown."
+    };
+    for (char slot = 'A'; slot <= 'Z'; slot++) {
+        for (const char* prefix : presetPrefixes) {
+            LittleFS.remove(String(prefix) + String(slot));
+        }
+    }
+    for (char slot = '0'; slot <= '9'; slot++) {
+        for (const char* prefix : presetPrefixes) {
+            LittleFS.remove(String(prefix) + String(slot));
+        }
+    }
+}
+
 void loadDefaultUserOptions()
 {
     uopt->presetPreference = Output960P;    // #1
@@ -7454,7 +7478,7 @@ void loadDefaultUserOptions()
     uopt->svVideoFormat = 0;        // Default: Auto
     uopt->avVideoFormat = 0;        // Default: Auto
     uopt->bcshAdjustMode = 0;       // Default: 0
-    uopt->advCompatibility = 0;     // Default: off
+    uopt->advSyncStripper = 1;     // Default: on
     uopt->osdTheme = 0;             // Default: Classic theme
     // GBS Color Balance
     uopt->gbsColorR = 128;
@@ -7865,9 +7889,9 @@ void setup()
             if (uopt->bcshAdjustMode > 2)
                 uopt->bcshAdjustMode = 0;
 
-            uopt->advCompatibility = (uint8_t)(f.read() - '0');
-            if (uopt->advCompatibility > 1)
-                uopt->advCompatibility = 0;
+            uopt->advSyncStripper = (uint8_t)(f.read() - '0');
+            if (uopt->advSyncStripper > 1)
+                uopt->advSyncStripper = 1;
 
             uopt->osdTheme = (uint8_t)(f.read() - '0');
             if (uopt->osdTheme >= OSD_THEME_COUNT)
@@ -9503,11 +9527,12 @@ void handleType2Command(char argument)
             saveUserPrefs();
             break;
         case '1':
-            // reset to defaults button
+            // Factory reset - delete ALL user data
             webSocket.disconnect();
+            deleteAllSlotsAndPresets();
             loadDefaultUserOptions();
             saveUserPrefs();
-            SerialM.println(F("options set to defaults, restarting"));
+            SerialM.println(F("factory reset complete, restarting"));
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
             //
@@ -9888,6 +9913,16 @@ void handleType2Command(char argument)
             uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 1) % 4;
             saveUserPrefs();
             applyPresets(rto->videoStandardInput);
+            break;
+        case '&':
+            // Sync Stripper toggle (called after uopt->advSyncStripper is set)
+            // If RGB input is active, reset sync processor and reapply preset
+            // Same logic as menu-system.cpp OLED_SystemSettings_SyncStripper
+            if (GBS::ADC_INPUT_SEL::read()) {
+                resetSyncProcessor();
+                delay(50);
+                applyVideoModePreset();
+            }
             break;
         case 'z':
             // sog slicer level
@@ -10760,6 +10795,25 @@ void startWebserver()
             return;
         }
 
+        // Handle Sync Stripper toggle (ss parameter)
+        // 0=off, 1=on
+        if (request->hasArg("ss")) {
+            uint8_t ss = request->arg("ss").toInt();
+
+            if (ss <= 1) {
+                uopt->advSyncStripper = ss;
+                ADV_sendSyncStripper(uopt->advSyncStripper);
+                SerialM.println(uopt->advSyncStripper ? F("Sync Stripper enabled") : F("Sync Stripper disabled"));
+                saveUserPrefs();
+                // Queue deferred command to reset sync processor (avoids watchdog timeout)
+                userCommandBuffer += '&';
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
         // Handle custom I2C batch command (c parameter)
         // Format: hex string of triplets, e.g. "42,0E,00,56,17,02"
         if (request->hasArg("c")) {
@@ -11113,7 +11167,7 @@ void saveUserPrefs()
     f.write(uopt->avVideoFormat / 10 + '0');
     f.write(uopt->avVideoFormat % 10 + '0');
     f.write(uopt->bcshAdjustMode + '0');
-    f.write(uopt->advCompatibility + '0');
+    f.write(uopt->advSyncStripper + '0');
     f.write(uopt->osdTheme + '0');
     // Picture Settings - GBS Color Balance (3 digits each, 000-255)
     f.write(uopt->gbsColorR / 100 + '0');

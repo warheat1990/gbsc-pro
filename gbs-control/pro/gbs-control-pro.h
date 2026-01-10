@@ -156,7 +156,7 @@ extern uint8_t factoryResetSelection;  // 0 = No (default), 1 = Yes
 // ADV packet wrappers
 void ADV_sendI2P(bool enable);
 void ADV_sendSmooth(bool enable);
-void ADV_sendCompatibility(bool mode);
+void ADV_sendSyncStripper(bool mode);
 void ADV_sendACE(bool enable);
 void ADV_sendVideoFormat(uint8_t format);
 void ADV_sendBCSH(unsigned char reg, unsigned char val);

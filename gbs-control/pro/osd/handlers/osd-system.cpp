@@ -13,8 +13,8 @@ void handle_SysSettings_Page1(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(false, '1', true);
-    OSD_writeStringAtRow(1, 1, "Compatibility Mode");
-    OSD_drawDashRange(1, 19, 22);
+    OSD_writeStringAtRow(1, 1, "Sync Stripper");
+    OSD_drawDashRange(1, 14, 22);
     OSD_writeStringAtRow(2, 1, "Matched presets");
     OSD_drawDashRange(2, 16, 22);
     OSD_writeStringAtRow(3, 1, "Deinterlace");
@@ -23,7 +23,7 @@ void handle_SysSettings_Page1(void)
 
 void handle_SysSettings_Page1_Values(void)
 {
-    OSD_writeOnOff(1, uopt->advCompatibility == 1);
+    OSD_writeOnOff(1, uopt->advSyncStripper == 1);
     OSD_writeOnOff(2, uopt->matchPresetSource);
     if (uopt->deintMode == 0) {
         OSD_writeStringAtRow(3, 18, "Adaptive");

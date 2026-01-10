@@ -18,6 +18,7 @@ extern char userCommand;
 extern void saveUserPrefs();
 extern void disableMotionAdaptDeinterlace();
 extern void disableScanlines();
+extern void resetSyncProcessor();
 
 // ====================================================================================
 // IR_handleSystemSettings - System Settings Menu
@@ -25,9 +26,9 @@ extern void disableScanlines();
 
 bool IR_handleSystemSettings()
 {
-    // OLED_SystemSettings_Compatibility (first item - wraps from ClockGenerator)
-    if (oled_menuItem == OLED_SystemSettings_Compatibility) {
-        showMenuToggle("Menu->System", "Compatibility", uopt->advCompatibility == 1);
+    // OLED_SystemSettings_SyncStripper (first item - wraps from HdmiLimitedRange)
+    if (oled_menuItem == OLED_SystemSettings_SyncStripper) {
+        showMenuToggle("Menu->System", "Sync Stripper", uopt->advSyncStripper == 1);
         OSD_handleCommand(OSD_CMD_SYS_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -44,13 +45,16 @@ bool IR_handleSystemSettings()
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
                 case IR_KEY_OK:
-                    uopt->advCompatibility = !uopt->advCompatibility;
-                    if (uopt->advCompatibility > 1)
-                        uopt->advCompatibility = 0;
-                    ADV_sendCompatibility(uopt->advCompatibility);
+                    uopt->advSyncStripper = !uopt->advSyncStripper;
+                    if (uopt->advSyncStripper > 1)
+                        uopt->advSyncStripper = 1;
+                    ADV_sendSyncStripper(uopt->advSyncStripper);
                     saveUserPrefs();
-                    if (GBS::ADC_INPUT_SEL::read())
+                    if (GBS::ADC_INPUT_SEL::read()) {
+                        resetSyncProcessor();
+                        delay(50);
                         applyVideoModePreset();
+                    }
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings);
@@ -72,7 +76,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_Deinterlace);
@@ -284,7 +288,7 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_HdmiLimitedRange (last item - wraps to Compatibility)
+    // OLED_SystemSettings_HdmiLimitedRange (last item - wraps to Sync Stripper)
     else if (oled_menuItem == OLED_SystemSettings_HdmiLimitedRange) {
         static const char* hdmiLimitedLabels[] = {"Off", "HD", "SD", "All"};
         showMenuValue("Menu->System", "HDMI Limited Range", hdmiLimitedLabels[uopt->hdmiLimitedRange]);
@@ -299,7 +303,7 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_Compatibility);
+                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_OK:

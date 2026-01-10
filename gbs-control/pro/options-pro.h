@@ -34,8 +34,8 @@ enum SETTING_PresetPreference : uint8_t {
     MT_I2P_ON,
     MT_SMOOTH_OFF,
     MT_SMOOTH_ON,
-    MT_COMPATIBILITY_OFF,
-    MT_COMPATIBILITY_ON,
+    MT_SYNCSTRIPPER_OFF,
+    MT_SYNCSTRIPPER_ON,
     MT_ACE_OFF,
     MT_ACE_ON,
 };
@@ -74,7 +74,7 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t svVideoFormat;          /* ADV7280 S-Video format (0=Auto, 1-11) */ \
     uint8_t avVideoFormat;          /* ADV7280 Composite format (0=Auto, 1-11) */ \
     uint8_t bcshAdjustMode;         /* BCSH adjustment UI mode */ \
-    uint8_t advCompatibility;       /* ADV7280 RGB compatibility mode */ \
+    uint8_t advSyncStripper;        /* LM1881 sync stripper (0=off/bypass, 1=on) */ \
     uint8_t osdTheme;               /* TV OSD theme (0-3) */ \
     /* GBS TV5725 Color Balance */ \
     uint8_t gbsColorR;              /* R channel (0-255, default 128) */ \

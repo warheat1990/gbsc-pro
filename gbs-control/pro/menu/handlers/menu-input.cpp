@@ -25,8 +25,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    uopt->advCompatibility = 1;
-                    InputRGBs_mode(uopt->advCompatibility);
+                    uopt->advSyncStripper = 1;
+                    InputRGBs_mode(uopt->advSyncStripper);
                     rto->isInLowPowerMode = false;
                     break;
                 case IR_KEY_MENU:
@@ -55,8 +55,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    uopt->advCompatibility = 1;
-                    InputRGsB_mode(uopt->advCompatibility);
+                    uopt->advSyncStripper = 1;
+                    InputRGsB_mode(uopt->advSyncStripper);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();
@@ -84,8 +84,8 @@ bool IR_handleInputSelection()
             switch (results.value) {
                 case IR_KEY_OK:
                     isInfoDisplayActive = 0;
-                    uopt->advCompatibility = 0;
-                    InputVGA_mode(uopt->advCompatibility);
+                    uopt->advSyncStripper = 0;
+                    InputVGA_mode(uopt->advSyncStripper);
                     break;
                 case IR_KEY_MENU:
                     exitMenu();

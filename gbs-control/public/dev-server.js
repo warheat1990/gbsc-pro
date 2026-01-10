@@ -560,6 +560,17 @@ const handleRequest = (req, res) => {
         return;
       }
 
+      // Handle Sync Stripper toggle (ss parameter)
+      const ss = parseInt(params.get('ss'));
+      if (!isNaN(ss) && (ss === 0 || ss === 1)) {
+        currentSyncStripper = ss;
+        console.log(`  ├─ ⚡ Pro: Set Sync Stripper to ${ss === 1 ? 'ON' : 'OFF'}`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
       // Handle ADV Controller - Custom I2C command
       const c = params.get('c');
       if (c) {
@@ -730,6 +741,9 @@ let currentFilterComb = 1;        // Default (Medium)
 // HDMI Limited Range state
 let currentHdmiLimitedRange = 1;  // 0=Off, 1=HD, 2=SD, 3=All (default 1=HD)
 
+// Sync Stripper state
+let currentSyncStripper = 1;  // 0=Off, 1=On (default 1=On)
+
 // Helper to convert value 0-31 to hex char (0-9, A-V)
 const toHexChar32 = (val) => {
   if (val < 10) return String.fromCharCode(48 + val); // '0'-'9'
@@ -742,9 +756,9 @@ const toHexChar16 = (val) => {
   return String.fromCharCode(65 + val - 10); // 'A'-'F'
 };
 
-// Build Pro status message (18 chars)
+// Build Pro status message (19 chars)
 // Format: $[input][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
-//         [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
+//         [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
 const buildProStatusMessage = () => {
   let formatChar;
   if (currentFormat <= 9) {
@@ -755,14 +769,14 @@ const buildProStatusMessage = () => {
     formatChar = 'B';
   }
 
-  // Base message (12 chars) + 5 filter chars + 1 hdmiLimitedRange = 18 chars
+  // Base message (12 chars) + 5 filter chars + 1 hdmiLimitedRange + 1 syncStripper = 19 chars
   return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}` +
          `${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}` +
          `${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}` +
          `${toHexChar16(currentACEResponseSpeed)}` +
          `${toHexChar32(currentFilterY)}${toHexChar16(currentFilterC)}` +
          `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterComb)}` +
-         `${currentHdmiLimitedRange}`;
+         `${currentHdmiLimitedRange}${currentSyncStripper}`;
 };
 
 // Broadcast status to all connected WebSocket clients

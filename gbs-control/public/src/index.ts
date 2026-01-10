@@ -314,8 +314,8 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange]
-      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange
+      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
+      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
@@ -337,6 +337,9 @@ const createWebSocket = () => {
 
       // HDMI Limited Range (position 17)
       const hdmiLimitedRangeChar: string = message.data[17] || "1";  // Default 1 (HD)
+
+      // Sync Stripper (position 18)
+      const syncStripperChar: string = message.data[18] || "1";  // Default 1 (ON)
 
       // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
       const fromHexChar = (c: string): number => {
@@ -537,6 +540,21 @@ const createWebSocket = () => {
         } else {
           btnPeaking.disabled = false;
           btnPeaking.style.opacity = "1";
+        }
+      }
+
+      // Update Sync Stripper toggle
+      const syncStripperToggle = document.querySelector('[gbs-toggle-switch="syncStripper"]');
+      if (syncStripperToggle) {
+        const isSyncStripperOn = syncStripperChar === "1";
+        syncStripperToggle.textContent = isSyncStripperOn ? "toggle_on" : "toggle_off";
+        const syncStripperRow = syncStripperToggle.parentElement;
+        if (syncStripperRow) {
+          if (isSyncStripperOn) {
+            syncStripperRow.setAttribute("active", "");
+          } else {
+            syncStripperRow.removeAttribute("active");
+          }
         }
       }
 
@@ -1713,6 +1731,42 @@ const initProButtons = () => {
         })
         .catch((error) => {
           console.error("Pro API ACE defaults error:", error);
+        });
+    });
+  }
+
+  // Handle Sync Stripper toggle
+  const syncStripperToggle = document.querySelector('[gbs-pro-toggle="syncstripper"]');
+  if (syncStripperToggle) {
+    syncStripperToggle.addEventListener("click", () => {
+      const isActive = syncStripperToggle.textContent === "toggle_on";
+      const newState = isActive ? "0" : "1";
+
+      const formData = new URLSearchParams();
+      formData.append("ss", newState);
+
+      fetch("/pro", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          if (data === "true") {
+            syncStripperToggle.textContent = isActive ? "toggle_off" : "toggle_on";
+            const row = syncStripperToggle.parentElement;
+            if (row) {
+              if (isActive) {
+                row.removeAttribute("active");
+              } else {
+                row.setAttribute("active", "");
+              }
+            }
+          } else {
+            console.error("Pro API Sync Stripper error:", data);
+          }
+        })
+        .catch((error) => {
+          console.error("Pro API Sync Stripper error:", error);
         });
     });
   }

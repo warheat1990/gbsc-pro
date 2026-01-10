@@ -510,18 +510,18 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
         }
         else if (buf[3] == 0xa0)
         {
-            asw_02 = 1;
+            asw_02 = 0;  /* ASW2=0 enables LM1881 sync stripper */
             ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
             FLASH_SaveSettings();
-            printf("[ADV] Open Compatibility\n");
+            printf("[ADV] Sync Stripper ON\n");
             c_state = 1;
         }
         else if (buf[3] == 0xa1)
         {
-            asw_02 = 0;
+            asw_02 = 1;  /* ASW2=1 bypasses LM1881 sync stripper */
             ASW_SetSwitches(asw_01, asw_02, asw_03, asw_04, 0);
             FLASH_SaveSettings();
-            printf("[ADV] Close Compatibility\n");
+            printf("[ADV] Sync Stripper OFF\n");
             c_state = 1;
         }
         else if ((buf[3] & 0xf0) == 0x40)
@@ -537,7 +537,7 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
             Input_signal = 1;
             FLASH_SaveSettings();
             ADV_Deinit();
-            printf("[ADV] RGBs (Compat=%d)\n", (buf[3] & 0x0f));
+            printf("[ADV] RGBs (SyncStrip=%d)\n", (buf[3] & 0x0f));
             c_state = 1;
         }
         else if ((buf[3] & 0xf0) == 0x50)

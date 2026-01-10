@@ -1,8 +1,6 @@
 import json
-
-from PIL import Image, ImageDraw, ImageFont
-
-import json
+import glob
+import os
 import os.path
 import pathlib
 import sys
@@ -18,6 +16,7 @@ TOP_BOTTOM_PADDING = 1
 X_OFFSET = 0
 Y_OFFSET = -1
 DEFAULT_FONT_SIZE = 12
+DEFAULT_FONT = "Arial"
 
 menu_items = [
     {
@@ -78,7 +77,7 @@ menu_items = [
     },
     {
         "tag": "TEXT_NO_PRESETS",
-        "en-US": "No Presets. Please use the Web UI to create one first.",
+        "en-US": "No presets saved.",
     },
     {
         "tag": "TEXT_TOO_MANY_PRESETS",
@@ -159,7 +158,7 @@ const unsigned char %(name)s [] PROGMEM = {
 
 tags_map = {}
 fonts_map = {}
-default_font = None
+default_font = DEFAULT_FONT
 
 
 def convert(text, font):
@@ -278,3 +277,7 @@ if __name__ == '__main__':
                                  'width': width, 'height': height, 'name': tag})
         fp.write('#endif')
         print(f"Finished. Output file: {pathlib.Path(args.output).absolute()}")
+
+    # Clean up preview images
+    for jpg_file in glob.glob('i18n_preview_*.jpg'):
+        os.remove(jpg_file)

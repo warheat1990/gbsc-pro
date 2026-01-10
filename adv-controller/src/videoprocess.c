@@ -462,14 +462,6 @@ void ADV_SetACE(uint8_t ace)
     }
 }
 
-/**
- * @brief Output format configuration (unused)
- */
-void ADV_SetOutput(uint8_t output)
-{
-    (void)output;
-}
-
 /*******************************************************************************
  * ACE (Adaptive Contrast Enhancement) Parameter Controls
  * User Sub Map 2 (0x0E = 0x40): Registers 0x80-0x85
@@ -786,30 +778,8 @@ void ADV_SetFilterDefaults(void)
 }
 
 /*******************************************************************************
- * Input Detection and Monitoring
+ * Detection and Monitoring
  ******************************************************************************/
-
-/**
- * @brief Read physical key changes for input selection
- */
-void ADV_ReadKeyChange(void)
-{
-    static uint8_t key_state = 0, key_state_last = 0;
-
-    key_state = GPIO_ReadInputPins(GPIO_PORT_B, GPIO_PIN_12);
-    if (key_state_last != key_state) {
-        adv_input = key_state;
-        ADV_SetInput(adv_input);
-    }
-    key_state_last = key_state;
-
-    static uint8_t key_line_state = 0, key_state_line_last = 0;
-    key_line_state = GPIO_ReadInputPins(GPIO_PORT_B, GPIO_PIN_05);
-    if (key_state_line_last != key_line_state) {
-        ADV_SetI2P(key_line_state);
-    }
-    key_state_line_last = key_line_state;
-}
 
 /**
  * @brief Main detection loop - monitors signal status
@@ -861,48 +831,12 @@ void ADV_DetectLoop(void)
  */
 void ASW_SetSwitches(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t state)
 {
-    if ((sw1) && ((sw1 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW1)) || state))
-        ASW1_On();
-    else if ((!sw1) && ((sw1 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW1)) || state))
-        ASW1_Off();
+    (void)state; /* No longer used - always apply */
 
-    if ((sw2) && ((sw2 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW2)) || state))
-        ASW2_On();
-    else if ((!sw2) && ((sw2 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW2)) || state))
-        ASW2_Off();
-
-    if ((sw3) && ((sw3 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW3)) || state))
-        ASW3_On();
-    else if ((!sw3) && ((sw3 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW3)) || state))
-        ASW3_Off();
-
-    if ((sw4) && ((sw4 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW4)) || state))
-        ASW4_On();
-    else if ((!sw4) && ((sw4 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW4)) || state))
-        ASW4_Off();
-}
-
-/**
- * @brief Set analog switches except SW2
- */
-void ASW_SetSwitchesNot02(uint8_t sw1, uint8_t sw2, uint8_t sw3, uint8_t sw4, uint8_t state)
-{
-    (void)sw2; /* SW2 not controlled by this function */
-
-    if ((sw1) && ((sw1 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW1)) || state))
-        ASW1_On();
-    else if ((!sw1) && ((sw1 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW1)) || state))
-        ASW1_Off();
-
-    if ((sw3) && ((sw3 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW3)) || state))
-        ASW3_On();
-    else if ((!sw3) && ((sw3 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW3)) || state))
-        ASW3_Off();
-
-    if ((sw4) && ((sw4 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW4)) || state))
-        ASW4_On();
-    else if ((!sw4) && ((sw4 != GPIO_ReadInputPins(GPIO_PORT_ASW, GPIO_PIN_ASW4)) || state))
-        ASW4_Off();
+    if (sw1) ASW1_On(); else ASW1_Off();
+    if (sw2) ASW2_On(); else ASW2_Off();
+    if (sw3) ASW3_On(); else ASW3_Off();
+    if (sw4) ASW4_On(); else ASW4_Off();
 }
 
 /**
@@ -972,12 +906,4 @@ void LED_SetSignal(uint8_t signal)
 void ADV_ResetStatus(void)
 {
     status = 0;
-}
-
-/**
- * @brief Print video info (placeholder)
- */
-void ADV_Info(void)
-{
-    /* Placeholder for info output */
 }

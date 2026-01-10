@@ -122,7 +122,7 @@ typedef enum {
     OLED_SystemSettings_HdmiLimitedRange,
     OLED_SystemSettings_LockMethod,
     OLED_SystemSettings_Deinterlace,
-    OLED_SystemSettings_Compatibility,
+    OLED_SystemSettings_SyncStripper,
 
     // SV/AV Input Settings submenu
     OLED_SystemSettings_SVAVInputSettings,
@@ -354,7 +354,7 @@ typedef struct {
 
 // System Settings Menu Mappings
 #define MENU_ITEMS_SYSTEM \
-    MENU_ITEM(OLED_SystemSettings_Compatibility,     OSD_CMD_SYS_PAGE1, 1) \
+    MENU_ITEM(OLED_SystemSettings_SyncStripper,      OSD_CMD_SYS_PAGE1, 1) \
     MENU_ITEM(OLED_SystemSettings_MatchedPresets,    OSD_CMD_SYS_PAGE1, 2) \
     MENU_ITEM(OLED_SystemSettings_Deinterlace,       OSD_CMD_SYS_PAGE1, 3) \
     MENU_ITEM(OLED_SystemSettings_Force5060Hz,       OSD_CMD_SYS_PAGE2, 1) \
