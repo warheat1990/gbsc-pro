@@ -101,6 +101,12 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advFilterWYOverride;    /* WY Override (0=Auto, 1=Manual, default 1) */ \
     uint8_t advFilterCombNTSC;      /* Comb Filter NTSC bandwidth (0-3, default 0=Narrow) */ \
     uint8_t advFilterCombPAL;       /* Comb Filter PAL bandwidth (0-3, default 1=Medium) */ \
+    uint8_t advCombLumaModeNTSC;    /* NTSC Luma Mode (0=Adaptive, 4=Notch, 5-7=Fixed) */ \
+    uint8_t advCombChromaModeNTSC;  /* NTSC Chroma Mode (0=Adaptive, 4=Off, 5-7=Fixed) */ \
+    uint8_t advCombChromaTapsNTSC;  /* NTSC Chroma Taps (0-3, default 2=5→3 lines) */ \
+    uint8_t advCombLumaModePAL;     /* PAL Luma Mode (0=Adaptive, 4=Notch, 5-7=Fixed) */ \
+    uint8_t advCombChromaModePAL;   /* PAL Chroma Mode (0=Adaptive, 4=Off, 5-7=Fixed) */ \
+    uint8_t advCombChromaTapsPAL;   /* PAL Chroma Taps (0-3, default 3=5→4 lines) */ \
     /* HDMI Limited Range */ \
     uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */
 

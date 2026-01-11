@@ -241,7 +241,7 @@
               <li><strong>VGA</strong>: VGA/RGBHV computer signal</li>
               <li><strong>YPbPr</strong>: Component video (Y/Pb/Pr)</li>
               <li><strong>S-Video</strong>: S-Video input</li>
-              <li><strong>Composite</strong>: Composite video</li>
+              <li><strong>AV</strong>: AV / Composite video</li>
             </ul>
             <div class="gbs-resolution">
               <button
@@ -284,14 +284,14 @@
                 gbs-pro-i="6"
                 gbs-role="input-source"
               >
-                Composite
+                AV
               </button>
             </div>
           </fieldset>
           <fieldset id="gbs-pro-cv-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
               <div class="gbs-icon">tv</div>
-              <div>Composite/S-Video Options</div>
+              <div>AV/S-Video Options</div>
             </legend>
             <!-- prettier-ignore -->
             <ul class="gbs-help">
@@ -467,9 +467,11 @@
             <!-- prettier-ignore -->
             <ul class="gbs-help">
               <li><strong>Y Filter</strong>: Luminance filter shaping</li>
-              <li><strong>C Filter</strong>: Chrominance filter (Composite only)</li>
+              <li><strong>C Filter</strong>: Chrominance filter (AV only)</li>
               <li><strong>Override</strong>: Manual Y filter control (S-Video only)</li>
               <li><strong>Comb Filter</strong>: Comb filter bandwidth</li>
+              <li><strong>Luma/Chr Mode</strong>: Comb filter algorithm</li>
+              <li><strong>Chr Taps</strong>: Comb filter line averaging</li>
             </ul>
             <!-- Y Filter -->
             <div class="gbs-flex gbs-margin__bottom--8">
@@ -508,6 +510,39 @@
               </button>
               <span id="gbs-pro-filter-comb-value" style="width: 80px; text-align: center; padding: 8px;">Medium</span>
               <button id="gbs-pro-filter-comb-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Comb Luma Mode -->
+            <div id="gbs-pro-filter-luma-row" class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Luma Mode</span>
+              <button id="gbs-pro-filter-luma-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-filter-luma-value" style="width: 80px; text-align: center; padding: 8px;">Adaptive</span>
+              <button id="gbs-pro-filter-luma-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Comb Chroma Mode -->
+            <div id="gbs-pro-filter-chroma-row" class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Chr Mode</span>
+              <button id="gbs-pro-filter-chroma-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-filter-chroma-value" style="width: 80px; text-align: center; padding: 8px;">Adaptive</span>
+              <button id="gbs-pro-filter-chroma-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">add</div>
+              </button>
+            </div>
+            <!-- Comb Chroma Taps -->
+            <div id="gbs-pro-filter-taps-row" class="gbs-flex gbs-margin__bottom--8">
+              <span style="flex: 1; padding: 8px;">Chr Taps</span>
+              <button id="gbs-pro-filter-taps-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
+                <div class="gbs-icon">remove</div>
+              </button>
+              <span id="gbs-pro-filter-taps-value" style="width: 80px; text-align: center; padding: 8px;">5->3</span>
+              <button id="gbs-pro-filter-taps-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
                 <div class="gbs-icon">add</div>
               </button>
             </div>

@@ -672,7 +672,44 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
         }
         else if (buf[3] == 0xB7)
         {
-            ADV_SetFilterDefaults();
+            ADV_SetVideoFilterDefaults();
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        /* Comb Control commands (0xB8-0xBD) */
+        else if (buf[3] == 0xB8)
+        {
+            ADV_SetCombLumaModeNTSC(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xB9)
+        {
+            ADV_SetCombChromaModeNTSC(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xBA)
+        {
+            ADV_SetCombChromaTapsNTSC(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xBB)
+        {
+            ADV_SetCombLumaModePAL(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xBC)
+        {
+            ADV_SetCombChromaModePAL(buf[4]);
+            FLASH_SaveSettings();
+            c_state = 1;
+        }
+        else if (buf[3] == 0xBD)
+        {
+            ADV_SetCombChromaTapsPAL(buf[4]);
             FLASH_SaveSettings();
             c_state = 1;
         }

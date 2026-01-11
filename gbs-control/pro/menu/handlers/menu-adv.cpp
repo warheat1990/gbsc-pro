@@ -284,13 +284,7 @@ bool IR_handleADVSettings()
                     uopt->advACE = 0;
                     ADV_sendACE(false);
                     // Reset Video Filters to defaults
-                    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
-                    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
-                    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
-                    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
-                    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
-                    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
-                    ADV_sendFilterDefaults();
+                    ADV_sendVideoFiltersDefaults();
                     // Reset I2P settings
                     uopt->advI2P = false;
                     uopt->advSmooth = false;
@@ -659,15 +653,55 @@ bool IR_handleACESettings()
 
 // ====================================================================================
 // IR_handleVideoFiltersSettings - Video Filters Settings Submenu (inside SV/AV Settings)
-// Unified single-page menu that adapts based on active input (AV or SV)
-// AV: Y Filter (row 1), C Filter (row 2), Comb Filter (row 3)
-// SV: Y Filter (row 1), Override (row 2), Comb Filter (row 3)
-// Page 2: Default only
+// Page 1: Y Filter, C Filter/Override, Bandwidth
+// Page 2: Luma Mode, Chroma Mode, Chroma Taps
+// Page 3: Default
 // ====================================================================================
+
+// Helper: Check if current signal uses NTSC comb filter (3.58 MHz subcarrier)
+// Format indices: 0=Auto, 1=PAL, 2=NTSC-M, 3=PAL-60, 4=NTSC-443, 5=NTSC-J,
+//   6=PAL-N, 7=PAL-M(wop), 8=PAL-M(wp), 9=PAL-Cn, 10=PAL-Cn(wp), 11=SECAM
+static bool isNTSCSignal_Menu(void) {
+    uint8_t format = (uopt->activeInputType == InputTypeSV) ? uopt->svVideoFormat : uopt->avVideoFormat;
+    // Auto mode (0) - check actual detected signal from GBS STATUS_00 register
+    if (format == 0) {
+        uint8_t status00 = GBS::STATUS_00::read();
+        if (!(status00 & 0x80)) return true;  // No valid signal, default to NTSC
+        if (status00 & 0x60) return false;    // 0x40=576p or 0x20=288p/576i = PAL
+        if (status00 & 0x18) return true;     // 0x10=480p or 0x08=240p/480i = NTSC
+        return true;  // Default to NTSC
+    }
+    // NTSC comb: 2=NTSC-M, 3=PAL-60, 4=NTSC-443, 5=NTSC-J, 7=PAL-M(wop), 8=PAL-M(wp)
+    return (format == 2 || format == 3 || format == 4 || format == 5 || format == 7 || format == 8);
+}
+
+// Helper: Get next valid Luma/Chroma mode value (0, 4, 5, 6, 7)
+static uint8_t nextCombMode(uint8_t current, bool increment) {
+    if (increment) {
+        switch (current) {
+            case 0: return 4;
+            case 4: return 5;
+            case 5: return 6;
+            case 6: return 7;
+            case 7: return 0;
+            default: return 0;
+        }
+    } else {
+        switch (current) {
+            case 0: return 7;
+            case 4: return 0;
+            case 5: return 4;
+            case 6: return 5;
+            case 7: return 6;
+            default: return 0;
+        }
+    }
+}
 
 bool IR_handleVideoFiltersSettings()
 {
     bool isSV = (uopt->activeInputType == InputTypeSV);
+    bool isNTSC = isNTSCSignal_Menu();
 
     // OLED_VideoFiltersSettings_YFilter (Page 1, row 1) - Y Filter (AV: YSFM, SV: WYSFM)
     if (oled_menuItem == OLED_VideoFiltersSettings_YFilter) {
@@ -755,7 +789,7 @@ bool IR_handleVideoFiltersSettings()
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                        Menu_navigateTo(OLED_VideoFiltersSettings_Bandwidth);
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
@@ -800,7 +834,7 @@ bool IR_handleVideoFiltersSettings()
                     Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                    Menu_navigateTo(OLED_VideoFiltersSettings_Bandwidth);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
@@ -820,9 +854,9 @@ bool IR_handleVideoFiltersSettings()
         return true;
     }
 
-    // OLED_VideoFiltersSettings_CombFilter (Page 1, row 3) - Unified Comb Filter
-    else if (oled_menuItem == OLED_VideoFiltersSettings_CombFilter) {
-        showMenu("M>Filters", "Comb Filter");
+    // OLED_VideoFiltersSettings_Bandwidth (Page 1, row 3)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_Bandwidth) {
+        showMenu("M>Filters", "Bandwidth");
         OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE1_VALUES);
 
         if (irDecode()) {
@@ -840,21 +874,27 @@ bool IR_handleVideoFiltersSettings()
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_VideoFiltersSettings_Default);
+                        Menu_navigateTo(OLED_VideoFiltersSettings_LumaMode);
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
-                        uopt->advFilterCombPAL = (uopt->advFilterCombPAL >= 3) ? 0 : uopt->advFilterCombPAL + 1;
-                        uopt->advFilterCombNTSC = uopt->advFilterCombPAL;
-                        ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
-                        ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        if (isNTSC) {
+                            uopt->advFilterCombNTSC = (uopt->advFilterCombNTSC >= 3) ? 0 : uopt->advFilterCombNTSC + 1;
+                            ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        } else {
+                            uopt->advFilterCombPAL = (uopt->advFilterCombPAL >= 3) ? 0 : uopt->advFilterCombPAL + 1;
+                            ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                        }
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
-                        uopt->advFilterCombPAL = (uopt->advFilterCombPAL == 0) ? 3 : uopt->advFilterCombPAL - 1;
-                        uopt->advFilterCombNTSC = uopt->advFilterCombPAL;
-                        ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
-                        ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        if (isNTSC) {
+                            uopt->advFilterCombNTSC = (uopt->advFilterCombNTSC == 0) ? 3 : uopt->advFilterCombNTSC - 1;
+                            ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                        } else {
+                            uopt->advFilterCombPAL = (uopt->advFilterCombPAL == 0) ? 3 : uopt->advFilterCombPAL - 1;
+                            ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                        }
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
@@ -875,10 +915,190 @@ bool IR_handleVideoFiltersSettings()
         return true;
     }
 
-    // OLED_VideoFiltersSettings_Default (Page 2, row 1) - Reset Filters to Defaults
+    // OLED_VideoFiltersSettings_LumaMode (Page 2, row 1)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_LumaMode) {
+        showMenu("M>Filters", "Luma Mode");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_Bandwidth);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_ChromaMode);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombLumaModeNTSC = nextCombMode(uopt->advCombLumaModeNTSC, true);
+                            ADV_sendCombLumaModeNTSC(uopt->advCombLumaModeNTSC);
+                        } else {
+                            uopt->advCombLumaModePAL = nextCombMode(uopt->advCombLumaModePAL, true);
+                            ADV_sendCombLumaModePAL(uopt->advCombLumaModePAL);
+                        }
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombLumaModeNTSC = nextCombMode(uopt->advCombLumaModeNTSC, false);
+                            ADV_sendCombLumaModeNTSC(uopt->advCombLumaModeNTSC);
+                        } else {
+                            uopt->advCombLumaModePAL = nextCombMode(uopt->advCombLumaModePAL, false);
+                            ADV_sendCombLumaModePAL(uopt->advCombLumaModePAL);
+                        }
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_ChromaMode (Page 2, row 2)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_ChromaMode) {
+        showMenu("M>Filters", "Chroma Mode");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_LumaMode);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_ChromaTaps);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombChromaModeNTSC = nextCombMode(uopt->advCombChromaModeNTSC, true);
+                            ADV_sendCombChromaModeNTSC(uopt->advCombChromaModeNTSC);
+                        } else {
+                            uopt->advCombChromaModePAL = nextCombMode(uopt->advCombChromaModePAL, true);
+                            ADV_sendCombChromaModePAL(uopt->advCombChromaModePAL);
+                        }
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombChromaModeNTSC = nextCombMode(uopt->advCombChromaModeNTSC, false);
+                            ADV_sendCombChromaModeNTSC(uopt->advCombChromaModeNTSC);
+                        } else {
+                            uopt->advCombChromaModePAL = nextCombMode(uopt->advCombChromaModePAL, false);
+                            ADV_sendCombChromaModePAL(uopt->advCombChromaModePAL);
+                        }
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_ChromaTaps (Page 2, row 3)
+    else if (oled_menuItem == OLED_VideoFiltersSettings_ChromaTaps) {
+        showMenu("M>Filters", "Chroma Taps");
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_ChromaMode);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_VideoFiltersSettings_Default);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombChromaTapsNTSC = (uopt->advCombChromaTapsNTSC >= 3) ? 0 : uopt->advCombChromaTapsNTSC + 1;
+                            ADV_sendCombChromaTapsNTSC(uopt->advCombChromaTapsNTSC);
+                        } else {
+                            uopt->advCombChromaTapsPAL = (uopt->advCombChromaTapsPAL >= 3) ? 0 : uopt->advCombChromaTapsPAL + 1;
+                            ADV_sendCombChromaTapsPAL(uopt->advCombChromaTapsPAL);
+                        }
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        if (isNTSC) {
+                            uopt->advCombChromaTapsNTSC = (uopt->advCombChromaTapsNTSC == 0) ? 3 : uopt->advCombChromaTapsNTSC - 1;
+                            ADV_sendCombChromaTapsNTSC(uopt->advCombChromaTapsNTSC);
+                        } else {
+                            uopt->advCombChromaTapsPAL = (uopt->advCombChromaTapsPAL == 0) ? 3 : uopt->advCombChromaTapsPAL - 1;
+                            ADV_sendCombChromaTapsPAL(uopt->advCombChromaTapsPAL);
+                        }
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_VideoFiltersSettings_Default (Page 3, row 1) - Reset Filters to Defaults
     else if (oled_menuItem == OLED_VideoFiltersSettings_Default) {
         showMenu("M>Filters", "Default");
-        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE2_VALUES);
+        OSD_handleCommand(OSD_CMD_VIDEOFILTERS_PAGE3_VALUES);
 
         if (irDecode()) {
             switch (results.value) {
@@ -886,20 +1106,14 @@ bool IR_handleVideoFiltersSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_VideoFiltersSettings_CombFilter);
+                    Menu_navigateTo(OLED_VideoFiltersSettings_ChromaTaps);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_VideoFiltersSettings_YFilter);
                     break;
                 case IR_KEY_OK:
-                    // Reset all filter parameters to defaults
-                    uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
-                    uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
-                    uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
-                    uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
-                    uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
-                    uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
-                    ADV_sendFilterDefaults();
+                    // Reset all video filter parameters to defaults
+                    ADV_sendVideoFiltersDefaults();
                     saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:

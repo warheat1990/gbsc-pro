@@ -144,15 +144,18 @@ typedef enum {
     OLED_ACESettings_Default,
 
     // Video Filters Settings submenu (inside SV/AV Settings)
-    // Single page adapts based on AV/SV input:
-    // AV: Y Filter, C Filter, Comb Filter, Default
-    // SV: Y Filter, Override, Comb Filter, Default
-    OLED_SystemSettings_SVAVInput_FiltersSettings,  // Link to Filters submenu (Page 1, row 3)
-    OLED_VideoFiltersSettings_YFilter,      // Row 1: Y Filter (AV: YSFM, SV: WYSFM)
-    OLED_VideoFiltersSettings_CFilter,      // Row 2 (AV only): C Filter
-    OLED_VideoFiltersSettings_SVOverride,   // Row 2 (SV only): Override (Auto/Manual)
-    OLED_VideoFiltersSettings_CombFilter,   // Row 3: Unified Comb Filter (sets both PAL/NTSC)
-    OLED_VideoFiltersSettings_Default,      // Page 2: Default
+    // Page 1: Y Filter, C Filter/Override, Bandwidth
+    // Page 2: Luma Mode, Chroma Mode, Chroma Taps
+    // Page 3: Default
+    OLED_SystemSettings_SVAVInput_FiltersSettings,  // Link to Filters submenu
+    OLED_VideoFiltersSettings_YFilter,      // Page 1 Row 1: Y Filter (AV: YSFM, SV: WYSFM)
+    OLED_VideoFiltersSettings_CFilter,      // Page 1 Row 2 (AV only): C Filter
+    OLED_VideoFiltersSettings_SVOverride,   // Page 1 Row 2 (SV only): Override (Auto/Manual)
+    OLED_VideoFiltersSettings_Bandwidth,    // Page 1 Row 3: Bandwidth
+    OLED_VideoFiltersSettings_LumaMode,     // Page 2 Row 1: Luma Mode (NTSC/PAL)
+    OLED_VideoFiltersSettings_ChromaMode,   // Page 2 Row 2: Chroma Mode (NTSC/PAL)
+    OLED_VideoFiltersSettings_ChromaTaps,   // Page 2 Row 3: Chroma Taps (NTSC/PAL)
+    OLED_VideoFiltersSettings_Default,      // Page 3: Default
 
     // I2P Settings submenu (inside SV/AV Settings)
     OLED_SystemSettings_SVAVInput_I2PSettings,  // Link to I2P Settings submenu (Page 1, row 3)
@@ -388,15 +391,18 @@ typedef struct {
     MENU_ITEM(OLED_ACESettings_Default,       OSD_CMD_ACE_PAGE3, 1)
 
 // Video Filters Settings Menu Mappings (submenu inside SV/AV Settings)
-// Single page adapts based on AV/SV input:
-// AV: Y Filter, C Filter, Comb Filter | Default
-// SV: Y Filter, Override, Comb Filter | Default
+// Page 1: Y Filter, C Filter/Override, Bandwidth
+// Page 2: Luma Mode, Chroma Mode, Chroma Taps
+// Page 3: Default
 #define MENU_ITEMS_VIDEOFILTERS \
-    MENU_ITEM(OLED_VideoFiltersSettings_YFilter,     OSD_CMD_VIDEOFILTERS_PAGE1, 1) \
-    MENU_ITEM(OLED_VideoFiltersSettings_CFilter,     OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
-    MENU_ITEM(OLED_VideoFiltersSettings_SVOverride,  OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
-    MENU_ITEM(OLED_VideoFiltersSettings_CombFilter,  OSD_CMD_VIDEOFILTERS_PAGE1, 3) \
-    MENU_ITEM(OLED_VideoFiltersSettings_Default,     OSD_CMD_VIDEOFILTERS_PAGE2, 1)
+    MENU_ITEM(OLED_VideoFiltersSettings_YFilter,      OSD_CMD_VIDEOFILTERS_PAGE1, 1) \
+    MENU_ITEM(OLED_VideoFiltersSettings_CFilter,      OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
+    MENU_ITEM(OLED_VideoFiltersSettings_SVOverride,   OSD_CMD_VIDEOFILTERS_PAGE1, 2) \
+    MENU_ITEM(OLED_VideoFiltersSettings_Bandwidth,    OSD_CMD_VIDEOFILTERS_PAGE1, 3) \
+    MENU_ITEM(OLED_VideoFiltersSettings_LumaMode,     OSD_CMD_VIDEOFILTERS_PAGE2, 1) \
+    MENU_ITEM(OLED_VideoFiltersSettings_ChromaMode,   OSD_CMD_VIDEOFILTERS_PAGE2, 2) \
+    MENU_ITEM(OLED_VideoFiltersSettings_ChromaTaps,   OSD_CMD_VIDEOFILTERS_PAGE2, 3) \
+    MENU_ITEM(OLED_VideoFiltersSettings_Default,      OSD_CMD_VIDEOFILTERS_PAGE3, 1)
 
 // I2P Settings Menu Mappings (submenu inside SV/AV Settings)
 #define MENU_ITEMS_I2P \

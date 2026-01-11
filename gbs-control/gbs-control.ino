@@ -4183,6 +4183,13 @@ static File initSlotsFile()
     emptySlot.advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
     emptySlot.advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
     emptySlot.advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+    // ADV7280 Comb Control defaults
+    emptySlot.advCombLumaModeNTSC = ADV_COMB_LUMA_MODE_NTSC_DEFAULT;
+    emptySlot.advCombChromaModeNTSC = ADV_COMB_CHROMA_MODE_NTSC_DEFAULT;
+    emptySlot.advCombChromaTapsNTSC = ADV_COMB_CHROMA_TAPS_NTSC_DEFAULT;
+    emptySlot.advCombLumaModePAL = ADV_COMB_LUMA_MODE_PAL_DEFAULT;
+    emptySlot.advCombChromaModePAL = ADV_COMB_CHROMA_MODE_PAL_DEFAULT;
+    emptySlot.advCombChromaTapsPAL = ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4255,6 +4262,13 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.advFilterWYOverride = uopt->advFilterWYOverride;
     slotData.advFilterCombNTSC = uopt->advFilterCombNTSC;
     slotData.advFilterCombPAL = uopt->advFilterCombPAL;
+    // ADV7280 Comb Control parameters
+    slotData.advCombLumaModeNTSC = uopt->advCombLumaModeNTSC;
+    slotData.advCombChromaModeNTSC = uopt->advCombChromaModeNTSC;
+    slotData.advCombChromaTapsNTSC = uopt->advCombChromaTapsNTSC;
+    slotData.advCombLumaModePAL = uopt->advCombLumaModePAL;
+    slotData.advCombChromaModePAL = uopt->advCombChromaModePAL;
+    slotData.advCombChromaTapsPAL = uopt->advCombChromaTapsPAL;
     // HDMI Limited Range
     slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
 
@@ -4348,6 +4362,13 @@ bool loadSlotSettings()
     uopt->advFilterWYOverride = (slotData.advFilterWYOverride <= 1) ? slotData.advFilterWYOverride : ADV_FILTER_WY_OVERRIDE_DEFAULT;
     uopt->advFilterCombNTSC = (slotData.advFilterCombNTSC <= 3) ? slotData.advFilterCombNTSC : ADV_FILTER_COMB_NTSC_DEFAULT;
     uopt->advFilterCombPAL = (slotData.advFilterCombPAL <= 3) ? slotData.advFilterCombPAL : ADV_FILTER_COMB_PAL_DEFAULT;
+    // Load ADV7280 Comb Control parameters (with default fallback for old slots)
+    uopt->advCombLumaModeNTSC = (slotData.advCombLumaModeNTSC <= 7) ? slotData.advCombLumaModeNTSC : ADV_COMB_LUMA_MODE_NTSC_DEFAULT;
+    uopt->advCombChromaModeNTSC = (slotData.advCombChromaModeNTSC <= 7) ? slotData.advCombChromaModeNTSC : ADV_COMB_CHROMA_MODE_NTSC_DEFAULT;
+    uopt->advCombChromaTapsNTSC = (slotData.advCombChromaTapsNTSC <= 3) ? slotData.advCombChromaTapsNTSC : ADV_COMB_CHROMA_TAPS_NTSC_DEFAULT;
+    uopt->advCombLumaModePAL = (slotData.advCombLumaModePAL <= 7) ? slotData.advCombLumaModePAL : ADV_COMB_LUMA_MODE_PAL_DEFAULT;
+    uopt->advCombChromaModePAL = (slotData.advCombChromaModePAL <= 7) ? slotData.advCombChromaModePAL : ADV_COMB_CHROMA_MODE_PAL_DEFAULT;
+    uopt->advCombChromaTapsPAL = (slotData.advCombChromaTapsPAL <= 3) ? slotData.advCombChromaTapsPAL : ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
     // HDMI Limited Range
     uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
 
@@ -7485,7 +7506,7 @@ void loadDefaultUserOptions()
     uopt->gbsColorG = 128;
     uopt->gbsColorB = 128;
     // ADV Processing
-    uopt->advI2P = 1;
+    uopt->advI2P = 0;
     uopt->advSmooth = 0;
     uopt->advACE = 0;
     // ADV BCSH
@@ -7930,6 +7951,32 @@ void setup()
             if (uopt->advACEGammaGain > 15) uopt->advACEGammaGain = 8;
             uopt->advACEResponseSpeed = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
             if (uopt->advACEResponseSpeed > 15) uopt->advACEResponseSpeed = 15;
+            // Video Filter parameters (2 digits each)
+            uopt->advFilterYShaping = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advFilterYShaping > 30) uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
+            uopt->advFilterCShaping = (uint8_t)(f.read() - '0');
+            if (uopt->advFilterCShaping > 7) uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
+            uopt->advFilterWYShaping = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advFilterWYShaping < 2 || uopt->advFilterWYShaping > 19) uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
+            uopt->advFilterWYOverride = (uint8_t)(f.read() - '0');
+            if (uopt->advFilterWYOverride > 1) uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
+            uopt->advFilterCombNTSC = (uint8_t)(f.read() - '0');
+            if (uopt->advFilterCombNTSC > 3) uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
+            uopt->advFilterCombPAL = (uint8_t)(f.read() - '0');
+            if (uopt->advFilterCombPAL > 3) uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+            // Comb Control parameters (1 digit each)
+            uopt->advCombLumaModeNTSC = (uint8_t)(f.read() - '0');
+            if (uopt->advCombLumaModeNTSC > 7) uopt->advCombLumaModeNTSC = ADV_COMB_LUMA_MODE_NTSC_DEFAULT;
+            uopt->advCombChromaModeNTSC = (uint8_t)(f.read() - '0');
+            if (uopt->advCombChromaModeNTSC > 7) uopt->advCombChromaModeNTSC = ADV_COMB_CHROMA_MODE_NTSC_DEFAULT;
+            uopt->advCombChromaTapsNTSC = (uint8_t)(f.read() - '0');
+            if (uopt->advCombChromaTapsNTSC > 3) uopt->advCombChromaTapsNTSC = ADV_COMB_CHROMA_TAPS_NTSC_DEFAULT;
+            uopt->advCombLumaModePAL = (uint8_t)(f.read() - '0');
+            if (uopt->advCombLumaModePAL > 7) uopt->advCombLumaModePAL = ADV_COMB_LUMA_MODE_PAL_DEFAULT;
+            uopt->advCombChromaModePAL = (uint8_t)(f.read() - '0');
+            if (uopt->advCombChromaModePAL > 7) uopt->advCombChromaModePAL = ADV_COMB_CHROMA_MODE_PAL_DEFAULT;
+            uopt->advCombChromaTapsPAL = (uint8_t)(f.read() - '0');
+            if (uopt->advCombChromaTapsPAL > 3) uopt->advCombChromaTapsPAL = ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
             // HDMI Limited Range
             uopt->hdmiLimitedRange = (uint8_t)(f.read() - '0');
             if (uopt->hdmiLimitedRange > 3) uopt->hdmiLimitedRange = 1;
@@ -9532,6 +9579,8 @@ void handleType2Command(char argument)
             deleteAllSlotsAndPresets();
             loadDefaultUserOptions();
             saveUserPrefs();
+            // Reset ADV Controller to default input (RGBs) before restart
+            InputRGBs();
             SerialM.println(F("factory reset complete, restarting"));
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
@@ -10467,29 +10516,36 @@ void startWebserver()
         if (request->hasArg("i")) {
             uint8_t i = request->arg("i").toInt();
 
+            const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
             switch (i) {
                 case 1:
                     InputRGBs();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 case 2:
                     InputRGsB();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 case 3:
                     InputVGA();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 case 4:
                     InputYUV();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 case 5:
                     InputSV();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 case 6:
                     InputAV();
+                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
                     request->send(200, "application/json", "true");
                     break;
                 default:
@@ -10786,12 +10842,85 @@ void startWebserver()
         }
 
         // Handle Video Filter Defaults (fd parameter)
-        // Reset all filter parameters to defaults
+        // Reset all filter and comb control parameters to defaults
         if (request->hasArg("fd")) {
-            ADV_sendFilterDefaults();
-            SerialM.println(F("Filter parameters reset to defaults"));
+            ADV_sendVideoFiltersDefaults();
+            SerialM.println(F("Video filter parameters reset to defaults"));
             saveUserPrefs();
             request->send(200, "application/json", "true");
+            return;
+        }
+
+        // Handle Comb Control Luma Mode (cl parameter)
+        // Value is 0,4,5,6,7 (Adaptive, Notch, Fixed 2L, 3L, 4L)
+        // Second char: 'n'=NTSC, 'p'=PAL
+        if (request->hasArg("cl")) {
+            String valStr = request->arg("cl");
+            uint8_t val = valStr.toInt();
+            if (val == 0 || (val >= 4 && val <= 7)) {
+                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                if (target == 'n') {
+                    uopt->advCombLumaModeNTSC = val;
+                    ADV_sendCombLumaModeNTSC(val);
+                    SerialM.print(F("Comb Luma NTSC: ")); SerialM.println(val);
+                } else {
+                    uopt->advCombLumaModePAL = val;
+                    ADV_sendCombLumaModePAL(val);
+                    SerialM.print(F("Comb Luma PAL: ")); SerialM.println(val);
+                }
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Comb Control Chroma Mode (cc parameter)
+        // Value is 0,4,5,6,7 (Adaptive, Off, Fixed 2L, 3L, 4L)
+        if (request->hasArg("cc")) {
+            String valStr = request->arg("cc");
+            uint8_t val = valStr.toInt();
+            if (val == 0 || (val >= 4 && val <= 7)) {
+                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                if (target == 'n') {
+                    uopt->advCombChromaModeNTSC = val;
+                    ADV_sendCombChromaModeNTSC(val);
+                    SerialM.print(F("Comb Chroma NTSC: ")); SerialM.println(val);
+                } else {
+                    uopt->advCombChromaModePAL = val;
+                    ADV_sendCombChromaModePAL(val);
+                    SerialM.print(F("Comb Chroma PAL: ")); SerialM.println(val);
+                }
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
+            return;
+        }
+
+        // Handle Comb Control Chroma Taps (ct parameter)
+        // Value is 0-3 (None, 3->1, 5->3/3->2, 5->4)
+        if (request->hasArg("ct")) {
+            String valStr = request->arg("ct");
+            uint8_t val = valStr.toInt();
+            if (val <= 3) {
+                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                if (target == 'n') {
+                    uopt->advCombChromaTapsNTSC = val;
+                    ADV_sendCombChromaTapsNTSC(val);
+                    SerialM.print(F("Comb Taps NTSC: ")); SerialM.println(val);
+                } else {
+                    uopt->advCombChromaTapsPAL = val;
+                    ADV_sendCombChromaTapsPAL(val);
+                    SerialM.print(F("Comb Taps PAL: ")); SerialM.println(val);
+                }
+                saveUserPrefs();
+                request->send(200, "application/json", "true");
+            } else {
+                request->send(400, "application/json", "false");
+            }
             return;
         }
 
@@ -11204,6 +11333,22 @@ void saveUserPrefs()
     f.write(uopt->advACEGammaGain % 10 + '0');
     f.write(uopt->advACEResponseSpeed / 10 + '0');
     f.write(uopt->advACEResponseSpeed % 10 + '0');
+    // Video Filter parameters (2 digits for Y/WY, 1 digit for others)
+    f.write(uopt->advFilterYShaping / 10 + '0');
+    f.write(uopt->advFilterYShaping % 10 + '0');
+    f.write(uopt->advFilterCShaping + '0');
+    f.write(uopt->advFilterWYShaping / 10 + '0');
+    f.write(uopt->advFilterWYShaping % 10 + '0');
+    f.write(uopt->advFilterWYOverride + '0');
+    f.write(uopt->advFilterCombNTSC + '0');
+    f.write(uopt->advFilterCombPAL + '0');
+    // Comb Control parameters (1 digit each)
+    f.write(uopt->advCombLumaModeNTSC + '0');
+    f.write(uopt->advCombChromaModeNTSC + '0');
+    f.write(uopt->advCombChromaTapsNTSC + '0');
+    f.write(uopt->advCombLumaModePAL + '0');
+    f.write(uopt->advCombChromaModePAL + '0');
+    f.write(uopt->advCombChromaTapsPAL + '0');
     // HDMI Limited Range
     f.write(uopt->hdmiLimitedRange + '0');
     f.close();

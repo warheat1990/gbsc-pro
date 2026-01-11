@@ -60,12 +60,21 @@ void FLASH_LoadSettings(void)
     AceResponseSpeed = (u8_buf[19] <= 15) ? u8_buf[19] : 15;
 
     /* Video Filter parameters (offsets 20-25) */
-    FilterYShaping     = (u8_buf[20] <= 31) ? u8_buf[20] : 0;
-    FilterCShaping     = (u8_buf[21] <= 7)  ? u8_buf[21] : 0;
-    FilterWYShaping    = (u8_buf[22] <= 31) ? u8_buf[22] : 0;
-    FilterWYShapingOvr = (u8_buf[23] <= 1)  ? u8_buf[23] : 0;
-    FilterCombNTSC     = (u8_buf[24] <= 3)  ? u8_buf[24] : 0;
-    FilterCombPAL      = (u8_buf[25] <= 3)  ? u8_buf[25] : 0;
+    /* Note: 0xFF = erased flash, use sensible defaults */
+    FilterYShaping     = (u8_buf[20] <= 30) ? u8_buf[20] : 1;   /* Default 1 (Auto Narrow) */
+    FilterCShaping     = (u8_buf[21] <= 7)  ? u8_buf[21] : 0;   /* Default 0 (Auto 1.5MHz) */
+    FilterWYShaping    = (u8_buf[22] <= 19) ? u8_buf[22] : 19;  /* Default 19 (SVHS 18) */
+    FilterWYShapingOvr = (u8_buf[23] <= 1)  ? u8_buf[23] : 1;   /* Default 1 (Manual) */
+    FilterCombNTSC     = (u8_buf[24] <= 3)  ? u8_buf[24] : 0;   /* Default 0 (Narrow) */
+    FilterCombPAL      = (u8_buf[25] <= 3)  ? u8_buf[25] : 1;   /* Default 1 (Medium) */
+
+    /* Comb Control parameters (offsets 26-31) */
+    CombLumaModeNTSC   = (u8_buf[26] <= 7)  ? u8_buf[26] : 0;
+    CombChromaModeNTSC = (u8_buf[27] <= 7)  ? u8_buf[27] : 0;
+    CombChromaTapsNTSC = (u8_buf[28] <= 3)  ? u8_buf[28] : 2;
+    CombLumaModePAL    = (u8_buf[29] <= 7)  ? u8_buf[29] : 0;
+    CombChromaModePAL  = (u8_buf[30] <= 7)  ? u8_buf[30] : 0;
+    CombChromaTapsPAL  = (u8_buf[31] <= 3)  ? u8_buf[31] : 3;
 
     Input_signal = u8_buf[48];
 
@@ -120,6 +129,14 @@ static void FLASH_SaveSettingsNow(void)
     u8_buf[23] = FilterWYShapingOvr;
     u8_buf[24] = FilterCombNTSC;
     u8_buf[25] = FilterCombPAL;
+
+    /* Comb Control parameters (offsets 26-31) */
+    u8_buf[26] = CombLumaModeNTSC;
+    u8_buf[27] = CombChromaModeNTSC;
+    u8_buf[28] = CombChromaTapsNTSC;
+    u8_buf[29] = CombLumaModePAL;
+    u8_buf[30] = CombChromaModePAL;
+    u8_buf[31] = CombChromaTapsPAL;
 
     u8_buf[48] = Input_signal;
 

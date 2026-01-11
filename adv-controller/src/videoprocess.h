@@ -80,8 +80,26 @@ void ADV_SetFilterWYShaping(uint8_t filter);    /* 0-31, default 0 (Auto) */
 void ADV_SetFilterWYShapingOvr(uint8_t ovr);    /* 0=Auto, 1=Manual */
 void ADV_SetFilterCombNTSC(uint8_t bw);         /* 0-3, default 0 (Narrow) */
 void ADV_SetFilterCombPAL(uint8_t bw);          /* 0-3, default 0 (Narrow) */
-void ADV_SetFilterParams(void);                 /* Apply all filter parameters */
-void ADV_SetFilterDefaults(void);               /* Reset filter parameters to defaults */
+
+/* Comb Control parameter variables (ADV7280 registers 0x38 NTSC, 0x39 PAL) */
+extern uint8_t CombLumaModeNTSC;    /* YCMN[2:0] (0,4-7, default 0=Adaptive) */
+extern uint8_t CombChromaModeNTSC;  /* CCMN[2:0] (0,4-7, default 0=Adaptive) */
+extern uint8_t CombChromaTapsNTSC;  /* CTAPSN[1:0] (0-3, default 2=5→3 lines) */
+extern uint8_t CombLumaModePAL;     /* YCMP[2:0] (0,4-7, default 0=Adaptive) */
+extern uint8_t CombChromaModePAL;   /* CCMP[2:0] (0,4-7, default 0=Adaptive) */
+extern uint8_t CombChromaTapsPAL;   /* CTAPSP[1:0] (0-3, default 3=5→4 lines) */
+
+/* Comb Control parameter controls */
+void ADV_SetCombLumaModeNTSC(uint8_t mode);     /* 0=Adaptive, 4=Notch, 5-7=Fixed */
+void ADV_SetCombChromaModeNTSC(uint8_t mode);   /* 0=Adaptive, 4=Off, 5-7=Fixed */
+void ADV_SetCombChromaTapsNTSC(uint8_t taps);   /* 0-3, default 2 (5→3 lines) */
+void ADV_SetCombLumaModePAL(uint8_t mode);      /* 0=Adaptive, 4=Notch, 5-7=Fixed */
+void ADV_SetCombChromaModePAL(uint8_t mode);    /* 0=Adaptive, 4=Off, 5-7=Fixed */
+void ADV_SetCombChromaTapsPAL(uint8_t taps);    /* 0-3, default 3 (5→4 lines) */
+
+/* Unified video filter functions */
+void ADV_SetVideoFilters(void);                 /* Apply all video filters (shaping + comb) */
+void ADV_SetVideoFilterDefaults(void);          /* Reset all video filters to defaults */
 
 /* Detection and monitoring */
 void ADV_DetectLoop(void);

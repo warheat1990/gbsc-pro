@@ -55,10 +55,17 @@ const createMockSlotsData = () => {
   // uint8_t advFilterWYOverride;// offset 56
   // uint8_t advFilterCombNTSC;  // offset 57
   // uint8_t advFilterCombPAL;   // offset 58
+  // --- PRO: ADV7280 Comb Control Parameters (6 bytes) ---
+  // uint8_t advCombLumaModeNTSC;   // offset 59
+  // uint8_t advCombChromaModeNTSC; // offset 60
+  // uint8_t advCombChromaTapsNTSC; // offset 61
+  // uint8_t advCombLumaModePAL;    // offset 62
+  // uint8_t advCombChromaModePAL;  // offset 63
+  // uint8_t advCombChromaTapsPAL;  // offset 64
   // --- HDMI Limited Range ---
-  // uint8_t hdmiLimitedRange;   // offset 59
-  // --- Reserved (68 bytes) ---
-  // uint8_t reserved[68];       // offset 60-127
+  // uint8_t hdmiLimitedRange;   // offset 65
+  // --- Reserved (62 bytes) ---
+  // uint8_t reserved[62];       // offset 66-127
   const slotSize = 128;  // Must match SlotMeta struct
   const numSlots = 36;   // SLOTS_TOTAL
   const buffer = Buffer.alloc(slotSize * numSlots);
@@ -120,10 +127,18 @@ const createMockSlotsData = () => {
     buffer.writeUInt8(0, offset + 57);    // advFilterCombNTSC (default 0=Narrow)
     buffer.writeUInt8(1, offset + 58);    // advFilterCombPAL (default 1=Medium)
 
-    // --- HDMI Limited Range ---
-    buffer.writeUInt8(1, offset + 59);    // hdmiLimitedRange (default 1=HD)
+    // --- PRO: ADV7280 Comb Control Parameters ---
+    buffer.writeUInt8(0, offset + 59);    // advCombLumaModeNTSC (default 0=Adaptive)
+    buffer.writeUInt8(0, offset + 60);    // advCombChromaModeNTSC (default 0=Adaptive)
+    buffer.writeUInt8(2, offset + 61);    // advCombChromaTapsNTSC (default 2=5->3)
+    buffer.writeUInt8(0, offset + 62);    // advCombLumaModePAL (default 0=Adaptive)
+    buffer.writeUInt8(0, offset + 63);    // advCombChromaModePAL (default 0=Adaptive)
+    buffer.writeUInt8(3, offset + 64);    // advCombChromaTapsPAL (default 3=5->4)
 
-    // --- Reserved (68 bytes, offset 60-127) ---
+    // --- HDMI Limited Range ---
+    buffer.writeUInt8(1, offset + 65);    // hdmiLimitedRange (default 1=HD)
+
+    // --- Reserved (62 bytes, offset 66-127) ---
     // Already zeroed by Buffer.alloc
   }
 
@@ -534,26 +549,36 @@ const handleRequest = (req, res) => {
         return;
       }
 
-      // Handle Video Filter Comb (fb parameter)
+      // Handle Video Filter Comb (fb parameter) - sets both NTSC and PAL
       const fb = parseInt(params.get('fb'));
       if (!isNaN(fb) && fb >= 0 && fb <= 3) {
-        currentFilterComb = fb;
-        console.log(`  ├─ ⚡ Pro: Set Comb Filter to ${fb}`);
+        currentFilterCombNTSC = fb;
+        currentFilterCombPAL = fb;
+        console.log(`  ├─ ⚡ Pro: Set Comb Filter BW to ${fb} (NTSC+PAL)`);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end('true');
         broadcastStatus();
         return;
       }
 
-      // Handle Video Filter Defaults (fd parameter)
+      // Handle Video Filter Defaults (fd parameter) - resets ALL video filters
       const fd = parseInt(params.get('fd'));
       if (!isNaN(fd) && fd === 1) {
+        // Shaping filter defaults
         currentFilterY = 1;
         currentFilterC = 0;
         currentFilterWY = 9;
         currentFilterWYOverride = 1;
-        currentFilterComb = 1;
-        console.log(`  ├─ ⚡ Pro: Reset Video Filters to defaults`);
+        currentFilterCombNTSC = 0;
+        currentFilterCombPAL = 1;
+        // Comb control defaults
+        currentCombLumaModeNTSC = 0;
+        currentCombChromaModeNTSC = 0;
+        currentCombChromaTapsNTSC = 2;
+        currentCombLumaModePAL = 0;
+        currentCombChromaModePAL = 0;
+        currentCombChromaTapsPAL = 3;
+        console.log(`  ├─ ⚡ Pro: Reset ALL Video Filters to defaults`);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end('true');
         broadcastStatus();
@@ -731,12 +756,21 @@ let currentACEChromaMax = 8; // 0-15, default 8
 let currentACEGammaGain = 8; // 0-15, default 8
 let currentACEResponseSpeed = 15; // 0-15, default 15
 
-// Video Filter state
+// Video Filter state - Shaping filters
 let currentFilterY = 1;           // AV default (AutoNarrow)
 let currentFilterC = 0;           // AV default (Auto1.5M)
 let currentFilterWY = 9;          // SV default (SVHS-8)
 let currentFilterWYOverride = 1;  // SV default (Manual)
-let currentFilterComb = 1;        // Default (Medium)
+let currentFilterCombNTSC = 0;    // Comb BW NTSC (0=Narrow)
+let currentFilterCombPAL = 1;     // Comb BW PAL (1=Medium)
+
+// Video Filter state - Comb Control
+let currentCombLumaModeNTSC = 0;    // 0=Adaptive 3-line
+let currentCombChromaModeNTSC = 0;  // 0=Adaptive
+let currentCombChromaTapsNTSC = 2;  // 2=5→3 lines
+let currentCombLumaModePAL = 0;     // 0=Adaptive 5-line
+let currentCombChromaModePAL = 0;   // 0=Adaptive
+let currentCombChromaTapsPAL = 3;   // 3=5→4 lines
 
 // HDMI Limited Range state
 let currentHdmiLimitedRange = 1;  // 0=Off, 1=HD, 2=SD, 3=All (default 1=HD)
@@ -770,12 +804,13 @@ const buildProStatusMessage = () => {
   }
 
   // Base message (12 chars) + 5 filter chars + 1 hdmiLimitedRange + 1 syncStripper = 19 chars
+  // Note: comb uses PAL value for status display (matches firmware behavior)
   return `$${currentInputType}${formatChar}${current2X}${currentSmooth}${currentSharpness}${currentACE}` +
          `${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}` +
          `${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}` +
          `${toHexChar16(currentACEResponseSpeed)}` +
          `${toHexChar32(currentFilterY)}${toHexChar16(currentFilterC)}` +
-         `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterComb)}` +
+         `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterCombPAL)}` +
          `${currentHdmiLimitedRange}${currentSyncStripper}`;
 };
 

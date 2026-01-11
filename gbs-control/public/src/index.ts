@@ -52,10 +52,17 @@ const Structs: StructDescriptors = {
     { name: "advFilterWYOverride", type: "byte", size: 1 }, // 0-1, default 1 (Manual)
     { name: "advFilterCombNTSC", type: "byte", size: 1 },   // 0-3, default 0
     { name: "advFilterCombPAL", type: "byte", size: 1 },    // 0-3, default 1
+    // --- PRO: ADV7280 Comb Control Parameters ---
+    { name: "advCombLumaModeNTSC", type: "byte", size: 1 },   // 0,4-7, default 0
+    { name: "advCombChromaModeNTSC", type: "byte", size: 1 }, // 0,4-7, default 0
+    { name: "advCombChromaTapsNTSC", type: "byte", size: 1 }, // 0-3, default 2
+    { name: "advCombLumaModePAL", type: "byte", size: 1 },    // 0,4-7, default 0
+    { name: "advCombChromaModePAL", type: "byte", size: 1 },  // 0,4-7, default 0
+    { name: "advCombChromaTapsPAL", type: "byte", size: 1 },  // 0-3, default 3
     // --- HDMI Limited Range ---
     { name: "hdmiLimitedRange", type: "byte", size: 1 },    // 0=Off, 1=HD, 2=SD, 3=All
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 68 },
+    { name: "reserved", type: "byte", size: 62 },
   ],
 };
 
@@ -314,8 +321,12 @@ const createWebSocket = () => {
     ] = message.data;
 
     if (messageDataAt0 === "$") {
-      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed][yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
-      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response 12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
+      // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
+      //             [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
+      //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP]
+      // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
+      //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
+      //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
@@ -340,6 +351,14 @@ const createWebSocket = () => {
 
       // Sync Stripper (position 18)
       const syncStripperChar: string = message.data[18] || "1";  // Default 1 (ON)
+
+      // Comb Control parameters (positions 19-24)
+      const combLumaNChar: string = message.data[19] || "0";    // NTSC Luma mode
+      const combChromaNChar: string = message.data[20] || "0";  // NTSC Chroma mode
+      const combTapsNChar: string = message.data[21] || "2";    // NTSC Chroma taps
+      const combLumaPChar: string = message.data[22] || "0";    // PAL Luma mode
+      const combChromaPChar: string = message.data[23] || "0";  // PAL Chroma mode
+      const combTapsPChar: string = message.data[24] || "3";    // PAL Chroma taps
 
       // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
       const fromHexChar = (c: string): number => {
@@ -431,7 +450,7 @@ const createWebSocket = () => {
         else overrideTr.removeAttribute("active");
       }
 
-      // Update Comb Filter value
+      // Update Comb Filter value (in Video Filters section - legacy unified)
       const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
       if (combValueEl) {
         const combVal = fromHexChar(combFilterChar);
@@ -467,6 +486,39 @@ const createWebSocket = () => {
         if (textDiv) {
           textDiv.textContent = formatNames[formatValue];
         }
+      }
+
+      // Determine if signal is NTSC-family based on format setting
+      // NTSC-family: Auto(0), NTSC-M(2), PAL-60(3), NTSC443(4), NTSC-J(5), PAL-M w/o p(7), PAL-M(8)
+      const isNTSCSignal = (formatValue === 0 || formatValue === 2 || formatValue === 3 ||
+                            formatValue === 4 || formatValue === 5 || formatValue === 7 || formatValue === 8);
+
+      // Comb Control mode/taps name helpers
+      const combModeNames = ["Adaptive", "?", "?", "?", "Notch", "Fixed-2L", "Fixed-3L", "Fixed-4L"];
+      const chromaModeNames = ["Adaptive", "?", "?", "?", "Off", "Fixed-2L", "Fixed-3L", "Fixed-4L"];
+      const combTapsNamesNTSC = ["None", "3->1", "5->3", "5->4"];
+      const combTapsNamesPAL = ["None", "3->1", "3->2", "5->4"];
+
+      // Update Comb Control Luma Mode value
+      const lumaValueEl = document.getElementById("gbs-pro-filter-luma-value");
+      if (lumaValueEl) {
+        const lumaVal = fromHexChar(isNTSCSignal ? combLumaNChar : combLumaPChar);
+        lumaValueEl.textContent = combModeNames[lumaVal] || "Adaptive";
+      }
+
+      // Update Comb Control Chroma Mode value
+      const chromaValueEl = document.getElementById("gbs-pro-filter-chroma-value");
+      if (chromaValueEl) {
+        const chromaVal = fromHexChar(isNTSCSignal ? combChromaNChar : combChromaPChar);
+        chromaValueEl.textContent = chromaModeNames[chromaVal] || "Adaptive";
+      }
+
+      // Update Comb Control Chroma Taps value
+      const tapsValueEl = document.getElementById("gbs-pro-filter-taps-value");
+      if (tapsValueEl) {
+        const tapsVal = fromHexChar(isNTSCSignal ? combTapsNChar : combTapsPChar);
+        const tapsNames = isNTSCSignal ? combTapsNamesNTSC : combTapsNamesPAL;
+        tapsValueEl.textContent = tapsNames[tapsVal] || "5->3";
       }
 
       // Update 2X button
@@ -1962,6 +2014,87 @@ const initVideoFilters = () => {
       sendFilterParam("fd", "1");
     });
   }
+
+  // --- Comb Control (in Video Filters section) ---
+  // Valid comb modes: 0 (Adaptive), 4 (Notch), 5 (Fixed-2L), 6 (Fixed-3L), 7 (Fixed-4L)
+  const validCombModes = [0, 4, 5, 6, 7];
+  const combModeNames = ["Adaptive", "?", "?", "?", "Notch", "Fixed-2L", "Fixed-3L", "Fixed-4L"];
+  const chromaModeNames = ["Adaptive", "?", "?", "?", "Off", "Fixed-2L", "Fixed-3L", "Fixed-4L"];
+  const combTapsNames = ["None", "3->1", "5->3", "5->4"];
+
+  // Luma Mode +/- buttons
+  const lumaDecBtn = document.getElementById("gbs-pro-filter-luma-dec");
+  const lumaIncBtn = document.getElementById("gbs-pro-filter-luma-inc");
+  const lumaValueEl = document.getElementById("gbs-pro-filter-luma-value");
+
+  const updateLumaMode = (delta: number) => {
+    if (!lumaValueEl) return;
+    const currentName = lumaValueEl.textContent || "Adaptive";
+    let currentIdx = combModeNames.indexOf(currentName);
+    if (currentIdx < 0) currentIdx = 0;
+
+    let pos = validCombModes.indexOf(currentIdx);
+    if (pos < 0) pos = 0;
+
+    pos = (pos + delta + validCombModes.length) % validCombModes.length;
+    const newIdx = validCombModes[pos];
+
+    lumaValueEl.textContent = combModeNames[newIdx];
+    // Firmware expects "cl" with value suffix: "5n" for NTSC, "5p" for PAL
+    sendFilterParam("cl", `${newIdx}n`);
+    sendFilterParam("cl", `${newIdx}p`);
+  };
+
+  if (lumaDecBtn) lumaDecBtn.addEventListener("click", () => updateLumaMode(-1));
+  if (lumaIncBtn) lumaIncBtn.addEventListener("click", () => updateLumaMode(1));
+
+  // Chroma Mode +/- buttons
+  const chromaDecBtn = document.getElementById("gbs-pro-filter-chroma-dec");
+  const chromaIncBtn = document.getElementById("gbs-pro-filter-chroma-inc");
+  const chromaValueEl = document.getElementById("gbs-pro-filter-chroma-value");
+
+  const updateChromaMode = (delta: number) => {
+    if (!chromaValueEl) return;
+    const currentName = chromaValueEl.textContent || "Adaptive";
+    let currentIdx = chromaModeNames.indexOf(currentName);
+    if (currentIdx < 0) currentIdx = 0;
+
+    let pos = validCombModes.indexOf(currentIdx);
+    if (pos < 0) pos = 0;
+
+    pos = (pos + delta + validCombModes.length) % validCombModes.length;
+    const newIdx = validCombModes[pos];
+
+    chromaValueEl.textContent = chromaModeNames[newIdx];
+    // Firmware expects "cc" with value suffix: "5n" for NTSC, "5p" for PAL
+    sendFilterParam("cc", `${newIdx}n`);
+    sendFilterParam("cc", `${newIdx}p`);
+  };
+
+  if (chromaDecBtn) chromaDecBtn.addEventListener("click", () => updateChromaMode(-1));
+  if (chromaIncBtn) chromaIncBtn.addEventListener("click", () => updateChromaMode(1));
+
+  // Chroma Taps +/- buttons
+  const tapsDecBtn = document.getElementById("gbs-pro-filter-taps-dec");
+  const tapsIncBtn = document.getElementById("gbs-pro-filter-taps-inc");
+  const tapsValueEl = document.getElementById("gbs-pro-filter-taps-value");
+
+  const updateChromaTaps = (delta: number) => {
+    if (!tapsValueEl) return;
+    const currentName = tapsValueEl.textContent || "5->3";
+    let currentIdx = combTapsNames.indexOf(currentName);
+    if (currentIdx < 0) currentIdx = 2;
+
+    let newIdx = (currentIdx + delta + 4) % 4;
+
+    tapsValueEl.textContent = combTapsNames[newIdx];
+    // Firmware expects "ct" with value suffix: "2n" for NTSC, "2p" for PAL
+    sendFilterParam("ct", `${newIdx}n`);
+    sendFilterParam("ct", `${newIdx}p`);
+  };
+
+  if (tapsDecBtn) tapsDecBtn.addEventListener("click", () => updateChromaTaps(-1));
+  if (tapsIncBtn) tapsIncBtn.addEventListener("click", () => updateChromaTaps(1));
 };
 
 const initControlMobileKeys = () => {

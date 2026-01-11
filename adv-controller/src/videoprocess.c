@@ -46,10 +46,21 @@ uint8_t FilterWYShapingOvr = 1; /* 0x18 bit 7, WYSFMOVR default 1 (Manual) */
 uint8_t FilterCombNTSC = 0;     /* 0x19 bits 3:2, NSFSEL, default 0 (Narrow) */
 uint8_t FilterCombPAL = 1;      /* 0x19 bits 1:0, PSFSEL, default 1 (Medium) */
 
+/* Comb Control parameters - Main Register Map (0x38 NTSC, 0x39 PAL) */
+uint8_t CombLumaModeNTSC = 0;   /* 0x38 bits 2:0, YCMN, default 0 (Adaptive 3-line) */
+uint8_t CombChromaModeNTSC = 0; /* 0x38 bits 5:3, CCMN, default 0 (Adaptive) */
+uint8_t CombChromaTapsNTSC = 2; /* 0x38 bits 7:6, CTAPSN, default 2 (5→3 lines) */
+uint8_t CombLumaModePAL = 0;    /* 0x39 bits 2:0, YCMP, default 0 (Adaptive 5-line) */
+uint8_t CombChromaModePAL = 0;  /* 0x39 bits 5:3, CCMP, default 0 (Adaptive) */
+uint8_t CombChromaTapsPAL = 3;  /* 0x39 bits 7:6, CTAPSP, default 3 (5→4 lines) */
+
 bool asw_01, asw_02, asw_03, asw_04;
 bool AVsw;
 uint8_t Input_signal = 0;
 uint8_t buff_send[APP_FRAME_LEN_MAX];
+
+/* Encoder format tracking for automatic NTSC/PAL reconfiguration */
+static uint8_t last_encoder_format = 0xFF; /* 0xFF = not yet configured */
 
 /*******************************************************************************
  * I2C Command Arrays - ADV7280/ADV7391 Register Configuration
@@ -96,9 +107,6 @@ uint8_t I2C_COMMANDS_YC_INPUT[] = {
     /* =============== ADV7280 S-Video =============== */
     0x42, 0x0E, 0x00,   // ADV7280 - ADI Control 1: main register
     0x42, 0x00, 0x09,   // ADV7280 - Input control: Y input on A3, C input on A4
-    0x42, 0x38, 0x80,   // ADV7280 - NTSC comb control: default
-    0x42, 0x39, 0xC0,   // ADV7280 - PAL comb control: default
-    0x42, 0x17, 0x49,   // ADV7280 - Shaping Filter Control 1: SH1, SVHS 8
 };
 
 /* CVBS (Composite) input configuration */
@@ -106,9 +114,6 @@ uint8_t I2C_COMMANDS_CVBS_INPUT[] = {
     /* =============== ADV7280 CVBS =============== */
     0x42, 0x0E, 0x00,   // ADV7280 - ADI Control 1: main register
     0x42, 0x00, 0x00,   // ADV7280 - Input control: CVBS input on A1
-    0x42, 0x38, 0x80,   // ADV7280 - NTSC comb control: default
-    0x42, 0x39, 0xC0,   // ADV7280 - PAL comb control: default
-    0x42, 0x17, 0x47,   // ADV7280 - Shaping Filter Control 1: SH1, SVHS 6
 };
 
 /* Full initialization sequence for ADV7280 + ADV7391 */
@@ -203,6 +208,7 @@ uint8_t I2C_COMMANDS_625p_CONFIG[] = {
 /**
  * @brief Configure video encoder based on detected input format
  *        Reads AD_RESULT register to determine 525p vs 625p
+ *        Automatically reconfigures encoder when format changes (NTSC <-> PAL)
  */
 static void ADV_ConfigureEncoder(void)
 {
@@ -233,13 +239,18 @@ static void ADV_ConfigureEncoder(void)
         is_525p = 0;
     }
 
+    /* Only reconfigure if format changed */
+    if (last_encoder_format == is_525p) {
+        return;
+    }
+
+    last_encoder_format = is_525p;
+
     if (is_525p) {
         (void)I2C_TransmitBatch(I2C_COMMANDS_525p_CONFIG,
                                   sizeof(I2C_COMMANDS_525p_CONFIG) / 3, TIMEOUT);
         printf("[ADV] 525p format configured\n");
-    }
-
-    if (!is_525p) {
+    } else {
         (void)I2C_TransmitBatch(I2C_COMMANDS_625p_CONFIG,
                                   sizeof(I2C_COMMANDS_625p_CONFIG) / 3, TIMEOUT);
         printf("[ADV] 625p format configured\n");
@@ -337,8 +348,8 @@ void ADV_Init(void)
     ADV_ConfigureEncoder();
     ADV_SetBCSH();
     ADV_SetACE(adv_ace);
-    ADV_SetACEParams();     /* Apply ACE parameters loaded from flash */
-    ADV_SetFilterParams();  /* Apply Video Filter parameters loaded from flash */
+    ADV_SetACEParams();         /* Apply ACE parameters loaded from flash */
+    ADV_SetVideoFilters();      /* Apply Video Filter parameters loaded from flash */
 
     /* Configure I2P based on settings */
     if (adv_i2p) {
@@ -399,6 +410,11 @@ void ADV_SetInput(uint8_t input)
                                   sizeof(I2C_COMMANDS_CVBS_INPUT) / 3, TIMEOUT);
         printf("[ADV] AvSignal\n");
     }
+
+    /* Apply saved parameters after input switch */
+    ADV_SetACE(adv_ace);
+    ADV_SetACEParams();
+    ADV_SetVideoFilters();
 }
 
 /**
@@ -627,9 +643,10 @@ void ADV_SetFilterYShaping(uint8_t filter)
     uint8_t reg_val = ((FilterCShaping & 0x07) << 5) | (filter & 0x1F);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x17, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter Y Shaping: %d\n", filter);
 }
@@ -648,9 +665,10 @@ void ADV_SetFilterCShaping(uint8_t filter)
     uint8_t reg_val = ((filter & 0x07) << 5) | (FilterYShaping & 0x1F);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x17, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter C Shaping: %d\n", filter);
 }
@@ -669,9 +687,10 @@ void ADV_SetFilterWYShaping(uint8_t filter)
     uint8_t reg_val = ((FilterWYShapingOvr & 0x01) << 7) | (filter & 0x1F);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x18, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter WY Shaping: %d\n", filter);
 }
@@ -689,9 +708,10 @@ void ADV_SetFilterWYShapingOvr(uint8_t ovr)
     uint8_t reg_val = ((FilterWYShapingOvr & 0x01) << 7) | (FilterWYShaping & 0x1F);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x18, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter WY Override: %s\n", FilterWYShapingOvr ? "Manual" : "Auto");
 }
@@ -710,9 +730,10 @@ void ADV_SetFilterCombNTSC(uint8_t bw)
     uint8_t reg_val = 0xF0 | ((bw & 0x03) << 2) | (FilterCombPAL & 0x03);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x19, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter Comb NTSC: %d\n", bw);
 }
@@ -731,41 +752,53 @@ void ADV_SetFilterCombPAL(uint8_t bw)
     uint8_t reg_val = 0xF0 | ((FilterCombNTSC & 0x03) << 2) | (bw & 0x03);
 
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x19, reg_val
     };
-    (void)I2C_TransmitBatch(batch, 1, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
 
     printf("[ADV] Filter Comb PAL: %d\n", bw);
 }
 
 /**
- * @brief Apply all filter parameters to hardware
+ * @brief Apply all video filter parameters to hardware
+ * Writes shaping filters (0x17-0x19) and comb control (0x38-0x39) in one batch
  * Call this after loading settings from flash or changing multiple params
  */
-void ADV_SetFilterParams(void)
+void ADV_SetVideoFilters(void)
 {
-    /* Write all three filter registers in one batch */
+    /* Shaping filter registers */
     uint8_t reg17 = ((FilterCShaping & 0x07) << 5) | (FilterYShaping & 0x1F);
     uint8_t reg18 = ((FilterWYShapingOvr & 0x01) << 7) | (FilterWYShaping & 0x1F);  /* bit 7 for WYSFMOVR */
     uint8_t reg19 = 0xF0 | ((FilterCombNTSC & 0x03) << 2) | (FilterCombPAL & 0x03);
 
+    /* Comb control registers */
+    uint8_t reg38 = (CombChromaTapsNTSC << 6) | (CombChromaModeNTSC << 3) | CombLumaModeNTSC;
+    uint8_t reg39 = (CombChromaTapsPAL << 6) | (CombChromaModePAL << 3) | CombLumaModePAL;
+
     const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
         DEVICE_ADDR, 0x17, reg17,
         DEVICE_ADDR, 0x18, reg18,
-        DEVICE_ADDR, 0x19, reg19
+        DEVICE_ADDR, 0x19, reg19,
+        DEVICE_ADDR, 0x38, reg38,
+        DEVICE_ADDR, 0x39, reg39
     };
-    (void)I2C_TransmitBatch(batch, 3, TIMEOUT);
+    (void)I2C_TransmitBatch(batch, 6, TIMEOUT);
 
-    printf("[ADV] Filter Params: Y=%d C=%d WY=%d OVR=%d NTSC=%d PAL=%d\n",
-           FilterYShaping, FilterCShaping, FilterWYShaping,
-           FilterWYShapingOvr, FilterCombNTSC, FilterCombPAL);
+    printf("[ADV] Video Filters: Y=%d C=%d WY=%d Comb NTSC=%d PAL=%d\n",
+           FilterYShaping, FilterCShaping, FilterWYShaping, FilterCombNTSC, FilterCombPAL);
+    printf("[ADV] Comb Control: NTSC(L=%d C=%d T=%d) PAL(L=%d C=%d T=%d)\n",
+           CombLumaModeNTSC, CombChromaModeNTSC, CombChromaTapsNTSC,
+           CombLumaModePAL, CombChromaModePAL, CombChromaTapsPAL);
 }
 
 /**
- * @brief Reset all filter parameters to defaults
+ * @brief Reset all video filter parameters to defaults
  */
-void ADV_SetFilterDefaults(void)
+void ADV_SetVideoFilterDefaults(void)
 {
+    /* Shaping filter defaults */
     FilterYShaping = 0;     /* Auto Wide */
     FilterCShaping = 0;     /* Auto 1.5MHz */
     FilterWYShaping = 0;    /* Auto */
@@ -773,8 +806,144 @@ void ADV_SetFilterDefaults(void)
     FilterCombNTSC = 0;     /* Narrow */
     FilterCombPAL = 0;      /* Narrow */
 
-    ADV_SetFilterParams();
-    printf("[ADV] Filter Defaults restored\n");
+    /* Comb control defaults */
+    CombLumaModeNTSC = 0;    /* Adaptive 3-line */
+    CombChromaModeNTSC = 0;  /* Adaptive */
+    CombChromaTapsNTSC = 2;  /* 5→3 lines */
+    CombLumaModePAL = 0;     /* Adaptive 5-line */
+    CombChromaModePAL = 0;   /* Adaptive */
+    CombChromaTapsPAL = 3;   /* 5→4 lines */
+
+    ADV_SetVideoFilters();
+    printf("[ADV] Video Filter Defaults restored\n");
+}
+
+/*******************************************************************************
+ * Comb Control Parameter Functions
+ * Main Register Map: 0x38 (NTSC), 0x39 (PAL)
+ * Controls luma/chroma comb mode and chroma taps
+ ******************************************************************************/
+
+/**
+ * @brief Set Luma Comb Mode for NTSC
+ * @param mode 0=Adaptive 3-line, 4=Low-pass/notch, 5=Fixed 2-line top,
+ *             6=Fixed 3-line all, 7=Fixed 2-line bottom
+ * Register 0x38, bits [2:0]
+ */
+void ADV_SetCombLumaModeNTSC(uint8_t mode)
+{
+    if (mode > 7) mode = 7;
+    CombLumaModeNTSC = mode;
+
+    uint8_t reg_val = (CombChromaTapsNTSC << 6) | (CombChromaModeNTSC << 3) | (mode & 0x07);
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x38, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Luma NTSC: %d\n", mode);
+}
+
+/**
+ * @brief Set Chroma Comb Mode for NTSC
+ * @param mode 0=Adaptive, 4=Disabled, 5=Fixed top, 6=Fixed all, 7=Fixed bottom
+ * Register 0x38, bits [5:3]
+ */
+void ADV_SetCombChromaModeNTSC(uint8_t mode)
+{
+    if (mode > 7) mode = 7;
+    CombChromaModeNTSC = mode;
+
+    uint8_t reg_val = (CombChromaTapsNTSC << 6) | ((mode & 0x07) << 3) | CombLumaModeNTSC;
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x38, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Chroma NTSC: %d\n", mode);
+}
+
+/**
+ * @brief Set Chroma Comb Taps for NTSC
+ * @param taps 0=Not used, 1=3→2 lines, 2=5→3 lines, 3=5→4 lines
+ * Register 0x38, bits [7:6]
+ */
+void ADV_SetCombChromaTapsNTSC(uint8_t taps)
+{
+    if (taps > 3) taps = 3;
+    CombChromaTapsNTSC = taps;
+
+    uint8_t reg_val = ((taps & 0x03) << 6) | (CombChromaModeNTSC << 3) | CombLumaModeNTSC;
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x38, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Taps NTSC: %d\n", taps);
+}
+
+/**
+ * @brief Set Luma Comb Mode for PAL
+ * @param mode 0=Adaptive 5-line, 4=Low-pass/notch, 5=Fixed 3-line top,
+ *             6=Fixed 5-line all, 7=Fixed 3-line bottom
+ * Register 0x39, bits [2:0]
+ */
+void ADV_SetCombLumaModePAL(uint8_t mode)
+{
+    if (mode > 7) mode = 7;
+    CombLumaModePAL = mode;
+
+    uint8_t reg_val = (CombChromaTapsPAL << 6) | (CombChromaModePAL << 3) | (mode & 0x07);
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x39, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Luma PAL: %d\n", mode);
+}
+
+/**
+ * @brief Set Chroma Comb Mode for PAL
+ * @param mode 0=Adaptive, 4=Disabled, 5=Fixed top, 6=Fixed all, 7=Fixed bottom
+ * Register 0x39, bits [5:3]
+ */
+void ADV_SetCombChromaModePAL(uint8_t mode)
+{
+    if (mode > 7) mode = 7;
+    CombChromaModePAL = mode;
+
+    uint8_t reg_val = (CombChromaTapsPAL << 6) | ((mode & 0x07) << 3) | CombLumaModePAL;
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x39, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Chroma PAL: %d\n", mode);
+}
+
+/**
+ * @brief Set Chroma Comb Taps for PAL
+ * @param taps 0=Not used, 1=5→3 (2 taps), 2=5→3 (3 taps), 3=5→4 (4 taps)
+ * Register 0x39, bits [7:6]
+ */
+void ADV_SetCombChromaTapsPAL(uint8_t taps)
+{
+    if (taps > 3) taps = 3;
+    CombChromaTapsPAL = taps;
+
+    uint8_t reg_val = ((taps & 0x03) << 6) | (CombChromaModePAL << 3) | CombLumaModePAL;
+    const uint8_t batch[] = {
+        DEVICE_ADDR, 0x0E, 0x00,      /* Ensure Main Register Map */
+        DEVICE_ADDR, 0x39, reg_val
+    };
+    (void)I2C_TransmitBatch(batch, 2, TIMEOUT);
+
+    printf("[ADV] Comb Taps PAL: %d\n", taps);
 }
 
 /*******************************************************************************
@@ -783,6 +952,7 @@ void ADV_SetFilterDefaults(void)
 
 /**
  * @brief Main detection loop - monitors signal status
+ *        Also reconfigures encoder when switching between NTSC/PAL formats
  */
 void ADV_DetectLoop(void)
 {
@@ -807,6 +977,9 @@ void ADV_DetectLoop(void)
     I2C_Receive(DEVICE_ADDR, &buff[1], &ad_result, 1, TIMEOUT);
 
     ADV_DetectFormat(btn_flag);
+
+    /* Check if encoder needs reconfiguration (NTSC <-> PAL switch) */
+    ADV_ConfigureEncoder();
 
     if (((uint8_t)(ad_result & 0x02) == 0x02) && !status && (err_flag)) {
         status = 1;

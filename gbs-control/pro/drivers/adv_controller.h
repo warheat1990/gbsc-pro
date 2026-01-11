@@ -89,18 +89,25 @@ static const unsigned char ADV_ACE_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_C
 static const unsigned char ADV_ACE_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_ACE_DEFAULTS};
 
 // ====================================================================================
-// Video Filter Parameter Commands
-// Uses 'S' command with sub-commands 0xB0-0xB7
+// Video Filter Commands
+// Uses 'S' command with sub-commands 0xB0-0xB7 (shaping) and 0xB8-0xBD (comb control)
 // Data byte in packet[4] contains the parameter value
 // ====================================================================================
 
+// Shaping Filter commands (0xB0-0xB6)
 #define ADV_FILTER_Y_SHAPING     0xB0  // Set Y Shaping Filter for CVBS (0-31), value in packet[4]
 #define ADV_FILTER_C_SHAPING     0xB1  // Set C Shaping Filter for CVBS (0-7), value in packet[4]
 #define ADV_FILTER_WY_SHAPING    0xB2  // Set WY Shaping Filter for S-Video (0-31), value in packet[4]
 #define ADV_FILTER_WY_OVERRIDE   0xB3  // Set WY Override (0=Auto, 1=Manual), value in packet[4]
 #define ADV_FILTER_COMB_NTSC     0xB4  // Set Comb Filter NTSC bandwidth (0-3), value in packet[4]
 #define ADV_FILTER_COMB_PAL      0xB5  // Set Comb Filter PAL bandwidth (0-3), value in packet[4]
-#define ADV_FILTER_DEFAULTS      0xB7  // Reset Video Filter parameters to defaults
+#define ADV_VIDEO_FILTER_DEFAULTS 0xB7 // Reset ALL video filter parameters to defaults
+#define ADV_COMB_LUMA_MODE_NTSC     0xB8  // Set NTSC Luma Mode (0,4-7), value in packet[4]
+#define ADV_COMB_CHROMA_MODE_NTSC   0xB9  // Set NTSC Chroma Mode (0,4-7), value in packet[4]
+#define ADV_COMB_CHROMA_TAPS_NTSC   0xBA  // Set NTSC Chroma Taps (0-3), value in packet[4]
+#define ADV_COMB_LUMA_MODE_PAL      0xBB  // Set PAL Luma Mode (0,4-7), value in packet[4]
+#define ADV_COMB_CHROMA_MODE_PAL    0xBC  // Set PAL Chroma Mode (0,4-7), value in packet[4]
+#define ADV_COMB_CHROMA_TAPS_PAL    0xBD  // Set PAL Chroma Taps (0-3), value in packet[4]
 
 // Video Filter parameter default values (from ADV7280 Main Register Map)
 #define ADV_FILTER_Y_SHAPING_DEFAULT     1   // Auto Narrow
@@ -110,9 +117,19 @@ static const unsigned char ADV_ACE_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, AD
 #define ADV_FILTER_COMB_NTSC_DEFAULT     0   // Narrow
 #define ADV_FILTER_COMB_PAL_DEFAULT      1   // Medium
 
-// Packet templates for Video Filter parameters (use writeReg to fill value)
-static const unsigned char ADV_Filter_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x00};
-static const unsigned char ADV_Filter_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_FILTER_DEFAULTS};
+// Comb Control parameter default values (from current I2C_COMMANDS arrays)
+// NTSC (0x38 = 0x80): CTAPSN=2, CCMN=0, YCMN=0
+// PAL (0x39 = 0xC0): CTAPSP=3, CCMP=0, YCMP=0
+#define ADV_COMB_LUMA_MODE_NTSC_DEFAULT     0   // Adaptive 3-line
+#define ADV_COMB_CHROMA_MODE_NTSC_DEFAULT   0   // Adaptive
+#define ADV_COMB_CHROMA_TAPS_NTSC_DEFAULT   2   // 5→3 lines
+#define ADV_COMB_LUMA_MODE_PAL_DEFAULT      0   // Adaptive 5-line
+#define ADV_COMB_CHROMA_MODE_PAL_DEFAULT    0   // Adaptive
+#define ADV_COMB_CHROMA_TAPS_PAL_DEFAULT    3   // 5→4 lines
+
+// Packet templates for Video Filter parameters
+static const unsigned char ADV_VideoFilter_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x00};
+static const unsigned char ADV_VideoFilter_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_VIDEO_FILTER_DEFAULTS};
 
 // ====================================================================================
 // Video Format Mapping Table

@@ -195,46 +195,92 @@ void ADV_sendACEParams(void) {
 // ====================================================================================
 
 void ADV_sendFilterYShaping(uint8_t filter) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_Y_SHAPING, filter);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_Y_SHAPING, filter);
 }
 
 void ADV_sendFilterCShaping(uint8_t filter) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_C_SHAPING, filter);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_C_SHAPING, filter);
 }
 
 void ADV_sendFilterWYShaping(uint8_t filter) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_WY_SHAPING, filter);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_WY_SHAPING, filter);
 }
 
 void ADV_sendFilterWYOverride(uint8_t ovr) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_WY_OVERRIDE, ovr);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_WY_OVERRIDE, ovr);
 }
 
 void ADV_sendFilterCombNTSC(uint8_t bw) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_COMB_NTSC, bw);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_COMB_NTSC, bw);
 }
 
 void ADV_sendFilterCombPAL(uint8_t bw) {
-    advController.writeReg(ADV_Filter_Param, ADV_FILTER_COMB_PAL, bw);
+    advController.writeReg(ADV_VideoFilter_Param, ADV_FILTER_COMB_PAL, bw);
 }
 
-void ADV_sendFilterDefaults(void) {
-    advController.send(ADV_Filter_Defaults);
+void ADV_sendVideoFiltersDefaults(void) {
+    // Send Video Filters Defaults command to ADV controller
+    advController.send(ADV_VideoFilter_Defaults);
+    // Reset filter settings
     uopt->advFilterYShaping = ADV_FILTER_Y_SHAPING_DEFAULT;
     uopt->advFilterCShaping = ADV_FILTER_C_SHAPING_DEFAULT;
     uopt->advFilterWYShaping = ADV_FILTER_WY_SHAPING_DEFAULT;
     uopt->advFilterWYOverride = ADV_FILTER_WY_OVERRIDE_DEFAULT;
     uopt->advFilterCombNTSC = ADV_FILTER_COMB_NTSC_DEFAULT;
     uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
+    uopt->advCombLumaModeNTSC = ADV_COMB_LUMA_MODE_NTSC_DEFAULT;
+    uopt->advCombChromaModeNTSC = ADV_COMB_CHROMA_MODE_NTSC_DEFAULT;
+    uopt->advCombChromaTapsNTSC = ADV_COMB_CHROMA_TAPS_NTSC_DEFAULT;
+    uopt->advCombLumaModePAL = ADV_COMB_LUMA_MODE_PAL_DEFAULT;
+    uopt->advCombChromaModePAL = ADV_COMB_CHROMA_MODE_PAL_DEFAULT;
+    uopt->advCombChromaTapsPAL = ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
 }
 
-void ADV_sendFilterParams(void) {
+// ====================================================================================
+// Comb Control Parameter Functions (individual setters)
+// ====================================================================================
+
+void ADV_sendCombLumaModeNTSC(uint8_t mode) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_LUMA_MODE_NTSC, mode);
+}
+
+void ADV_sendCombChromaModeNTSC(uint8_t mode) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_CHROMA_MODE_NTSC, mode);
+}
+
+void ADV_sendCombChromaTapsNTSC(uint8_t taps) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_CHROMA_TAPS_NTSC, taps);
+}
+
+void ADV_sendCombLumaModePAL(uint8_t mode) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_LUMA_MODE_PAL, mode);
+}
+
+void ADV_sendCombChromaModePAL(uint8_t mode) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_CHROMA_MODE_PAL, mode);
+}
+
+void ADV_sendCombChromaTapsPAL(uint8_t taps) {
+    advController.writeReg(ADV_VideoFilter_Param, ADV_COMB_CHROMA_TAPS_PAL, taps);
+}
+
+// ====================================================================================
+// Video Filters Function
+// ====================================================================================
+
+void ADV_sendVideoFilters(void) {
     ADV_sendFilterYShaping(uopt->advFilterYShaping);
     ADV_sendFilterCShaping(uopt->advFilterCShaping);
     ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
     ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
     ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
     ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+    ADV_sendCombLumaModeNTSC(uopt->advCombLumaModeNTSC);
+    ADV_sendCombChromaModeNTSC(uopt->advCombChromaModeNTSC);
+    ADV_sendCombChromaTapsNTSC(uopt->advCombChromaTapsNTSC);
+    ADV_sendCombLumaModePAL(uopt->advCombLumaModePAL);
+    ADV_sendCombChromaModePAL(uopt->advCombChromaModePAL);
+    ADV_sendCombChromaTapsPAL(uopt->advCombChromaTapsPAL);
 }
 
 // Apply video format option with bounds checking
@@ -266,7 +312,7 @@ void ADV_applySlotSettings(void) {
     // Apply ACE parameters
     ADV_sendACEParams();
     // Apply Video Filter parameters
-    ADV_sendFilterParams();
+    ADV_sendVideoFilters();
 }
 
 void ADV_applyPendingOptions(void)
@@ -532,9 +578,11 @@ void broadcastProStatus(WebSocketsServer& ws)
     // Extended message format:
     // $[input][format][i2p][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
     //  [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
+    //  [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
     //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
-    constexpr size_t MESSAGE_LEN = 19;
+    //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP
+    constexpr size_t MESSAGE_LEN = 25;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -578,6 +626,12 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[16] = toHexChar16(uopt->advFilterCombPAL);     // 0-3 unified comb filter
     buffer[17] = '0' + uopt->hdmiLimitedRange;            // 0-3 HDMI Limited Range
     buffer[18] = '0' + (uopt->advSyncStripper ? 1 : 0);   // 0=Off, 1=On
+    buffer[19] = toHexChar16(uopt->advCombLumaModeNTSC);    // 0,4-7 Luma mode NTSC
+    buffer[20] = toHexChar16(uopt->advCombChromaModeNTSC);  // 0,4-7 Chroma mode NTSC
+    buffer[21] = toHexChar16(uopt->advCombChromaTapsNTSC);  // 0-3 Chroma taps NTSC
+    buffer[22] = toHexChar16(uopt->advCombLumaModePAL);     // 0,4-7 Luma mode PAL
+    buffer[23] = toHexChar16(uopt->advCombChromaModePAL);   // 0,4-7 Chroma mode PAL
+    buffer[24] = toHexChar16(uopt->advCombChromaTapsPAL);   // 0-3 Chroma taps PAL
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

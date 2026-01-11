@@ -180,8 +180,15 @@ void ADV_sendFilterWYShaping(uint8_t filter);
 void ADV_sendFilterWYOverride(uint8_t ovr);
 void ADV_sendFilterCombNTSC(uint8_t bw);
 void ADV_sendFilterCombPAL(uint8_t bw);
-void ADV_sendFilterDefaults(void);
-void ADV_sendFilterParams(void);
+void ADV_sendCombLumaModeNTSC(uint8_t mode);
+void ADV_sendCombChromaModeNTSC(uint8_t mode);
+void ADV_sendCombChromaTapsNTSC(uint8_t taps);
+void ADV_sendCombLumaModePAL(uint8_t mode);
+void ADV_sendCombChromaModePAL(uint8_t mode);
+void ADV_sendCombChromaTapsPAL(uint8_t taps);
+// Video filter functions
+void ADV_sendVideoFilters(void);
+void ADV_sendVideoFiltersDefaults(void);
 
 // ====================================================================================
 // Function Declarations - Input Source Switching
