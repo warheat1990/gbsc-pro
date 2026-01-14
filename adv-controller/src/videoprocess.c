@@ -99,6 +99,7 @@ uint8_t I2C_COMMANDS_BCSH[] = {
     0x42, 0x0A, 0x00,   // ADV7280 - Brightness adjust: 0 IRE
     0x42, 0x08, 0x00,   // ADV7280 - Contrast: 0 gain [0x80 (default) for 1 gain]
     0x42, 0xE3, 0x00,   // ADV7280 - SD saturation Cb channel: -42dB [0x80 (default) for 0dB]
+    0x42, 0xE4, 0x00,   // ADV7280 - SD saturation Cr channel: -42dB [0x80 (default) for 0dB]
     0x42, 0x0B, 0x00,   // ADV7280 - Hue adjust: 0 default
 };
 
@@ -458,7 +459,8 @@ void ADV_SetBCSH(void)
 {
     I2C_COMMANDS_BCSH[5] = Bright;
     I2C_COMMANDS_BCSH[8] = Contrast;
-    I2C_COMMANDS_BCSH[11] = Saturation;
+    I2C_COMMANDS_BCSH[11] = Saturation;  // SD_SAT_Cb
+    I2C_COMMANDS_BCSH[14] = Saturation;  // SD_SAT_Cr
     (void)I2C_TransmitBatch(I2C_COMMANDS_BCSH, sizeof(I2C_COMMANDS_BCSH) / 3, TIMEOUT);
     printf("[ADV] Bright: 0x%02x Contrast: 0x%02x Sat: 0x%02x\n", Bright, Contrast, Saturation);
 }

@@ -377,7 +377,7 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
         c_state = 1;
     }
     else if (buf[2] == 'N' && (buf[3] == 0x0a || buf[3] == 0x08 ||
-                                buf[3] == 0xe3 || buf[3] == 'D'))
+                                buf[3] == 0xe3 || buf[3] == 0xe4 || buf[3] == 'D'))
     {
         if (buf[3] == 'D' && buf[4] == 'E')
         {
@@ -386,6 +386,7 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
                 0x42, 0x0A, 0x00,
                 0x42, 0x08, 0x80,
                 0x42, 0xE3, 0x80,
+                0x42, 0xE4, 0x80,
                 0x42, 0x0B, 0x00,
             };
             Bright     = 0x00;
@@ -402,7 +403,7 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
                 Bright = buf[4];
             else if (buf[3] == 0x08)
                 Contrast = buf[4];
-            else if (buf[3] == 0xe3)
+            else if (buf[3] == 0xe3 || buf[3] == 0xe4)
                 Saturation = buf[4];
         }
         FLASH_SaveSettings();

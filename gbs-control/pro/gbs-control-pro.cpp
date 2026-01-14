@@ -308,7 +308,8 @@ void ADV_applySlotSettings(void) {
     ADV_sendACE(uopt->advACE);
     advController.writeReg(ADV_BCSH, 0x0A, uopt->advBrightness - 128);
     advController.writeReg(ADV_BCSH, 0x08, uopt->advContrast);
-    advController.writeReg(ADV_BCSH, 0xE3, uopt->advSaturation);
+    advController.writeReg(ADV_BCSH, 0xE3, uopt->advSaturation);  // SD_SAT_Cb
+    advController.writeReg(ADV_BCSH, 0xE4, uopt->advSaturation);  // SD_SAT_Cr
     // Apply ACE parameters
     ADV_sendACEParams();
     // Apply Video Filter parameters

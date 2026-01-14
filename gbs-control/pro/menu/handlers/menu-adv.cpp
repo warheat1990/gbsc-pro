@@ -232,12 +232,14 @@ bool IR_handleADVSettings()
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
                         uopt->advSaturation = MIN(uopt->advSaturation + STEP, 254);
-                        ADV_sendBCSH(0xe3, uopt->advSaturation);
+                        ADV_sendBCSH(0xe3, uopt->advSaturation);  // SD_SAT_Cb
+                        ADV_sendBCSH(0xe4, uopt->advSaturation);  // SD_SAT_Cr
                         break;
                     case IR_KEY_LEFT:
                         lastMenuItemTime = millis();
                         uopt->advSaturation = MAX(uopt->advSaturation - STEP, 0);
-                        ADV_sendBCSH(0xe3, uopt->advSaturation);
+                        ADV_sendBCSH(0xe3, uopt->advSaturation);  // SD_SAT_Cb
+                        ADV_sendBCSH(0xe4, uopt->advSaturation);  // SD_SAT_Cr
                         break;
                     case IR_KEY_OK:
                         IR_clearRepeatKey();
