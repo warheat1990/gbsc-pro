@@ -84,10 +84,11 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advI2P;                 /* I2P - interlace to progressive (0-1, default 1) */ \
     uint8_t advSmooth;              /* Smooth interpolation (0-1, default 0) */ \
     uint8_t advACE;                 /* ACE - Adaptive Contrast Enhancement (0-1, default 0) */ \
-    /* ADV7280 BCSH (Brightness/Contrast/Saturation) */ \
+    /* ADV7280 BCSH (Brightness/Contrast/Saturation/Hue) */ \
     uint8_t advBrightness;          /* Brightness (0-254, default 128) */ \
     uint8_t advContrast;            /* Contrast (0-254, default 128) */ \
     uint8_t advSaturation;          /* Saturation (0-254, default 128) */ \
+    uint8_t advHue;                 /* Hue (0-254, default 128 = 0°) */ \
     /* ADV7280 ACE Parameters */ \
     uint8_t advACELumaGain;         /* Luma Gain (0-31, default 13) */ \
     uint8_t advACEChromaGain;       /* Chroma Gain (0-15, default 8) */ \

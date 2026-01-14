@@ -55,8 +55,10 @@ typedef struct
     uint8_t advCombChromaTapsPAL;  // 0-3 (default 3=5→4 lines)
     // --- HDMI Limited Range ---
     uint8_t hdmiLimitedRange;    // 0=Off, 1=HD, 2=SD, 3=All (default 1)
+    // --- PRO: ADV7280 Hue ---
+    uint8_t advHue;              // 0-255 (default 128 = 0°)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[62];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[61];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)

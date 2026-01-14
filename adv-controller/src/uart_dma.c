@@ -377,7 +377,8 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
         c_state = 1;
     }
     else if (buf[2] == 'N' && (buf[3] == 0x0a || buf[3] == 0x08 ||
-                                buf[3] == 0xe3 || buf[3] == 0xe4 || buf[3] == 'D'))
+                                buf[3] == 0xe3 || buf[3] == 0xe4 ||
+                                buf[3] == 0x0b || buf[3] == 'D'))
     {
         if (buf[3] == 'D' && buf[4] == 'E')
         {
@@ -405,6 +406,8 @@ static uint16_t UART_ProcessSingleCommand(uint8_t *buf, uint16_t len)
                 Contrast = buf[4];
             else if (buf[3] == 0xe3 || buf[3] == 0xe4)
                 Saturation = buf[4];
+            else if (buf[3] == 0x0b)
+                Hue = buf[4];
         }
         FLASH_SaveSettings();
         c_state = 1;

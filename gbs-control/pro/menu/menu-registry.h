@@ -132,6 +132,7 @@ typedef enum {
     OLED_SystemSettings_SVAVInput_Bright,
     OLED_SystemSettings_SVAVInput_Contrast,
     OLED_SystemSettings_SVAVInput_Saturation,
+    OLED_SystemSettings_SVAVInput_Hue,
     OLED_SystemSettings_SVAVInput_Default,
 
     // ACE Settings submenu (inside SV/AV Settings)
@@ -370,7 +371,7 @@ typedef struct {
 // SV/AV Input Settings Menu Mappings
 // Page 1: I2P Settings link, Video Filters link, ACE Settings link
 // Page 2: Brightness, Contrast, Saturation
-// Page 3: Default
+// Page 3: Hue, Default
 #define MENU_ITEMS_SVAVINPUT \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_I2PSettings,      OSD_CMD_SVAVINPUT_PAGE1, 1) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_FiltersSettings,  OSD_CMD_SVAVINPUT_PAGE1, 2) \
@@ -378,7 +379,8 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Bright,           OSD_CMD_SVAVINPUT_PAGE2, 1) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Contrast,         OSD_CMD_SVAVINPUT_PAGE2, 2) \
     MENU_ITEM(OLED_SystemSettings_SVAVInput_Saturation,       OSD_CMD_SVAVINPUT_PAGE2, 3) \
-    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,          OSD_CMD_SVAVINPUT_PAGE3, 1)
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Hue,              OSD_CMD_SVAVINPUT_PAGE3, 1) \
+    MENU_ITEM(OLED_SystemSettings_SVAVInput_Default,          OSD_CMD_SVAVINPUT_PAGE3, 2)
 
 // ACE Settings Menu Mappings (submenu inside SV/AV Settings)
 #define MENU_ITEMS_ACE \

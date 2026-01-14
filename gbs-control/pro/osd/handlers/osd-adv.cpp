@@ -50,19 +50,21 @@ void handle_SVAVInput_Page2_Values(void)
 }
 
 // ====================================================================================
-// SV/AV Input Settings - Page 3 (Default only)
+// SV/AV Input Settings - Page 3 (Hue, Default)
 // ====================================================================================
 
 void handle_SVAVInput_Page3(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
     OSD_writePageIcons(true, '3', false);
-    OSD_writeStringAtRow(1, 1, "Default");
+    OSD_writeStringAtRow(1, 1, "Hue");
+    OSD_drawDashRange(1, 4, 22);
+    OSD_writeStringAtRow(2, 1, "Default");
 }
 
 void handle_SVAVInput_Page3_Values(void)
 {
-    // No values to display
+    OSD_displayNumber3DigitAtRow(1, uopt->advHue, 25, 24, 23);
 }
 
 // ====================================================================================

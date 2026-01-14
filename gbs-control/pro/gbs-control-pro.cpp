@@ -310,6 +310,7 @@ void ADV_applySlotSettings(void) {
     advController.writeReg(ADV_BCSH, 0x08, uopt->advContrast);
     advController.writeReg(ADV_BCSH, 0xE3, uopt->advSaturation);  // SD_SAT_Cb
     advController.writeReg(ADV_BCSH, 0xE4, uopt->advSaturation);  // SD_SAT_Cr
+    advController.writeReg(ADV_BCSH, 0x0B, uopt->advHue - 128);
     // Apply ACE parameters
     ADV_sendACEParams();
     // Apply Video Filter parameters
@@ -579,11 +580,11 @@ void broadcastProStatus(WebSocketsServer& ws)
     // Extended message format:
     // $[input][format][i2p][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
     //  [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
-    //  [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP]
+    //  [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
     //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
-    //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP
-    constexpr size_t MESSAGE_LEN = 25;
+    //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue
+    constexpr size_t MESSAGE_LEN = 26;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -633,6 +634,7 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[22] = toHexChar16(uopt->advCombLumaModePAL);     // 0,4-7 Luma mode PAL
     buffer[23] = toHexChar16(uopt->advCombChromaModePAL);   // 0,4-7 Chroma mode PAL
     buffer[24] = toHexChar16(uopt->advCombChromaTapsPAL);   // 0-3 Chroma taps PAL
+    buffer[25] = toHexChar32(uopt->advHue >> 3);            // 0-254 -> 0-31 -> hex char
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

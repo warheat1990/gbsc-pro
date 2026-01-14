@@ -51,6 +51,7 @@ void FLASH_LoadSettings(void)
     Bright     = (u8_buf[12] != 0xff) ? u8_buf[12] : 0x00;
     Contrast   = (u8_buf[13] != 0xff) ? u8_buf[13] : 0x80;
     Saturation = (u8_buf[14] != 0xff) ? u8_buf[14] : 0x80;
+    Hue        = (u8_buf[32] != 0xff) ? u8_buf[32] : 0x00;
 
     /* ACE parameters (offsets 15-19) */
     AceLumaGain      = (u8_buf[15] <= 31) ? u8_buf[15] : 13;
@@ -137,6 +138,9 @@ static void FLASH_SaveSettingsNow(void)
     u8_buf[29] = CombLumaModePAL;
     u8_buf[30] = CombChromaModePAL;
     u8_buf[31] = CombChromaTapsPAL;
+
+    /* Hue (offset 32) */
+    u8_buf[32] = Hue;
 
     u8_buf[48] = Input_signal;
 

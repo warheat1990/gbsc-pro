@@ -61,8 +61,10 @@ const Structs: StructDescriptors = {
     { name: "advCombChromaTapsPAL", type: "byte", size: 1 },  // 0-3, default 3
     // --- HDMI Limited Range ---
     { name: "hdmiLimitedRange", type: "byte", size: 1 },    // 0=Off, 1=HD, 2=SD, 3=All
+    // --- PRO: ADV7280 Hue (added in v2.3.0) ---
+    { name: "advHue", type: "byte", size: 1 },              // 0-255 (default 128 = 0°)
     // --- Reserved for future expansion ---
-    { name: "reserved", type: "byte", size: 62 },
+    { name: "reserved", type: "byte", size: 61 },
   ],
 };
 
@@ -323,10 +325,10 @@ const createWebSocket = () => {
     if (messageDataAt0 === "$") {
       // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
       //             [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
-      //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP]
+      //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue]
       // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
       //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
-      //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP
+      //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue
       const inputType: string = messageDataAt1;
       const formatChar: string = messageDataAt2;
       const line2xChar: string = messageDataAt3;
@@ -359,6 +361,9 @@ const createWebSocket = () => {
       const combLumaPChar: string = message.data[22] || "0";    // PAL Luma mode
       const combChromaPChar: string = message.data[23] || "0";  // PAL Chroma mode
       const combTapsPChar: string = message.data[24] || "3";    // PAL Chroma taps
+
+      // Hue parameter (position 25) - encoded as 0-31 (0-254 >> 3)
+      const hueChar: string = message.data[25] || "G";          // Default G=16 (128 >> 3)
 
       // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
       const fromHexChar = (c: string): number => {

@@ -49,6 +49,12 @@ void ADV_SetSmooth(uint8_t smooth);
 void ADV_SetBCSH(void);
 void ADV_SetACE(uint8_t ace);
 
+/* BCSH (Brightness/Contrast/Saturation/Hue) parameter variables */
+extern uint8_t Bright;
+extern uint8_t Contrast;
+extern uint8_t Saturation;
+extern uint8_t Hue;
+
 /* ACE (Adaptive Contrast Enhancement) parameter variables */
 extern uint8_t AceLumaGain;      /* 0-31, default 13 (0x0D) */
 extern uint8_t AceChromaGain;    /* 0-15, default 8 */

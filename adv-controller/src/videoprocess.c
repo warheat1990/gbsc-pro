@@ -30,6 +30,7 @@ uint8_t c_state = 0;
 uint8_t Bright = 0x00;
 uint8_t Contrast = 0x80;
 uint8_t Saturation = 0x80;
+uint8_t Hue = 0x00;
 
 /* ACE (Adaptive Contrast Enhancement) parameters - User Sub Map 2 */
 uint8_t AceLumaGain = 13;      /* 0x83 bits 4:0, default 0x0D */
@@ -461,8 +462,9 @@ void ADV_SetBCSH(void)
     I2C_COMMANDS_BCSH[8] = Contrast;
     I2C_COMMANDS_BCSH[11] = Saturation;  // SD_SAT_Cb
     I2C_COMMANDS_BCSH[14] = Saturation;  // SD_SAT_Cr
+    I2C_COMMANDS_BCSH[17] = Hue;
     (void)I2C_TransmitBatch(I2C_COMMANDS_BCSH, sizeof(I2C_COMMANDS_BCSH) / 3, TIMEOUT);
-    printf("[ADV] Bright: 0x%02x Contrast: 0x%02x Sat: 0x%02x\n", Bright, Contrast, Saturation);
+    printf("[ADV] Bright: 0x%02x Contrast: 0x%02x Sat: 0x%02x Hue: 0x%02x\n", Bright, Contrast, Saturation, Hue);
 }
 
 /**

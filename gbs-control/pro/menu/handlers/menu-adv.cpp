@@ -29,7 +29,7 @@ bool IR_handleADVSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);  // Page 3, row 2
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_FiltersSettings);
@@ -227,7 +227,7 @@ bool IR_handleADVSettings()
                         break;
                     case IR_KEY_DOWN:
                         IR_clearRepeatKey();
-                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Hue);
                         break;
                     case IR_KEY_RIGHT:
                         lastMenuItemTime = millis();
@@ -260,7 +260,57 @@ bool IR_handleADVSettings()
         return true;
     }
 
-    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 1)
+    // OLED_SystemSettings_SVAVInput_Hue (Page 3, row 1)
+    else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Hue) {
+        showMenu("M>Sys>SvAv Set", "Hue");
+        OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
+
+        if (irDecode()) {
+            uint32_t key = IR_getKeyRepeat();
+            if (key) {
+                switch (key) {
+                    case IR_KEY_MENU:
+                        IR_clearRepeatKey();
+                        exitMenu();
+                        break;
+                    case IR_KEY_UP:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
+                        break;
+                    case IR_KEY_DOWN:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInput_Default);
+                        break;
+                    case IR_KEY_RIGHT:
+                        lastMenuItemTime = millis();
+                        uopt->advHue = MIN(uopt->advHue + STEP, 254);
+                        ADV_sendBCSH(0x0b, uopt->advHue - 128);
+                        break;
+                    case IR_KEY_LEFT:
+                        lastMenuItemTime = millis();
+                        uopt->advHue = MAX(uopt->advHue - STEP, 0);
+                        ADV_sendBCSH(0x0b, uopt->advHue - 128);
+                        break;
+                    case IR_KEY_OK:
+                        IR_clearRepeatKey();
+                        saveUserPrefs();
+                        break;
+                    case IR_KEY_EXIT:
+                        IR_clearRepeatKey();
+                        Menu_navigateTo(OLED_SystemSettings_SVAVInputSettings);
+                        saveUserPrefs();
+                        break;
+                    default:
+                        IR_clearRepeatKey();
+                        break;
+                }
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_SVAVInput_Default (Page 3, row 2)
     else if (oled_menuItem == OLED_SystemSettings_SVAVInput_Default) {
         showMenu("M>Sys>SvAv Set", "Default");
         OSD_handleCommand(OSD_CMD_SVAVINPUT_PAGE3_VALUES);
@@ -271,7 +321,7 @@ bool IR_handleADVSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Saturation);
+                    Menu_navigateTo(OLED_SystemSettings_SVAVInput_Hue);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_SVAVInput_I2PSettings);
@@ -282,6 +332,7 @@ bool IR_handleADVSettings()
                     uopt->advBrightness = 128;
                     uopt->advContrast = 128;
                     uopt->advSaturation = 128;
+                    uopt->advHue = 128;
                     // Reset ACE
                     uopt->advACE = 0;
                     ADV_sendACE(false);

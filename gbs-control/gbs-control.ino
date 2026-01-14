@@ -4190,6 +4190,10 @@ static File initSlotsFile()
     emptySlot.advCombLumaModePAL = ADV_COMB_LUMA_MODE_PAL_DEFAULT;
     emptySlot.advCombChromaModePAL = ADV_COMB_CHROMA_MODE_PAL_DEFAULT;
     emptySlot.advCombChromaTapsPAL = ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
+    // HDMI Limited Range default
+    emptySlot.hdmiLimitedRange = 1;  // Default 1 (HD only)
+    // ADV7280 Hue default
+    emptySlot.advHue = 128;  // Default 128 (0°)
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4271,6 +4275,8 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.advCombChromaTapsPAL = uopt->advCombChromaTapsPAL;
     // HDMI Limited Range
     slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
+    // ADV7280 Hue
+    slotData.advHue = uopt->advHue;
 
     // Update name if provided
     if (name != NULL) {
@@ -4371,6 +4377,8 @@ bool loadSlotSettings()
     uopt->advCombChromaTapsPAL = (slotData.advCombChromaTapsPAL <= 3) ? slotData.advCombChromaTapsPAL : ADV_COMB_CHROMA_TAPS_PAL_DEFAULT;
     // HDMI Limited Range
     uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
+    // ADV7280 Hue (default 128 for old slots)
+    uopt->advHue = (slotData.advHue != 0 && slotData.advHue != 0xFF) ? slotData.advHue : 128;
 
     return true;
 }
@@ -7513,6 +7521,7 @@ void loadDefaultUserOptions()
     uopt->advBrightness = 128;
     uopt->advContrast = 128;
     uopt->advSaturation = 128;
+    uopt->advHue = 128;
     // ACE params
     uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
     uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
@@ -7980,6 +7989,9 @@ void setup()
             // HDMI Limited Range
             uopt->hdmiLimitedRange = (uint8_t)(f.read() - '0');
             if (uopt->hdmiLimitedRange > 3) uopt->hdmiLimitedRange = 1;
+            // ADV Hue
+            uopt->advHue = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->advHue > 254) uopt->advHue = 128;
 
             f.close();
         }
@@ -11351,6 +11363,10 @@ void saveUserPrefs()
     f.write(uopt->advCombChromaTapsPAL + '0');
     // HDMI Limited Range
     f.write(uopt->hdmiLimitedRange + '0');
+    // ADV Hue
+    f.write(uopt->advHue / 100 + '0');
+    f.write((uopt->advHue / 10) % 10 + '0');
+    f.write(uopt->advHue % 10 + '0');
     f.close();
 }
 
