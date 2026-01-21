@@ -294,9 +294,9 @@ bool IR_handleDeveloperMenu()
         return true;
     }
 
-    // OLED_Developer_PLLDivider - PLL divider++ (command 'n')
+    // OLED_Developer_PLLDivider - PLL divider (command 'n' to increase, 'M' to decrease)
     else if (oled_menuItem == OLED_Developer_PLLDivider) {
-        showMenu("Developer", "PLL div++");
+        showMenu("Developer", "PLL div");
         OSD_handleCommand(OSD_CMD_DEV_PAGE3_VALUES);
 
         if (irDecode()) {
@@ -311,9 +311,11 @@ bool IR_handleDeveloperMenu()
                     Menu_navigateTo(OLED_Developer_InvertSync);
                     break;
                 case IR_KEY_RIGHT:
-                case IR_KEY_LEFT:
                 case IR_KEY_OK:
                     serialCommand = 'n';
+                    break;
+                case IR_KEY_LEFT:
+                    serialCommand = 'M';
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_Developer);

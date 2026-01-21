@@ -8673,21 +8673,20 @@ void loop()
                 break;
             case 'n': {
                 uint16_t pll_divider = GBS::PLLAD_MD::read();
-                pll_divider += 1;
-                GBS::PLLAD_MD::write(pll_divider);
-                GBS::IF_HSYNC_RST::write((pll_divider / 2));
-                GBS::IF_LINE_SP::write(((pll_divider / 2) + 1) + 0x40);
-                SerialM.print(F("PLL div: "));
-                SerialM.print(pll_divider, HEX);
-                SerialM.print(" ");
-                SerialM.println(pll_divider);
-                // set IF before latching
-                //setIfHblankParameters();
-                latchPLLAD();
-                delay(1);
-                //applyBestHTotal(GBS::VDS_HSYNC_RST::read());
-                updateClampPosition();
-                updateCoastPosition(0);
+                if (pll_divider < 4095) {
+                    pll_divider += 1;
+                    GBS::PLLAD_MD::write(pll_divider);
+                    GBS::IF_HSYNC_RST::write((pll_divider / 2));
+                    GBS::IF_LINE_SP::write(((pll_divider / 2) + 1) + 0x40);
+                    SerialM.print(F("PLL div: "));
+                    SerialM.print(pll_divider, HEX);
+                    SerialM.print(" ");
+                    SerialM.println(pll_divider);
+                    latchPLLAD();
+                    delay(1);
+                    updateClampPosition();
+                    updateCoastPosition(0);
+                }
             } break;
             case 'N': {
                 //if (GBS::RFF_ENABLE::read()) {
@@ -8732,6 +8731,21 @@ void loop()
                 }
                 break;
             case 'M': {
+                uint16_t pll_divider = GBS::PLLAD_MD::read();
+                if (pll_divider > 1) {
+                    pll_divider -= 1;
+                    GBS::PLLAD_MD::write(pll_divider);
+                    GBS::IF_HSYNC_RST::write((pll_divider / 2));
+                    GBS::IF_LINE_SP::write(((pll_divider / 2) + 1) + 0x40);
+                    SerialM.print(F("PLL div: "));
+                    SerialM.print(pll_divider, HEX);
+                    SerialM.print(" ");
+                    SerialM.println(pll_divider);
+                    latchPLLAD();
+                    delay(1);
+                    updateClampPosition();
+                    updateCoastPosition(0);
+                }
             } break;
             case 'm':
                 SerialM.print(F("syncwatcher "));
