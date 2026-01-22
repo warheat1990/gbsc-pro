@@ -35,7 +35,7 @@ extern char userCommand;
 extern void saveUserPrefs();
 
 extern void writeProgramArrayNew(const uint8_t *programArray, boolean skipMDSection);
-extern void doPostPresetLoadSteps();
+extern void doPostPresetLoadSteps(bool skipApplyActiveInputType = false);
 extern void freezeVideo();
 
 extern OLEDMenuManager oledMenu;
@@ -271,7 +271,7 @@ static void IR_handleMenuKeyPress(void)
 
         // Initialize display for info
         writeProgramArrayNew(ntsc_720x480, false);
-        doPostPresetLoadSteps();
+        doPostPresetLoadSteps(true);
         GBS::VDS_DIS_HB_ST::write(0x00);
         GBS::VDS_DIS_HB_SP::write(0xffff);
         freezeVideo();

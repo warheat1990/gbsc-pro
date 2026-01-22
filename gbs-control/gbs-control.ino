@@ -5,6 +5,7 @@
 #include "ntsc_1280x720.h"
 #include "ntsc_1280x1024.h"
 #include "ntsc_1920x1080.h"
+#include "ntsc_1920x1200.h"
 #include "ntsc_downscale.h"
 #include "pal_1280x720.h"
 #include "pal_1280x1024.h"
@@ -54,7 +55,7 @@ volatile OLEDMenuNav oledNav = OLEDMenuNav::IDLE;
 volatile uint8_t rotaryIsrID = 0;
 #else
 String oled_menu[4] = {"Resolutions", "Presets", "Misc.", "Current Settings"};
-String oled_Resolutions[7] = {"1280x960", "1280x1024", "1280x720", "1920x1080", "480/576", "Downscale", "Pass-Through"};
+String oled_Resolutions[7] = {"1280x960", "1280x1024", "1280x720", "1920x1080", "1920x1200", "480/576", "Downscale", "Pass-Through"};
 String oled_Presets[8] = {"1", "2", "3", "4", "5", "6", "7", "Back"};
 String oled_Misc[4] = {"Reset GBS", "Restore Factory", "-----Back"};
 
@@ -3306,7 +3307,7 @@ uint32_t getPllRate()
 
 #define AUTO_GAIN_INIT 0x48
 
-void doPostPresetLoadSteps()
+void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
 {
     //unsigned long postLoadTimer = millis();
 
@@ -4111,7 +4112,22 @@ void doPostPresetLoadSteps()
     applyHdmiLimitedRange();
 
     // Active Input Type
-    applyActiveInputType();
+    bool noSignal = rto->sourceDisconnected || !rto->boardHasPower || GBS::PAD_CKIN_ENZ::read();
+    SerialM.print(F("sourceDisconnected: "));
+    SerialM.println(rto->sourceDisconnected);
+    SerialM.print(F("boardhasPower: "));
+    SerialM.println(rto->boardHasPower);
+    SerialM.print(F("PAD_CKIN_ENZ: "));
+    SerialM.println(GBS::PAD_CKIN_ENZ::read());
+    SerialM.print(F("noSignal: "));
+    SerialM.println(noSignal);
+    SerialM.print(F("isInfoDisplayActive: "));
+    SerialM.println(isInfoDisplayActive);
+
+    if (!skipApplyActiveInputType) {
+        SerialM.print(F("Apply active input type"));
+        applyActiveInputType();
+    }
 
     SerialM.print(F("\npreset applied: "));
     if (rto->presetID == 0x01 || rto->presetID == 0x11)
@@ -4120,6 +4136,8 @@ void doPostPresetLoadSteps()
         SerialM.print(F("1280x1024"));
     else if (rto->presetID == 0x03 || rto->presetID == 0x13)
         SerialM.print(F("1280x720"));
+    else if (rto->presetID == 0x07 || rto->presetID == 0x17)
+        SerialM.print(F("1920x1200"));
     else if (rto->presetID == 0x05 || rto->presetID == 0x15)
         SerialM.print(F("1920x1080"));
     else if (rto->presetID == 0x06 || rto->presetID == 0x16)
@@ -4624,6 +4642,8 @@ void applyPresets(uint8_t result)
             writeProgramArrayNew(ntsc_1920x1080, false);
         } else if (uopt->presetPreference == 6) {
             writeProgramArrayNew(ntsc_downscale, false);
+        } else if (uopt->presetPreference == 7) {
+            writeProgramArrayNew(ntsc_1920x1200, false);
         }
     } else if (result == 2 || result == 4) {
         // PAL input
@@ -7501,7 +7521,7 @@ void deleteAllSlotsAndPresets()
     // Delete all preset files for each slot (A-Z, 0-9)
     const char* presetPrefixes[] = {
         "/preset_ntsc.", "/preset_pal.", "/preset_ntsc_480p.",
-        "/preset_pal_576p.", "/preset_ntsc_720p.", "/preset_ntsc_1080p.",
+        "/preset_pal_576p.", "/preset_ntsc_720p.", "/preset_ntsc_1080p.", "/preset_ntsc_1200p.",
         "/preset_medium_res.", "/preset_vga_upscale.", "/preset_unknown."
     };
     for (char slot = 'A'; slot <= 'Z'; slot++) {
@@ -9790,6 +9810,8 @@ void handleType2Command(char argument)
                 uopt->presetPreference = Output1024P; // 1280x1024
             if (argument == 's')
                 uopt->presetPreference = Output1080P; // 1920x1080
+            if (argument == 'L')
+                uopt->presetPreference = Output1200P; // 1920x1200
             // if (argument == 'L')
             //   uopt->presetPreference = OutputDownscale; // downscale
 
@@ -10473,6 +10495,7 @@ void startWebserver()
                     LittleFS.remove("/preset_pal_576p." + String((char)slot));
                     LittleFS.remove("/preset_ntsc_720p." + String((char)slot));
                     LittleFS.remove("/preset_ntsc_1080p." + String((char)slot));
+                    LittleFS.remove("/preset_ntsc_1200p." + String((char)slot));
                     LittleFS.remove("/preset_medium_res." + String((char)slot));
                     LittleFS.remove("/preset_vga_upscale." + String((char)slot));
                     LittleFS.remove("/preset_unknown." + String((char)slot));

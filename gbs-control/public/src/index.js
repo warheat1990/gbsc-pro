@@ -134,6 +134,7 @@ const GBSControl = {
         3: "button1280x720",
         4: "button720x480",
         5: "button1920x1080",
+        7: "button1920x1200",
         // PRO: 6 (15kHzScaleDown) and 8 (PassThrough) not supported
         9: "buttonLoadCustomPreset",
     },
@@ -276,10 +277,10 @@ const createWebSocket = () => {
         if (messageDataAt0 === "$") {
             // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
             //             [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
-            //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue]
+            //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue][scanlines]
             // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
             //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
-            //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue
+            //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanlines
             const inputType = messageDataAt1;
             const formatChar = messageDataAt2;
             const line2xChar = messageDataAt3;
@@ -310,6 +311,8 @@ const createWebSocket = () => {
             const combTapsPChar = message.data[24] || "3"; // PAL Chroma taps
             // Hue parameter (position 25) - encoded as 0-31 (0-254 >> 3)
             const hueChar = message.data[25] || "G"; // Default G=16 (128 >> 3)
+            // Scanlines parameter (position 26) - encoded '0' or '1'
+            const scanlinesAllowedChar = message.data[26] || '0';
             // Helper to decode hex char (0-9, A-V for 0-31, A-F for 0-15)
             const fromHexChar = (c) => {
                 if (c >= '0' && c <= '9')
@@ -551,6 +554,17 @@ const createWebSocket = () => {
                     else {
                         syncStripperRow.removeAttribute("active");
                     }
+                }
+            }
+            // Disable scanlines if current signal is not 240p or 480i with Bob deinterlacing
+            const isScanlinesAllowed = scanlinesAllowedChar === '1';
+            const btnScanlines = document.querySelector('[gbs-toggle="scanlines"]');
+            if (btnScanlines) {
+                btnScanlines.disabled = !isScanlinesAllowed;
+                btnScanlines.style.opacity = isScanlinesAllowed ? "1" : "0.5";
+                btnScanlines.style.pointerEvents = isScanlinesAllowed ? "auto" : "none";
+                if (!isScanlinesAllowed) {
+                    btnScanlines.removeAttribute('active');
                 }
             }
         }
@@ -831,10 +845,9 @@ const getSlotPresetName = (presetID) => {
         case 0x05:
         case 0x015:
             return "1920x1080";
-        // PRO: DOWNSCALE not supported
-        // case 0x06:
-        // case 0x016:
-        //   return "DOWNSCALE";
+        case 0x07:
+        case 0x17:
+            return "1920x1200";
         case 0x04:
             return "720x480";
         case 0x14:
