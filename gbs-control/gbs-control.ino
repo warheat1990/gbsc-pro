@@ -10083,6 +10083,18 @@ void handleType2Command(char argument)
             }
             break;
         case 'N':
+            // Contrast +
+            GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() + 1);
+            SerialM.print(F("Contrast + : "));
+            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            break;
+        case 'M':
+            // Contrast -
+            GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() - 1);
+            SerialM.print(F("Contrast - : "));
+            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            break;
+        case 'Q':
             // U_offset +
             GBS::VDS_U_OFST::write(GBS::VDS_U_OFST::read() + 1);
             SerialM.print(F("U_offset + : "));
@@ -10091,7 +10103,7 @@ void handleType2Command(char argument)
                 GBS::VDS_U_OFST::write(0x00);
             }
             break;
-        case 'M':
+        case 'H':
             // U_offset -
             GBS::VDS_U_OFST::write(GBS::VDS_U_OFST::read() - 1);
             SerialM.print(F("U_offset - : "));
@@ -10100,7 +10112,7 @@ void handleType2Command(char argument)
                 GBS::VDS_U_OFST::write(0x00);
             }
             break;
-        case 'Q':
+        case 'P':
             // V_offset +
             GBS::VDS_V_OFST::write(GBS::VDS_V_OFST::read() + 1);
             SerialM.print(F("V_offset + : "));
@@ -10109,7 +10121,7 @@ void handleType2Command(char argument)
                 GBS::VDS_V_OFST::write(0x00);
             }
             break;
-        case 'H':
+        case 'S':
             // V_offset -
             GBS::VDS_V_OFST::write(GBS::VDS_V_OFST::read() - 1);
             SerialM.print(F("V_offset - : "));
@@ -10117,18 +10129,6 @@ void handleType2Command(char argument)
             if (GBS::VDS_V_OFST::read() == 0x7F) {
                 GBS::VDS_V_OFST::write(0x00);
             }
-            break;
-            // case 'P':
-            //     // Y_gain +
-            //     GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() + 1);
-            //     SerialM.print(F("Y_gain + : "));
-            //     SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
-            //     break;
-            // case 'S':
-            //     // Y_gain -
-            //     GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() - 1);
-            //     SerialM.print(F("Y_gain - : "));
-            //     SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
             break;
         case 'V':
             // Цвет +
