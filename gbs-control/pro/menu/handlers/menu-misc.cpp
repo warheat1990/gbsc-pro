@@ -59,6 +59,7 @@ bool IR_handleMuteDisplay()
 // Volume key repeat state (non-static, accessed by menu-core.cpp)
 uint32_t volumeLastKey = 0;
 unsigned long volumeLastRepeatTime = 0;
+unsigned long volumeStartTime = 0;
 #define VOLUME_REPEAT_INTERVAL 125  // Interval between repeats (ms)
 
 // Set initial volume key and apply first volume change (called from menu-core.cpp)
@@ -66,6 +67,7 @@ void Volume_setInitialKey(uint32_t key)
 {
     volumeLastKey = key;
     volumeLastRepeatTime = millis();
+    volumeStartTime = millis();  // Start hold timer
 
     // Auto-unmute when adjusting volume
     if (uopt->audioMuted) {
@@ -83,6 +85,13 @@ void Volume_setInitialKey(uint32_t key)
     }
 }
 
+static void resetVolumeState()
+{
+    volumeLastKey = 0;
+    volumeLastRepeatTime = 0;
+    volumeStartTime = 0;
+}
+
 bool IR_handleMiscSettings()
 {
     // OLED_Volume_Adjust
@@ -91,6 +100,8 @@ bool IR_handleMiscSettings()
         OSD_updateVolumeDisplay(uopt->volume);  // volume: 0=mute, 50=max
 
         if (irDecode()) {
+            unsigned long now = millis();
+            unsigned long holdTime = now - volumeStartTime;
             bool isRepeat = results.repeat;
             uint32_t key = results.value;
 
@@ -101,14 +112,21 @@ bool IR_handleMiscSettings()
                     irResume();
                     return true;
                 }
-                // Throttle repeat rate
-                unsigned long now = millis();
-                if (now - volumeLastRepeatTime < VOLUME_REPEAT_INTERVAL) {
+
+                // Accelerate repeat rate based on hold time
+                unsigned long interval = VOLUME_REPEAT_INTERVAL;
+                if (holdTime >= 4000) interval = VOLUME_REPEAT_INTERVAL / 4;
+                else if (holdTime >= 2500) interval = VOLUME_REPEAT_INTERVAL / 2;
+                
+                if (now - volumeLastRepeatTime < interval) {
                     irResume();
                     return true;  // Too soon, skip this repeat
                 }
                 volumeLastRepeatTime = now;
                 key = volumeLastKey;
+            } else {
+                // Reset time if not a repeat
+                volumeStartTime = now;
             }
 
             switch (key) {
@@ -116,33 +134,33 @@ bool IR_handleMiscSettings()
                     uopt->volume = MIN(uopt->volume + 1, 50);
                     PT2257_setVolume(uopt->volume);
                     volumeLastKey = IR_KEY_VOL_UP;
-                    volumeLastRepeatTime = millis();
+                    volumeLastRepeatTime = now;
                     break;
                 case IR_KEY_VOL_DN:
                     uopt->volume = MAX(uopt->volume - 1, 0);
                     PT2257_setVolume(uopt->volume);
                     volumeLastKey = IR_KEY_VOL_DN;
-                    volumeLastRepeatTime = millis();
+                    volumeLastRepeatTime = now;
                     break;
                 case IR_KEY_MENU:
                 case IR_KEY_EXIT:
-                    volumeLastKey = 0;
+                    resetVolumeState();
                     exitMenu();
                     break;
                 case IR_KEY_OK:
-                    volumeLastKey = 0;
+                    resetVolumeState();
                     saveUserPrefs();
                     OSD_showSavingFeedback(ROW_1);
                     break;
                 default:
-                    volumeLastKey = 0;
+                    resetVolumeState();
                     break;
             }
             irResume();
         }
         return true;
     } else {
-        volumeLastKey = 0;
+        resetVolumeState();
     }
 
     return false;

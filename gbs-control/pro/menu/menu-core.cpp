@@ -193,8 +193,9 @@ void IR_handleMenuSelection(void)
     IR_handleMiscSettings() ||
     IR_handleInfoDisplay();
 
-    // Reset activity timer on valid IR input
-    if (IR_isValidMenuKey(results.value) && irDecodedFlag && oled_menuItem != OLED_None) {
+    // Reset activity timer on valid IR input or repeat signal
+    bool isRepeat = (results.value == 0xFFFFFFFF || results.repeat);
+    if ((IR_isValidMenuKey(results.value) || isRepeat) && irDecodedFlag && oled_menuItem != OLED_None) {
         lastMenuItemTime = millis();
         irDecodedFlag = 0;
         resetOLEDScreenSaverTimer();

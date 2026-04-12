@@ -283,24 +283,33 @@ char IR_getResolutionCommand(uint8_t resolution)
 // Shared global state for IR key repeat (only one menu active at a time)
 static uint32_t irRepeatLastKey = 0;
 static unsigned long irRepeatLastTime = 0;
+static unsigned long irRepeatStartTime = 0;
 
 // Clear repeat state (call on menu navigation or exit)
 void IR_clearRepeatKey(void) {
     irRepeatLastKey = 0;
+    irRepeatLastTime = 0;
+    irRepeatStartTime = 0;
 }
 
 // Process IR input with key repeat support using shared global state
 uint32_t IR_getKeyRepeat(void) {
     uint32_t key = results.value;
     bool isRepeat = results.repeat || key == 0xFFFFFFFF;
+    unsigned long now = millis();
 
     if (isRepeat) {
         if (irRepeatLastKey == 0) {
             return 0;  // No previous key stored, ignore
         }
-        // Throttle repeat rate
-        unsigned long now = millis();
-        if (now - irRepeatLastTime < IR_REPEAT_INTERVAL_MS) {
+
+        // Accelerate repeat rate based on hold time
+        unsigned long holdTime = now - irRepeatStartTime;
+        unsigned long interval = IR_REPEAT_INTERVAL_MS;
+        if (holdTime >= 4000) interval = IR_REPEAT_INTERVAL_MS / 4;
+        else if (holdTime >= 2500) interval = IR_REPEAT_INTERVAL_MS / 2;
+        
+        if (now - irRepeatLastTime < interval) {
             return 0;  // Too soon, skip this repeat
         }
         irRepeatLastTime = now;
@@ -309,6 +318,7 @@ uint32_t IR_getKeyRepeat(void) {
 
     // Normal key press - store it and return
     irRepeatLastKey = key;
-    irRepeatLastTime = millis();
+    irRepeatLastTime = now;
+    irRepeatStartTime = now;
     return key;
 }
