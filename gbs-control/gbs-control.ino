@@ -8132,15 +8132,21 @@ void setup()
         // These will be applied by doPostPresetLoadSteps() when syncWatcher calls applyPresets()
         loadSlotSettings();
 
-        // If we have a last known video standard and bypass mode is not preferred, apply that
-        // preset now so the TV receives a stable sync and the OSD remains accessible while the
-        // device scans for an input signal.  doPostPresetLoadSteps() skips its SP wait loops and
-        // does not clear sourceDisconnected in this mode, so the 500ms polling loop stays active.
-        if (uopt->lastVideoStandard > 0 && uopt->presetPreference != OutputBypass) {
+        // Always output a stable signal when there is no input, so the TV stays locked and the
+        // OSD is accessible via the remote.  If a previous session was detected, replicate its
+        // exact format; otherwise fall back to a 1080p60 black screen (NTSC standard + Output1080P).
+        if (uopt->presetPreference != OutputBypass) {
             rto->noSignalBlackScreenMode = true;
-            rto->videoStandardInput = uopt->lastVideoStandard; // lets menu handlers use correct standard
+            uint8_t noSignalStandard = (uopt->lastVideoStandard > 0) ? uopt->lastVideoStandard : 1;
+            rto->videoStandardInput = noSignalStandard; // lets menu handlers use correct standard
+            // On first boot (no prior session) temporarily override preference to 1080p60
+            PresetPreference savedPreference = uopt->presetPreference;
+            if (uopt->lastVideoStandard == 0) {
+                uopt->presetPreference = Output1080P;
+            }
             SerialM.println(F("No input signal: enabling black screen output"));
-            applyPresets(uopt->lastVideoStandard);
+            applyPresets(noSignalStandard);
+            uopt->presetPreference = savedPreference; // restore user preference after preset is applied
             // sourceDisconnected remains true; input polling loop will keep scanning
         }
 
