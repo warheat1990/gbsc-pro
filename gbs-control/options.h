@@ -90,6 +90,7 @@ struct runTimeOptions
     bool isValidForScalingRGBHV;
     bool useHdmiSyncFix;
     bool extClockGenDetected;
+    bool noSignalBlackScreenMode; // true when outputting black screen at boot with no input
 };
 // remember adc options across presets
 struct adcOptions
