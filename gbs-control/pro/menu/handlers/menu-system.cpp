@@ -19,6 +19,8 @@ extern void saveUserPrefs();
 extern void disableMotionAdaptDeinterlace();
 extern void disableScanlines();
 extern void resetSyncProcessor();
+extern void goIdleWithBlankOutput();
+extern void goLowPowerWithInputDetection();
 
 // ====================================================================================
 // IR_handleSystemSettings - System Settings Menu
@@ -40,7 +42,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
+                    Menu_navigateTo(OLED_SystemSettings_KeepOutputOnNoSignal);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
@@ -293,7 +295,7 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_HdmiLimitedRange (last item - wraps to Sync Stripper)
+    // OLED_SystemSettings_HdmiLimitedRange
     else if (oled_menuItem == OLED_SystemSettings_HdmiLimitedRange) {
         static const char* hdmiLimitedLabels[] = {"Off", "HD", "SD", "All"};
         showMenuValue("Menu->System", "HDMI Limited Range", hdmiLimitedLabels[uopt->hdmiLimitedRange]);
@@ -308,7 +310,7 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
+                    Menu_navigateTo(OLED_SystemSettings_KeepOutputOnNoSignal);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_OK:
@@ -320,6 +322,53 @@ bool IR_handleSystemSettings()
                     uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 3) % 4;
                     saveUserPrefs();
                     applyPresets(rto->videoStandardInput);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_KeepOutputOnNoSignal (last item - wraps to SyncStripper)
+    else if (oled_menuItem == OLED_SystemSettings_KeepOutputOnNoSignal) {
+        showMenuToggle("Menu->System", "Keep Output On No Signal", uopt->keepOutputOnNoSignal);
+        OSD_handleCommand(OSD_CMD_SYS_PAGE5_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    uopt->keepOutputOnNoSignal = !uopt->keepOutputOnNoSignal;
+                    saveUserPrefs();
+
+                    // Apply immediately if no source connected
+                    if (rto->sourceDisconnected) {
+                        if (uopt->keepOutputOnNoSignal) {
+                            // Turned ON — load blank preset at current resolution and keep signal
+                            uint8_t noSignalStandard = (uopt->lastVideoStandard > 0) ? uopt->lastVideoStandard : 1;
+                            rto->videoStandardInput = noSignalStandard;
+                            rto->noSignalBlackScreenMode = true;
+                            applyPresets(noSignalStandard); // loads the blank preset
+                        } else {
+                            // Turned OFF — kill output and revert to old behavior
+                            rto->noSignalBlackScreenMode = false;
+                            rto->isInLowPowerMode = false;
+                            goLowPowerWithInputDetection(); // normal path, kills DAC
+                        }
+                    }
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings);

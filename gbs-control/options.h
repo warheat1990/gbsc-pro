@@ -90,6 +90,7 @@ struct runTimeOptions
     bool isValidForScalingRGBHV;
     bool useHdmiSyncFix;
     bool extClockGenDetected;
+    bool noSignalBlackScreenMode;
 };
 // remember adc options across presets
 struct adcOptions

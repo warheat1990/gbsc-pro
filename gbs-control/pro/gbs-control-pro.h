@@ -31,7 +31,7 @@
 // Firmware Version Strings
 // ====================================================================================
 
-#define GBS_FW_VERSION "2.3.2"  // GBS Control firmware version (ESP8266)
+#define GBS_FW_VERSION "2.3.3b"  // GBS Control firmware version (ESP8266)
 #define ADV_FW_VERSION "2.3.0"  // ADV Controller firmware version (HC32)
 
 // ====================================================================================

@@ -92,6 +92,8 @@ typedef enum : uint8_t {
     OSD_CMD_SYS_PAGE2_VALUES,
     OSD_CMD_SYS_PAGE4,
     OSD_CMD_SYS_PAGE4_VALUES,
+    OSD_CMD_SYS_PAGE5,
+    OSD_CMD_SYS_PAGE5_VALUES,
 
     // Developer (6 pages)
     OSD_CMD_DEV_PAGE1,          // MEM, HS, HTotal
@@ -231,6 +233,8 @@ void handle_SysSettings_Page2(void);
 void handle_SysSettings_Page2_Values(void);
 void handle_SysSettings_Page4(void);
 void handle_SysSettings_Page4_Values(void);
+void handle_SysSettings_Page5(void);
+void handle_SysSettings_Page5_Values(void);
 
 // ====================================================================================
 // Handler Function Declarations - ADV7280 Settings (SV/AV Input)
@@ -371,6 +375,8 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE2_VALUES, handle_SysSettings_Page2_Values) \
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4,        handle_SysSettings_Page4) \
     DISPATCH_ENTRY(OSD_CMD_SYS_PAGE4_VALUES, handle_SysSettings_Page4_Values) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5,        handle_SysSettings_Page5) \
+    DISPATCH_ENTRY(OSD_CMD_SYS_PAGE5_VALUES, handle_SysSettings_Page5_Values) \
     \
     /* Preferences Menu (Theme, Volume, Mute) */ \
     DISPATCH_ENTRY(OSD_CMD_PREFERENCES_PAGE1,        handle_Preferences_Page1) \

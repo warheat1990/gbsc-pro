@@ -120,6 +120,7 @@ typedef enum {
     OLED_SystemSettings_ADCCalibration,
     OLED_SystemSettings_FrameTimeLock,
     OLED_SystemSettings_HdmiLimitedRange,
+    OLED_SystemSettings_KeepOutputOnNoSignal,
     OLED_SystemSettings_LockMethod,
     OLED_SystemSettings_Deinterlace,
     OLED_SystemSettings_SyncStripper,
@@ -366,7 +367,8 @@ typedef struct {
     MENU_ITEM(OLED_SystemSettings_ADCCalibration,    OSD_CMD_SYS_PAGE2, 3) \
     MENU_ITEM(OLED_SystemSettings_FrameTimeLock,     OSD_CMD_SYS_PAGE4, 1) \
     MENU_ITEM(OLED_SystemSettings_ClockGenerator,   OSD_CMD_SYS_PAGE4, 2) \
-    MENU_ITEM(OLED_SystemSettings_HdmiLimitedRange,    OSD_CMD_SYS_PAGE4, 3)
+    MENU_ITEM(OLED_SystemSettings_HdmiLimitedRange,    OSD_CMD_SYS_PAGE4, 3) \
+    MENU_ITEM(OLED_SystemSettings_KeepOutputOnNoSignal, OSD_CMD_SYS_PAGE5, 1)
 
 // SV/AV Input Settings Menu Mappings
 // Page 1: I2P Settings link, Video Filters link, ACE Settings link

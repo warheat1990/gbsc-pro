@@ -78,32 +78,47 @@ bool resolutionMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OLEDMen
         default:
             break;
     }
-    if (videoMode == 0 && GBS::STATUS_SYNC_PROC_HSACT::read()) {
-        videoMode = rto->videoStandardInput;
-    }
-    if (item->tag != MT_BYPASS) {
+
+    if (rto->sourceDisconnected) {
+        // No input signal — just save the preference
+        // If keepOutputOnNoSignal is ON, reload blank output at chosen resolution
         uopt->presetPreference = preset;
-        rto->useHdmiSyncFix = 1;
-        if (rto->videoStandardInput == 14) {
-            rto->videoStandardInput = 15;
-        } else {
-            applyPresets(videoMode);
+        saveUserPrefs();
+        
+        if (uopt->keepOutputOnNoSignal) {
+            uint8_t noSignalStandard = (uopt->lastVideoStandard > 0) ? uopt->lastVideoStandard : 1;
+            rto->videoStandardInput = noSignalStandard;
+            rto->noSignalBlackScreenMode = true;
+            applyPresets(noSignalStandard);
         }
     } else {
-        setOutModeHdBypass(false);
-        uopt->presetPreference = preset;
-        if (rto->videoStandardInput != 15) {
-            rto->autoBestHtotalEnabled = 0;
-            if (rto->applyPresetDoneStage == 11) {
-                rto->applyPresetDoneStage = 1;
+        if (videoMode == 0 && GBS::STATUS_SYNC_PROC_HSACT::read()) {
+            videoMode = rto->videoStandardInput;
+        }
+        if (item->tag != MT_BYPASS) {
+            uopt->presetPreference = preset;
+            rto->useHdmiSyncFix = 1;
+            if (rto->videoStandardInput == 14) {
+                rto->videoStandardInput = 15;
             } else {
-                rto->applyPresetDoneStage = 10;
+                applyPresets(videoMode);
             }
         } else {
-            rto->applyPresetDoneStage = 1;
+            setOutModeHdBypass(false);
+            uopt->presetPreference = preset;
+            if (rto->videoStandardInput != 15) {
+                rto->autoBestHtotalEnabled = 0;
+                if (rto->applyPresetDoneStage == 11) {
+                    rto->applyPresetDoneStage = 1;
+                } else {
+                    rto->applyPresetDoneStage = 10;
+                }
+            } else {
+                rto->applyPresetDoneStage = 1;
+            }
         }
+        saveUserPrefs();
     }
-    saveUserPrefs();
     manager->freeze();
     return false;
 }

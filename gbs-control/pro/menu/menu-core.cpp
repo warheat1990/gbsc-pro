@@ -253,8 +253,10 @@ static void IR_handleMenuKeyPress(void)
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
 
-    // Check if source is disconnected or board has no power
-    bool noSignal = rto->sourceDisconnected ||
+    // Check if source is disconnected or board has no power.
+    // noSignalBlackScreenMode means we intentionally have output active with no real input,
+    // so treat it like a connected source to give access to the full menu.
+    bool noSignal = (rto->sourceDisconnected && !rto->noSignalBlackScreenMode) ||
                     !rto->boardHasPower ||
                     GBS::PAD_CKIN_ENZ::read();
 

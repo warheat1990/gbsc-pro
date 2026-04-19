@@ -1384,6 +1384,24 @@
                 </td>
               </tr>
               <tr>
+                <td>
+                  Keep Output
+                  <!-- prettier-ignore -->
+                  <ul class="gbs-help">
+                    <li>If enabled, the output will be kept active even when there is no input signal.</li>
+                  </ul>
+                </td>
+                <td
+                  gbs-message="|"
+                  gbs-message-type="user"
+                  gbs-click="normal"
+                  class="gbs-icon"
+                  gbs-toggle-switch="keepOutputOnNoSignal"
+                >
+                  toggle_off
+                </td>
+              </tr>
+              <tr>
                 <td colspan="2" class="gbs-preferences__child">
                   Active FrameTime Lock
                   <!-- prettier-ignore -->
