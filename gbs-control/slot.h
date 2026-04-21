@@ -57,8 +57,9 @@ typedef struct
     uint8_t hdmiLimitedRange;    // 0=Off, 1=HD, 2=SD, 3=All (default 1)
     // --- PRO: ADV7280 Hue ---
     uint8_t advHue;              // 0-255 (default 128 = 0°)
+    uint8_t activeInputType;    // 1=RGBs, 2=RGsB, 3=VGA, 4=YPbPr, 5=SV, 6=AV (0=unset)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[61];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[60];        // Padding to make SlotMeta 128 bytes total
 } SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)

@@ -1041,6 +1041,41 @@ void applyHdmiLimitedRange()
     }
 }
 
+// Apply Active Input Type (RGBs, RGsB, VGA, YPbPr, S-Video, AV)
+// This is called during preset loading
+void applyActiveInputType()
+{
+    const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
+    switch (uopt->activeInputType) {
+        case 1:
+            InputRGBs();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        case 2:
+            InputRGsB();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        case 3:
+            InputVGA();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        case 4:
+            InputYUV();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        case 5:
+            InputSV();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        case 6:
+            InputAV();
+            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
+            break;
+        default:
+            break;
+    }
+}
+
 /// Write ADC gain registers, and save in adco->r_gain to properly transfer it
 /// across loading presets or passthrough.
 void setAdcGain(uint8_t gain) {
@@ -4075,6 +4110,9 @@ void doPostPresetLoadSteps()
     // HDMI Limited Range (must be after applyRGBtoYUVConversion)
     applyHdmiLimitedRange();
 
+    // Active Input Type
+    applyActiveInputType();
+
     SerialM.print(F("\npreset applied: "));
     if (rto->presetID == 0x01 || rto->presetID == 0x11)
         SerialM.print(F("1280x960"));
@@ -4277,6 +4315,8 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
     // ADV7280 Hue
     slotData.advHue = uopt->advHue;
+    // Active input type (RGBs, RGsB, YPbPr, VGA, SV, AV)
+    slotData.activeInputType = uopt->activeInputType;
 
     // Update name if provided
     if (name != NULL) {
@@ -4379,7 +4419,8 @@ bool loadSlotSettings()
     uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
     // ADV7280 Hue (default 128 for old slots)
     uopt->advHue = (slotData.advHue != 0 && slotData.advHue != 0xFF) ? slotData.advHue : 128;
-
+    // Load active input type
+    uopt->activeInputType = (slotData.activeInputType >= 1 && slotData.activeInputType <= 6) ? slotData.activeInputType : 1;
     return true;
 }
 
