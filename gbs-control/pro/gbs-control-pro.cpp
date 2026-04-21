@@ -517,8 +517,8 @@ void readYUVtoRGBConversion(void)
 void applyVideoModePreset(void)
 {
     uint8_t videoMode = getVideoMode();
-    if (videoMode == 0 && (GBS::STATUS_SYNC_PROC_HSACT::read() || rto->noSignalBlackScreenMode)) {
-        videoMode = rto->videoStandardInput; // in no-signal mode this is lastVideoStandard
+    if (videoMode == 0 && GBS::STATUS_SYNC_PROC_HSACT::read()) {
+        videoMode = rto->videoStandardInput;
     }
     if (uopt->presetPreference != 2) {
         rto->useHdmiSyncFix = 1;

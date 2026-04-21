@@ -650,9 +650,6 @@ const createWebSocket = () => {
                         case "disableExternalClockGenerator":
                             toggleMethod(button, (optionByte2 & 0x04) == 0x04);
                             break;
-                        case "keepOutputOnNoSignal":
-                            toggleMethod(button, (optionByte2 & 0x08) == 0x08);
-                            break;
                     }
                 });
             }

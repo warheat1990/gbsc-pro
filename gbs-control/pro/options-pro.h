@@ -109,8 +109,6 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advCombChromaModePAL;   /* PAL Chroma Mode (0=Adaptive, 4=Off, 5-7=Fixed) */ \
     uint8_t advCombChromaTapsPAL;   /* PAL Chroma Taps (0-3, default 3=5→4 lines) */ \
     /* HDMI Limited Range */ \
-    uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */ \
-    uint8_t lastVideoStandard;      /* Last successfully detected video standard (0=none, 1-9) */ \
-    uint8_t keepOutputOnNoSignal;   /* Keep signal on output when no input (0=Off, 1=On), default to Off */
+    uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */
 
 #endif // OPTIONS_PRO_H_

@@ -87,16 +87,3 @@ void handle_SysSettings_Page4_Values(void)
         case 3: OSD_writeStringAtRow(3, 23, "ALL"); break;
     }
 }
-
-void handle_SysSettings_Page5(void)
-{
-    OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '4', false);
-    OSD_writeStringAtRow(1, 1, "Keep output on no signal");
-    OSD_drawDashRange(1, 12, 22);
-}
-
-void handle_SysSettings_Page5_Values(void)
-{
-    OSD_writeOnOff(1, uopt->keepOutputOnNoSignal);
-}
