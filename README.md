@@ -1,3 +1,5 @@
+BASED ON Brisma GBSC-PRO (https://github.com/brisma/gbsc-pro)
+
 <p align="center">
     <img alt="gbsc-pro" src="assets/gbsc-pro%20logo.png" />
 </p>
