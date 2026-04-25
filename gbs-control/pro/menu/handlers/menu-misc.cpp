@@ -67,7 +67,7 @@ void Volume_setInitialKey(uint32_t key)
 {
     volumeLastKey = key;
     volumeLastRepeatTime = millis();
-    volumeStartTime = millis();  // Start hold timer
+    volumeStartTime = millis();
 
     // Auto-unmute when adjusting volume
     if (uopt->audioMuted) {
@@ -117,7 +117,7 @@ bool IR_handleMiscSettings()
                 unsigned long interval = VOLUME_REPEAT_INTERVAL;
                 if (holdTime >= 4000) interval = VOLUME_REPEAT_INTERVAL / 4;
                 else if (holdTime >= 2500) interval = VOLUME_REPEAT_INTERVAL / 2;
-                
+
                 if (now - volumeLastRepeatTime < interval) {
                     irResume();
                     return true;  // Too soon, skip this repeat
@@ -125,7 +125,7 @@ bool IR_handleMiscSettings()
                 volumeLastRepeatTime = now;
                 key = volumeLastKey;
             } else {
-                // Reset time if not a repeat
+                // Reset hold timer on fresh key press
                 volumeStartTime = now;
             }
 

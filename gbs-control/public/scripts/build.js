@@ -1,6 +1,14 @@
 const fs = require("fs");
 const html = fs.readFileSync("./../src/index.html.tpl", "utf-8");
-const js = fs.readFileSync("./../src/index.js", "utf-8");
+
+// Parse GBS_FW_VERSION from gbs-control-pro.h so webapp always matches firmware.
+const proHeader = fs.readFileSync("./../../pro/gbs-control-pro.h", "utf-8");
+const versionMatch = proHeader.match(/GBS_FW_VERSION\s+"([^"]+)"/);
+const firmwareVersion = versionMatch ? versionMatch[1] : "0.0.0";
+
+const js = fs
+  .readFileSync("./../src/index.js", "utf-8")
+  .replace(/"__FW_VERSION__"/g, JSON.stringify(firmwareVersion));
 
 const icon1024 = fs
   .readFileSync("./../assets/icons/icon-1024-maskable.png")

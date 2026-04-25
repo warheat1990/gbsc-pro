@@ -40,7 +40,7 @@ bool IR_handleSystemSettings()
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
+                    Menu_navigateTo(OLED_SystemSettings_KeepOutputOnNoSignal);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_SystemSettings_MatchedPresets);
@@ -293,7 +293,7 @@ bool IR_handleSystemSettings()
         return true;
     }
 
-    // OLED_SystemSettings_HdmiLimitedRange (last item - wraps to Sync Stripper)
+    // OLED_SystemSettings_HdmiLimitedRange
     else if (oled_menuItem == OLED_SystemSettings_HdmiLimitedRange) {
         static const char* hdmiLimitedLabels[] = {"Off", "HD", "SD", "All"};
         showMenuValue("Menu->System", "HDMI Limited Range", hdmiLimitedLabels[uopt->hdmiLimitedRange]);
@@ -308,7 +308,7 @@ bool IR_handleSystemSettings()
                     Menu_navigateTo(OLED_SystemSettings_ClockGenerator);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
+                    Menu_navigateTo(OLED_SystemSettings_KeepOutputOnNoSignal);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_OK:
@@ -320,6 +320,37 @@ bool IR_handleSystemSettings()
                     uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 3) % 4;
                     saveUserPrefs();
                     applyPresets(rto->videoStandardInput);
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_SystemSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    // OLED_SystemSettings_KeepOutputOnNoSignal (last item - wraps to Sync Stripper)
+    else if (oled_menuItem == OLED_SystemSettings_KeepOutputOnNoSignal) {
+        showMenuToggle("Menu->System", "Keep Output NoSig", uopt->keepOutputOnNoSignal);
+        OSD_handleCommand(OSD_CMD_SYS_PAGE5_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_SystemSettings_HdmiLimitedRange);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_SystemSettings_SyncStripper);
+                    break;
+                case IR_KEY_RIGHT:
+                case IR_KEY_LEFT:
+                case IR_KEY_OK:
+                    uopt->keepOutputOnNoSignal = !uopt->keepOutputOnNoSignal;
+                    saveUserPrefs();
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_SystemSettings);

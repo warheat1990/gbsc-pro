@@ -1310,6 +1310,21 @@ void setAndUpdateSogLevel(uint8_t level)
 // Function should not further nest, so it can be called in syncwatcher
 void goLowPowerWithInputDetection()
 {
+    if (uopt->keepOutputOnNoSignal) {
+        // Keep DAC and sync output active so the TV stays locked and the OSD remains usable.
+        // Engage / re-engage no-signal black screen mode (covers both boot and runtime sync loss).
+        if (!rto->noSignalBlackScreenMode) {
+            rto->noSignalBlackScreenMode = true;
+            SerialM.println(F("Sync lost: engaging black screen output"));
+        } else {
+            SerialM.println(F("No signal: maintaining black screen output, scanning inputs..."));
+        }
+        prepareSyncProcessor();
+        rto->isInLowPowerMode = true;
+        LEDOFF;
+        return;
+    }
+
     GBS::OUT_SYNC_CNTRL::write(0); // no H / V sync out to PAD
     GBS::DAC_RGBS_PWDNZ::write(0); // direct disableDAC()
     //zeroAll();
@@ -1766,6 +1781,7 @@ uint8_t inputAndSyncDetect()
         }
         return 0;
     } else if (syncFound == 1 && isInfoDisplayActive == 0) { // input is RGBS
+        rto->noSignalBlackScreenMode = false; // real signal found, exit black screen mode
         rto->inputIsYpBpR = 0;
         rto->sourceDisconnected = false;
         rto->isInLowPowerMode = false;
@@ -1774,6 +1790,7 @@ uint8_t inputAndSyncDetect()
         LEDON;
         return 1;
     } else if (syncFound == 2 && isInfoDisplayActive == 0) {
+        rto->noSignalBlackScreenMode = false; // real signal found, exit black screen mode
         rto->inputIsYpBpR = 1;
         rto->sourceDisconnected = false;
         rto->isInLowPowerMode = false;
@@ -1782,6 +1799,7 @@ uint8_t inputAndSyncDetect()
         LEDON;
         return 2;
     } else if (syncFound == 3 && isInfoDisplayActive == 0) { // input is RGBHV
+        rto->noSignalBlackScreenMode = false; // real signal found, exit black screen mode
         //already applied
         rto->isInLowPowerMode = false;
         rto->inputIsYpBpR = 0;
@@ -2422,6 +2440,8 @@ void shiftVerticalUpIF()
     }
     GBS::IF_VB_SP::write(stop);
     GBS::IF_VB_ST::write(start);
+    uopt->screenVMoveSt = (uint16_t)start;
+    uopt->screenVMoveSp = (uint16_t)stop;
 }
 
 void shiftVerticalDownIF()
@@ -2445,6 +2465,8 @@ void shiftVerticalDownIF()
     }
     GBS::IF_VB_SP::write(stop);
     GBS::IF_VB_ST::write(start);
+    uopt->screenVMoveSt = (uint16_t)start;
+    uopt->screenVMoveSp = (uint16_t)stop;
 }
 
 void setHSyncStartPosition(uint16_t value)
@@ -3307,7 +3329,76 @@ uint32_t getPllRate()
 
 #define AUTO_GAIN_INIT 0x48
 
-void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
+// Pro: apply per-slot Developer and Screen tweaks on top of the preset.
+// Called from doPostPresetLoadSteps after the preset has written its own register
+// values, so these overrides have the final say. Sentinel values (0 / 0xFF / 0xFFFF)
+// mean "no override, keep preset default".
+void applyDevOverrides()
+{
+    // Skip for RGBHV scaling mode — it has its own register layout
+    if (rto->videoStandardInput == 15) {
+        return;
+    }
+
+    // PLL divider (PLLAD_MD) — apply BEFORE HTotal so IF_HSYNC_RST resync path is valid
+    if (uopt->devPllDiv != 0) {
+        GBS::PLLAD_MD::write(uopt->devPllDiv);
+    }
+    // HTotal (VDS_HSYNC_RST)
+    if (uopt->devHTotal != 0) {
+        GBS::VDS_HSYNC_RST::write(uopt->devHTotal);
+    }
+    // SDRAM clock (PLL_MS, 3-bit)
+    if (uopt->devSdramClock != 0xFF) {
+        GBS::PLL_MS::write(uopt->devSdramClock);
+    }
+    // ADC filter (ADC_FLTR, 2-bit)
+    if (uopt->devAdcFilter != 0xFF) {
+        GBS::ADC_FLTR::write(uopt->devAdcFilter);
+    }
+    // Oversampling ratio
+    if (uopt->devOsr != 0xFF) {
+        setOverSampleRatio(uopt->devOsr, 1); // prepareOnly=1 avoids double-init
+    }
+    // SOG level
+    if (uopt->devSogLevel != 0xFF) {
+        setAndUpdateSogLevel(uopt->devSogLevel);
+    }
+
+    // Screen Move H (IF_HBIN_SP, 12-bit; 0 means no override)
+    if (uopt->screenHMove != 0) {
+        GBS::IF_HBIN_SP::write(uopt->screenHMove);
+    }
+    // Screen Move V (IF_VB_ST and IF_VB_SP moved together; 0xFFFF = no override)
+    if (uopt->screenVMoveSt != 0xFFFF && uopt->screenVMoveSp != 0xFFFF) {
+        GBS::IF_VB_ST::write(uopt->screenVMoveSt);
+        GBS::IF_VB_SP::write(uopt->screenVMoveSp);
+    }
+    // Scale H (VDS_HSCALE)
+    if (uopt->screenHScale != 0) {
+        GBS::VDS_HSCALE::write(uopt->screenHScale);
+    }
+    // Scale V (VDS_VSCALE)
+    if (uopt->screenVScale != 0) {
+        GBS::VDS_VSCALE::write(uopt->screenVScale);
+    }
+
+    // Sync inversion override (toggles HS/VS relative to preset default).
+    // bit7 = override active; bit0 toggles HS, bit1 toggles VS.
+    if (uopt->devSyncInvert & 0x80) {
+        if (uopt->devSyncInvert & 0x01) invertHS();
+        if (uopt->devSyncInvert & 0x02) invertVS();
+    }
+
+    // Per-slot SyncWatcher override
+    if (uopt->slotSyncwatcherMode == 1) {
+        rto->syncWatcherEnabled = true;
+    } else if (uopt->slotSyncwatcherMode == 2) {
+        rto->syncWatcherEnabled = false;
+    }
+}
+
+void doPostPresetLoadSteps()
 {
     //unsigned long postLoadTimer = millis();
 
@@ -3445,7 +3536,9 @@ void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
     rto->scanlinesEnabled = false;
     rto->failRetryAttempts = 0;
     rto->videoIsFrozen = true;       // ensures unfreeze
-    rto->sourceDisconnected = false; // this must be true if we reached here (no syncwatcher operation)
+    if (!rto->noSignalBlackScreenMode) {
+        rto->sourceDisconnected = false; // this must be true if we reached here (no syncwatcher operation)
+    }
     rto->boardHasPower = true;       //same
 
     if (rto->presetID == 0x06 || rto->presetID == 0x16) {
@@ -4022,7 +4115,7 @@ void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
         rto->videoStandardInput = 14;
     }
 
-    if (GBS::GBS_OPTION_SCALING_RGBHV::read() == 0) {
+    if (GBS::GBS_OPTION_SCALING_RGBHV::read() == 0 && !rto->noSignalBlackScreenMode) {
         unsigned long timeout = millis();
         while ((!getStatus16SpHsStable()) && (millis() - timeout < 2002)) {
             delay(4);
@@ -4105,6 +4198,9 @@ void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
     // Pro: Apply ADV7280 settings (brightness, contrast, saturation, smooth, I2P)
     ADV_applySlotSettings();
 
+    // Pro: Apply Developer menu and Screen per-slot overrides (if any)
+    applyDevOverrides();
+
     // Pro: Apply GBS color balance
     applyRGBtoYUVConversion();
 
@@ -4112,19 +4208,7 @@ void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
     applyHdmiLimitedRange();
 
     // Active Input Type
-    bool noSignal = rto->sourceDisconnected || !rto->boardHasPower || GBS::PAD_CKIN_ENZ::read();
-    SerialM.print(F("sourceDisconnected: "));
-    SerialM.println(rto->sourceDisconnected);
-    SerialM.print(F("boardhasPower: "));
-    SerialM.println(rto->boardHasPower);
-    SerialM.print(F("PAD_CKIN_ENZ: "));
-    SerialM.println(GBS::PAD_CKIN_ENZ::read());
-    SerialM.print(F("noSignal: "));
-    SerialM.println(noSignal);
-    SerialM.print(F("isInfoDisplayActive: "));
-    SerialM.println(isInfoDisplayActive);
-
-    if (!skipApplyActiveInputType) {
+    if (isInfoDisplayActive == 0) {
         SerialM.print(F("Apply active input type"));
         applyActiveInputType();
     }
@@ -4250,6 +4334,23 @@ static File initSlotsFile()
     emptySlot.hdmiLimitedRange = 1;  // Default 1 (HD only)
     // ADV7280 Hue default
     emptySlot.advHue = 128;  // Default 128 (0°)
+    // Developer menu tweaks defaults (all "no override")
+    emptySlot.devHTotal = 0;
+    emptySlot.devPllDiv = 0;
+    emptySlot.devSdramClock = 0xFF;
+    emptySlot.devAdcFilter = 0xFF;
+    emptySlot.devOsr = 0xFF;
+    emptySlot.devSogLevel = 0xFF;
+    emptySlot.devSyncInvert = 0;
+    // Screen Move/Scale defaults (all "no override")
+    emptySlot.screenHMove = 0;
+    emptySlot.screenVMoveSt = 0xFFFF;
+    emptySlot.screenVMoveSp = 0xFFFF;
+    emptySlot.screenHScale = 0;
+    emptySlot.screenVScale = 0;
+    // Per-slot SyncWatcher mode (inherit global)
+    emptySlot.slotSyncwatcherMode = 0;
+    emptySlot.activeInputType = 1; // Default to RGBs
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4333,6 +4434,22 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
     // ADV7280 Hue
     slotData.advHue = uopt->advHue;
+    // Developer menu tweaks
+    slotData.devHTotal = uopt->devHTotal;
+    slotData.devPllDiv = uopt->devPllDiv;
+    slotData.devSdramClock = uopt->devSdramClock;
+    slotData.devAdcFilter = uopt->devAdcFilter;
+    slotData.devOsr = uopt->devOsr;
+    slotData.devSogLevel = uopt->devSogLevel;
+    slotData.devSyncInvert = uopt->devSyncInvert;
+    // Screen Move/Scale
+    slotData.screenHMove = uopt->screenHMove;
+    slotData.screenVMoveSt = uopt->screenVMoveSt;
+    slotData.screenVMoveSp = uopt->screenVMoveSp;
+    slotData.screenHScale = uopt->screenHScale;
+    slotData.screenVScale = uopt->screenVScale;
+    // Per-slot SyncWatcher mode
+    slotData.slotSyncwatcherMode = uopt->slotSyncwatcherMode;
     // Active input type (RGBs, RGsB, YPbPr, VGA, SV, AV)
     slotData.activeInputType = uopt->activeInputType;
 
@@ -4437,6 +4554,24 @@ bool loadSlotSettings()
     uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
     // ADV7280 Hue (default 128 for old slots)
     uopt->advHue = (slotData.advHue != 0 && slotData.advHue != 0xFF) ? slotData.advHue : 128;
+    // Developer menu tweaks (0 or 0xFF = no override)
+    uopt->devHTotal = slotData.devHTotal;
+    uopt->devPllDiv = slotData.devPllDiv;
+    uopt->devSdramClock = (slotData.devSdramClock <= 7) ? slotData.devSdramClock : 0xFF;
+    uopt->devAdcFilter = (slotData.devAdcFilter <= 3) ? slotData.devAdcFilter : 0xFF;
+    // OSR valid set is {1, 2, 4} (passed directly to setOverSampleRatio); anything else → no override
+    uopt->devOsr = (slotData.devOsr == 1 || slotData.devOsr == 2 || slotData.devOsr == 4)
+                       ? slotData.devOsr : 0xFF;
+    uopt->devSogLevel = (slotData.devSogLevel <= 16) ? slotData.devSogLevel : 0xFF;
+    uopt->devSyncInvert = slotData.devSyncInvert;
+    // Screen Move/Scale (0 or 0xFFFF = no override)
+    uopt->screenHMove = slotData.screenHMove;
+    uopt->screenVMoveSt = slotData.screenVMoveSt;
+    uopt->screenVMoveSp = slotData.screenVMoveSp;
+    uopt->screenHScale = slotData.screenHScale;
+    uopt->screenVScale = slotData.screenVScale;
+    // Per-slot SyncWatcher mode (0=inherit, 1=force on, 2=force off)
+    uopt->slotSyncwatcherMode = (slotData.slotSyncwatcherMode <= 2) ? slotData.slotSyncwatcherMode : 0;
     // Load active input type
     uopt->activeInputType = (slotData.activeInputType >= 1 && slotData.activeInputType <= 6) ? slotData.activeInputType : 1;
     return true;
@@ -4448,6 +4583,15 @@ void applyPresets(uint8_t result)
     if (!rto->boardHasPower) {
         SerialM.println(F("GBS board not responding!"));
         return;
+    }
+
+    // When a real input is detected and processed, persist its video standard so the
+    // device can output a stable black screen on the next boot if no signal is present.
+    if (result > 0 && result <= 9 && !rto->noSignalBlackScreenMode) {
+        if (uopt->lastVideoStandard != result) {
+            uopt->lastVideoStandard = result;
+            saveUserPrefs();
+        }
     }
 
     // if RGBHV scaling and invoked through web ui or custom preset
@@ -7362,7 +7506,9 @@ void runSyncWatcher()
     if (rto->noSyncCounter >= 0x07fe) {
         // couldn't recover, source is lost
         // restore initial conditions and move to input detect
-        GBS::DAC_RGBS_PWDNZ::write(0); // 0 = disable DAC
+        if (!uopt->keepOutputOnNoSignal) {
+            GBS::DAC_RGBS_PWDNZ::write(0); // 0 = disable DAC (skipped when Keep Output is on)
+        }
         rto->noSyncCounter = 0;
         SerialM.println();
         goLowPowerWithInputDetection(); // does not further nest, so it can be called here // sets reset parameters
@@ -7598,6 +7744,25 @@ void loadDefaultUserOptions()
     uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
     // HDMI Limited Range
     uopt->hdmiLimitedRange = 1;
+    // No-signal black screen output
+    uopt->keepOutputOnNoSignal = 0;
+    uopt->lastVideoStandard = 0;
+    // Developer menu tweaks defaults (all "no override")
+    uopt->devHTotal = 0;
+    uopt->devPllDiv = 0;
+    uopt->devSdramClock = 0xFF;
+    uopt->devAdcFilter = 0xFF;
+    uopt->devOsr = 0xFF;
+    uopt->devSogLevel = 0xFF;
+    uopt->devSyncInvert = 0;
+    // Screen Move/Scale defaults (all "no override")
+    uopt->screenHMove = 0;
+    uopt->screenVMoveSt = 0xFFFF;
+    uopt->screenVMoveSp = 0xFFFF;
+    uopt->screenHScale = 0;
+    uopt->screenVScale = 0;
+    // Per-slot SyncWatcher mode (inherit global)
+    uopt->slotSyncwatcherMode = 0;
 }
 
 //RF_PRE_INIT() {
@@ -7821,6 +7986,7 @@ void setup()
     rto->continousStableCounter = 0;
     rto->currentLevelSOG = 5;
     rto->thisSourceMaxLevelSOG = 31; // 31 = auto sog has not (yet) run
+    rto->noSignalBlackScreenMode = false;
 
     adco->r_gain = 0;
     adco->g_gain = 0;
@@ -8054,6 +8220,12 @@ void setup()
             uopt->advHue = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
             if (uopt->advHue > 254) uopt->advHue = 128;
 
+            // No-signal black screen output
+            uopt->lastVideoStandard = (uint8_t)(f.read() - '0');
+            if (uopt->lastVideoStandard > 9) uopt->lastVideoStandard = 0;
+            uopt->keepOutputOnNoSignal = (uint8_t)(f.read() - '0');
+            if (uopt->keepOutputOnNoSignal > 1) uopt->keepOutputOnNoSignal = 0;
+
             f.close();
         }
     }
@@ -8164,6 +8336,19 @@ void setup()
         // Load slot settings into memory (ADV, GBS colors, etc.)
         // These will be applied by doPostPresetLoadSteps() when syncWatcher calls applyPresets()
         loadSlotSettings();
+
+        // Keep Output (no-signal black screen): if enabled, output a stable signal so the TV stays
+        // locked and the OSD is accessible via the remote. Replicate the last known video standard;
+        // if none has been detected yet, fall back to the user's saved presetPreference as-is
+        // (avoids forcing a resolution the TV may not support).
+        if (uopt->keepOutputOnNoSignal && uopt->presetPreference != OutputBypass) {
+            rto->noSignalBlackScreenMode = true;
+            uint8_t noSignalStandard = (uopt->lastVideoStandard > 0) ? uopt->lastVideoStandard : 1;
+            rto->videoStandardInput = noSignalStandard; // lets menu handlers use correct standard
+            SerialM.println(F("No input signal: enabling black screen output"));
+            applyPresets(noSignalStandard);
+            // sourceDisconnected remains true; input polling loop will keep scanning
+        }
 
         delay(4); // help wifi (presets are unloaded now)
         handleWiFi(1);
@@ -8370,6 +8555,9 @@ void updateWebSocketData()
             if (uopt->disableExternalClockGenerator) {
                 toSend[5] |= (1 << 2);
             }
+            if (uopt->keepOutputOnNoSignal) {
+                toSend[5] |= (1 << 3);
+            }
 
             // send ping and stats
             if (ESP.getFreeHeap() > 6000) {
@@ -8524,10 +8712,12 @@ void loop()
             case 'z':
                 SerialM.println(F("scale+"));
                 scaleHorizontal(2, true);
+                uopt->screenHScale = GBS::VDS_HSCALE::read();
                 break;
             case 'h':
                 SerialM.println(F("scale-"));
                 scaleHorizontal(2, false);
+                uopt->screenHScale = GBS::VDS_HSCALE::read();
                 break;
             case 'q':
                 resetDigital();
@@ -8747,6 +8937,7 @@ void loop()
                     delay(1);
                     updateClampPosition();
                     updateCoastPosition(0);
+                    uopt->devPllDiv = pll_divider;
                 }
             } break;
             case 'N': {
@@ -8777,6 +8968,7 @@ void loop()
                     }
                     rto->forceRetime = 1;
                     applyBestHTotal(GBS::VDS_HSYNC_RST::read() + 1);
+                    uopt->devHTotal = GBS::VDS_HSYNC_RST::read();
                 }
                 break;
             case 'A':
@@ -8789,6 +8981,7 @@ void loop()
                     }
                     rto->forceRetime = 1;
                     applyBestHTotal(GBS::VDS_HSYNC_RST::read() - 1);
+                    uopt->devHTotal = GBS::VDS_HSYNC_RST::read();
                 }
                 break;
             case 'M': {
@@ -8806,6 +8999,7 @@ void loop()
                     delay(1);
                     updateClampPosition();
                     updateCoastPosition(0);
+                    uopt->devPllDiv = pll_divider;
                 }
             } break;
             case 'm':
@@ -8869,6 +9063,7 @@ void loop()
                     GBS::ADC_FLTR::write(3);
                     SerialM.println("on");
                 }
+                uopt->devAdcFilter = GBS::ADC_FLTR::read();
                 break;
             case 'L': {
                 // Component / VGA Output
@@ -8933,6 +9128,7 @@ void loop()
                     break;
                 }
                 scaleVertical(2, true);
+                uopt->screenVScale = GBS::VDS_VSCALE::read();
                 // actually requires full vertical mask + position offset calculation
             } break;
             case '5': {
@@ -8942,6 +9138,7 @@ void loop()
                     break;
                 }
                 scaleVertical(2, false);
+                uopt->screenVScale = GBS::VDS_VSCALE::read();
                 // actually requires full vertical mask + position offset calculation
             } break;
             case '6':
@@ -8952,6 +9149,7 @@ void loop()
                             GBS::IF_HSYNC_RST::write(GBS::IF_HSYNC_RST::read() - 4); // shrink 1_0e
                             GBS::IF_LINE_SP::write(GBS::IF_LINE_SP::read() - 4);     // and 1_22 to go with it
                         }
+                        uopt->screenHMove = GBS::IF_HBIN_SP::read();
                     } else {
                         SerialM.println("limit");
                     }
@@ -8974,6 +9172,7 @@ void loop()
                 if (videoStandardInputIsPalNtscSd() && !rto->outModeHdBypass) {
                     if (GBS::IF_HBIN_SP::read() < 0x150) {                   // (arbitrary) max limit
                         GBS::IF_HBIN_SP::write(GBS::IF_HBIN_SP::read() + 8); // canvas move left
+                        uopt->screenHMove = GBS::IF_HBIN_SP::read();
                     } else {
                         SerialM.println("limit");
                     }
@@ -8996,6 +9195,10 @@ void loop()
                 //SerialM.println("invert sync");
                 invertHS();
                 invertVS();
+                // Track sync inversion as a per-slot override (relative to preset default).
+                // bit0 = HS toggled, bit1 = VS toggled, bit7 = override active.
+                uopt->devSyncInvert ^= 0x03;
+                uopt->devSyncInvert |= 0x80;
                 //optimizePhaseSP();
                 break;
             case '9':
@@ -9016,6 +9219,7 @@ void loop()
                 SerialM.print(rto->osr);
                 SerialM.println("x");
                 rto->phaseIsSet = 0; // do it again in modes applicable
+                uopt->devOsr = rto->osr;
             } break;
             case 'g':
                 inputStage++;
@@ -9895,6 +10099,7 @@ void handleType2Command(char argument)
                     SerialM.print(F("SDRAM clock: "));
                     SerialM.println(F("Feedback clock"));
                 }
+                uopt->devSdramClock = PLL_MS;
             }
             break;
         case 'm':
@@ -10046,6 +10251,13 @@ void handleType2Command(char argument)
             }
             saveUserPrefs();
             break;
+        case '|':
+            // Keep Output (no-signal black screen) toggle
+            uopt->keepOutputOnNoSignal = !uopt->keepOutputOnNoSignal;
+            SerialM.print(F("Keep Output on No Signal: "));
+            SerialM.println(uopt->keepOutputOnNoSignal ? "on" : "off");
+            saveUserPrefs();
+            break;
         case '%':
             // HDMI Limited Range: cycle 0=Off, 1=HD, 2=SD, 3=All
             uopt->hdmiLimitedRange = (uopt->hdmiLimitedRange + 1) % 4;
@@ -10076,6 +10288,7 @@ void handleType2Command(char argument)
             SerialM.print(" SOG: ");
             SerialM.print(rto->currentLevelSOG);
             SerialM.println();
+            uopt->devSogLevel = rto->currentLevelSOG;
             break;
         case 'E':
             // test option for now
@@ -10539,7 +10752,22 @@ void startWebserver()
                 request->_tempFile.write(data, len);
             }
             if (final) {
+                String finalPath = filename.startsWith("/") ? filename : ("/" + filename);
+                size_t written = request->_tempFile.size();
                 request->_tempFile.close();
+                // Defensive size validation for critical binary files. Webapp already validates
+                // magic/version/CRC of the backup, so this catches only corruption that slipped
+                // through. If the size is wrong, delete the file to avoid applying garbage.
+                if (finalPath == SLOTS_FILE) {
+                    size_t expected = sizeof(SlotMeta) * SLOTS_TOTAL;
+                    if (written != expected) {
+                        SerialM.print(F("[upload] slots.bin size mismatch: "));
+                        SerialM.print(written);
+                        SerialM.print(F(" != "));
+                        SerialM.println(expected);
+                        LittleFS.remove(finalPath);
+                    }
+                }
             }
         });
 
@@ -11445,6 +11673,9 @@ void saveUserPrefs()
     f.write(uopt->advHue / 100 + '0');
     f.write((uopt->advHue / 10) % 10 + '0');
     f.write(uopt->advHue % 10 + '0');
+    // No-signal black screen output
+    f.write(uopt->lastVideoStandard + '0');
+    f.write(uopt->keepOutputOnNoSignal + '0');
     f.close();
 }
 

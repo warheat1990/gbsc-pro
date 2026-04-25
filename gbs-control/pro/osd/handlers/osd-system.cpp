@@ -66,7 +66,7 @@ void handle_SysSettings_Page2_Values(void)
 void handle_SysSettings_Page4(void)
 {
     OSD_setMenuLineColors(selectedMenuLine);
-    OSD_writePageIcons(true, '3', false);
+    OSD_writePageIcons(true, '3', true);
     OSD_writeStringAtRow(1, 1, "Frame Time lock");
     OSD_drawDashRange(1, 16, 22);
     OSD_writeStringAtRow(2, 1, "EnableFrameTimeLock");
@@ -86,4 +86,17 @@ void handle_SysSettings_Page4_Values(void)
         case 2: OSD_writeStringAtRow(3, 23, "-SD"); break;
         case 3: OSD_writeStringAtRow(3, 23, "ALL"); break;
     }
+}
+
+void handle_SysSettings_Page5(void)
+{
+    OSD_setMenuLineColors(selectedMenuLine);
+    OSD_writePageIcons(true, '4', false);
+    OSD_writeStringAtRow(1, 1, "Keep Output (NoSig)");
+    OSD_drawDashRange(1, 20, 22);
+}
+
+void handle_SysSettings_Page5_Values(void)
+{
+    OSD_writeOnOff(1, uopt->keepOutputOnNoSignal == 1);
 }

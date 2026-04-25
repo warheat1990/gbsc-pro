@@ -57,10 +57,26 @@ typedef struct
     uint8_t hdmiLimitedRange;    // 0=Off, 1=HD, 2=SD, 3=All (default 1)
     // --- PRO: ADV7280 Hue ---
     uint8_t advHue;              // 0-255 (default 128 = 0°)
+    // --- PRO: Developer menu tweaks (0 / 0xFF = no override, use preset default) ---
+    uint16_t devHTotal;          // VDS_HSYNC_RST custom (0 = no override)
+    uint16_t devPllDiv;          // PLLAD_MD custom (0 = no override)
+    uint8_t  devSdramClock;      // PLL_MS (0xFF = no override)
+    uint8_t  devAdcFilter;       // ADC_FLTR (0xFF = no override)
+    uint8_t  devOsr;             // OSR (0xFF = no override)
+    uint8_t  devSogLevel;        // ADC_SOGCTRL custom (0xFF = no override)
+    uint8_t  devSyncInvert;      // bit0=HS, bit1=VS, bit7=set (0 = no override)
+    // --- PRO: Screen Move / Scale (0 / 0xFF = no override) ---
+    uint16_t screenHMove;        // IF_HBIN_SP (0 = no override)
+    uint16_t screenVMoveSt;      // IF_VB_ST  (0xFFFF = no override, 0 is a valid value)
+    uint16_t screenVMoveSp;      // IF_VB_SP  (0xFFFF = no override)
+    uint16_t screenHScale;       // VDS_HSCALE (0 = no override)
+    uint16_t screenVScale;       // VDS_VSCALE (0 = no override)
+    // --- PRO: Per-slot SyncWatcher override ---
+    uint8_t  slotSyncwatcherMode;  // 0=inherit global, 1=force ON, 2=force OFF
     uint8_t activeInputType;    // 1=RGBs, 2=RGsB, 3=VGA, 4=YPbPr, 5=SV, 6=AV (0=unset)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[60];        // Padding to make SlotMeta 128 bytes total
-} SlotMeta;
+    uint8_t reserved[40];        // Padding to make SlotMeta 128 bytes total
+} __attribute__((packed)) SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)
 static_assert(sizeof(SlotMeta) == 128, "SlotMeta must be exactly 128 bytes");

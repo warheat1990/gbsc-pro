@@ -52,8 +52,25 @@ const Structs = {
         { name: "hdmiLimitedRange", type: "byte", size: 1 },
         // --- PRO: ADV7280 Hue (added in v2.3.0) ---
         { name: "advHue", type: "byte", size: 1 },
+        // --- PRO: Developer menu per-slot tweaks (added in v2.4.0, 0/0xFF = no override) ---
+        { name: "devHTotal", type: "uint16le", size: 2 },
+        { name: "devPllDiv", type: "uint16le", size: 2 },
+        { name: "devSdramClock", type: "byte", size: 1 },
+        { name: "devAdcFilter", type: "byte", size: 1 },
+        { name: "devOsr", type: "byte", size: 1 },
+        { name: "devSogLevel", type: "byte", size: 1 },
+        { name: "devSyncInvert", type: "byte", size: 1 },
+        // --- PRO: Screen Move/Scale per-slot tweaks (added in v2.4.0) ---
+        { name: "screenHMove", type: "uint16le", size: 2 },
+        { name: "screenVMoveSt", type: "uint16le", size: 2 },
+        { name: "screenVMoveSp", type: "uint16le", size: 2 },
+        { name: "screenHScale", type: "uint16le", size: 2 },
+        { name: "screenVScale", type: "uint16le", size: 2 },
+        // --- PRO: Per-slot SyncWatcher override (added in v2.4.0) ---
+        { name: "slotSyncwatcherMode", type: "byte", size: 1 },
+        { name: "activeInputType", type: "byte", size: 1 },
         // --- Reserved for future expansion ---
-        { name: "reserved", type: "byte", size: 61 },
+        { name: "reserved", type: "byte", size: 40 },
     ],
 };
 // =====================================================================
@@ -103,6 +120,12 @@ const StructParser = {
                 const byteValue = buff[this.pos];
                 this.pos += structItem.size; // Skip all bytes (handles reserved fields)
                 return byteValue;
+            case "uint16le":
+                // Little-endian uint16 (ESP8266 native byte order)
+                const lo = buff[this.pos];
+                const hi = buff[this.pos + 1];
+                this.pos += structItem.size;
+                return lo | (hi << 8);
             case "string":
                 const currentPos = this.pos;
                 this.pos += structItem.size;
@@ -664,6 +687,9 @@ const createWebSocket = () => {
                         case "disableExternalClockGenerator":
                             toggleMethod(button, (optionByte2 & 0x04) == 0x04);
                             break;
+                        case "keepOutputOnNoSignal":
+                            toggleMethod(button, (optionByte2 & 0x08) == 0x08);
+                            break;
                     }
                 });
             }
@@ -985,6 +1011,41 @@ const readLocalFile = (file) => {
     reader.readAsArrayBuffer(file);
 };
 /** backup / restore */
+// Extended backup format v1 (32-byte header, prepended to legacy payload):
+//   [0..7]   Magic "GBSCPRO\0"
+//   [8]      Format version (0x01)
+//   [9..11]  Firmware version at export time (major, minor, patch)
+//   [12..15] CRC32 of payload (big-endian)
+//   [16..19] Payload size in bytes (big-endian)
+//   [20..31] Reserved (zero)
+const BACKUP_MAGIC = [0x47, 0x42, 0x53, 0x43, 0x50, 0x52, 0x4f, 0x00]; // "GBSCPRO\0"
+const BACKUP_FORMAT_VERSION = 0x01;
+const BACKUP_HEADER_SIZE = 32;
+// Replaced at build time by scripts/build.js from gbs-control-pro.h GBS_FW_VERSION.
+const FIRMWARE_VERSION_STRING = "__FW_VERSION__";
+const [FW_MAJOR, FW_MINOR, FW_PATCH] = (FIRMWARE_VERSION_STRING + ".0.0.0")
+    .split(".")
+    .slice(0, 3)
+    .map((n) => parseInt(n, 10) || 0);
+// Precomputed CRC32 table (polynomial 0xEDB88320, CRC-32/ISO-3309)
+const crc32Table = (() => {
+    const table = new Array(256);
+    for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) {
+            c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        }
+        table[i] = c >>> 0;
+    }
+    return table;
+})();
+const crc32 = (bytes) => {
+    let crc = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) {
+        crc = (crc >>> 8) ^ crc32Table[(crc ^ bytes[i]) & 0xff];
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+};
 const doBackup = () => {
     let backupFiles;
     let done = 0;
@@ -1010,44 +1071,102 @@ const doBackup = () => {
         }, {});
         const backupFilesJSON = JSON.stringify(headerDescriptor);
         const backupFilesJSONSize = backupFilesJSON.length;
-        const mainHeader = [
+        const jsonSizeHeader = [
             (backupFilesJSONSize >> 24) & 255,
             (backupFilesJSONSize >> 16) & 255,
             (backupFilesJSONSize >> 8) & 255,
             (backupFilesJSONSize >> 0) & 255,
         ];
-        const outputArray = [
-            ...mainHeader,
+        // Legacy payload: [4-byte JSON size] [JSON] [concatenated files]
+        const payload = [
+            ...jsonSizeHeader,
             ...backupFilesJSON.split("").map((c) => c.charCodeAt(0)),
-            ...files.reduce((acc, f, index) => {
+            ...files.reduce((acc, f) => {
                 acc = acc.concat(Array.from(new Uint8Array(f)));
                 return acc;
             }, []),
         ];
-        downloadBlob(new Blob([new Uint8Array(outputArray)]), `gbs-control.backup-${+new Date()}.bin`);
+        const payloadBytes = new Uint8Array(payload);
+        const payloadSize = payloadBytes.length;
+        const payloadCrc = crc32(payloadBytes);
+        const extHeader = new Uint8Array(BACKUP_HEADER_SIZE);
+        extHeader.set(BACKUP_MAGIC, 0);
+        extHeader[8] = BACKUP_FORMAT_VERSION;
+        extHeader[9] = FW_MAJOR & 0xff;
+        extHeader[10] = FW_MINOR & 0xff;
+        extHeader[11] = FW_PATCH & 0xff;
+        extHeader[12] = (payloadCrc >>> 24) & 0xff;
+        extHeader[13] = (payloadCrc >>> 16) & 0xff;
+        extHeader[14] = (payloadCrc >>> 8) & 0xff;
+        extHeader[15] = payloadCrc & 0xff;
+        extHeader[16] = (payloadSize >>> 24) & 0xff;
+        extHeader[17] = (payloadSize >>> 16) & 0xff;
+        extHeader[18] = (payloadSize >>> 8) & 0xff;
+        extHeader[19] = payloadSize & 0xff;
+        const output = new Uint8Array(BACKUP_HEADER_SIZE + payloadSize);
+        output.set(extHeader, 0);
+        output.set(payloadBytes, BACKUP_HEADER_SIZE);
+        downloadBlob(new Blob([output]), `gbs-control.backup-${+new Date()}.bin`);
         GBSControl.ui.progressBackup.setAttribute("gbs-progress", ``);
     });
 };
-const doRestore = (file) => {
+const rejectRestore = (message) => {
     const { backupInput } = GBSControl.ui;
+    backupInput.setAttribute("disabled", "");
+    const release = () => backupInput.removeAttribute("disabled");
+    gbsAlert(message).then(release, release).catch(release);
+};
+const doRestore = (file) => {
     const fileBuffer = new Uint8Array(file);
-    const headerCheck = fileBuffer.slice(4, 6);
-    if (headerCheck[0] !== 0x7b || headerCheck[1] !== 0x22) {
-        backupInput.setAttribute("disabled", "");
-        gbsAlert("Invalid Backup File")
-            .then(() => {
-            backupInput.removeAttribute("disabled");
-        }, () => {
-            backupInput.removeAttribute("disabled");
-        })
-            .catch(() => {
-            backupInput.removeAttribute("disabled");
-        });
+    // Extended header v1 required (see doBackup for layout).
+    if (fileBuffer.length < BACKUP_HEADER_SIZE + 4) {
+        rejectRestore("Invalid Backup File: file too small");
         return;
     }
-    const b0 = fileBuffer[0], b1 = fileBuffer[1], b2 = fileBuffer[2], b3 = fileBuffer[3];
-    const headerSize = (b0 << 24) + (b1 << 16) + (b2 << 8) + b3;
-    const headerString = Array.from(fileBuffer.slice(4, headerSize + 4))
+    for (let i = 0; i < BACKUP_MAGIC.length; i++) {
+        if (fileBuffer[i] !== BACKUP_MAGIC[i]) {
+            rejectRestore("Invalid or legacy backup format.\n" +
+                "Please re-export from firmware v" +
+                FIRMWARE_VERSION_STRING +
+                " or newer.");
+            return;
+        }
+    }
+    const formatVersion = fileBuffer[8];
+    if (formatVersion !== BACKUP_FORMAT_VERSION) {
+        rejectRestore("Unsupported backup format version: " + formatVersion + " (expected " + BACKUP_FORMAT_VERSION + ")");
+        return;
+    }
+    const expectedCrc = ((fileBuffer[12] << 24) >>> 0) +
+        ((fileBuffer[13] << 16) >>> 0) +
+        (fileBuffer[14] << 8) +
+        fileBuffer[15];
+    const declaredSize = ((fileBuffer[16] << 24) >>> 0) +
+        ((fileBuffer[17] << 16) >>> 0) +
+        (fileBuffer[18] << 8) +
+        fileBuffer[19];
+    if (declaredSize !== fileBuffer.length - BACKUP_HEADER_SIZE) {
+        rejectRestore("Backup file corrupted: payload size mismatch");
+        return;
+    }
+    const payload = fileBuffer.slice(BACKUP_HEADER_SIZE);
+    const actualCrc = crc32(payload);
+    if (actualCrc !== (expectedCrc >>> 0)) {
+        rejectRestore("Backup file corrupted: CRC mismatch");
+        return;
+    }
+    // Warn (non-blocking) if firmware versions differ from current build.
+    const bkMajor = fileBuffer[9];
+    const bkMinor = fileBuffer[10];
+    const bkPatch = fileBuffer[11];
+    if (bkMajor !== FW_MAJOR || bkMinor !== FW_MINOR || bkPatch !== FW_PATCH) {
+        console.warn(`Backup was exported from firmware v${bkMajor}.${bkMinor}.${bkPatch}, ` +
+            `current build is v${FW_MAJOR}.${FW_MINOR}.${FW_PATCH}.`);
+    }
+    // Legacy payload parsing starts at the 4-byte JSON size.
+    const b0 = payload[0], b1 = payload[1], b2 = payload[2], b3 = payload[3];
+    const headerSize = ((b0 << 24) >>> 0) + ((b1 << 16) >>> 0) + (b2 << 8) + b3;
+    const headerString = Array.from(payload.slice(4, headerSize + 4))
         .map((c) => String.fromCharCode(c))
         .join("");
     const headerObject = JSON.parse(headerString);
@@ -1056,7 +1175,7 @@ const doRestore = (file) => {
     let total = files.length;
     let done = 0;
     const funcs = files.map((fileName) => () => {
-        const fileContents = fileBuffer.slice(pos, pos + headerObject[fileName]);
+        const fileContents = payload.slice(pos, pos + headerObject[fileName]);
         const formData = new FormData();
         formData.append("file", new Blob([fileContents], { type: "application/octet-stream" }), fileName.substr(1));
         return fetch("/filesystem/upload", {

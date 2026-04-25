@@ -35,7 +35,7 @@ extern char userCommand;
 extern void saveUserPrefs();
 
 extern void writeProgramArrayNew(const uint8_t *programArray, boolean skipMDSection);
-extern void doPostPresetLoadSteps(bool skipApplyActiveInputType = false);
+extern void doPostPresetLoadSteps();
 extern void freezeVideo();
 
 extern OLEDMenuManager oledMenu;
@@ -193,9 +193,9 @@ void IR_handleMenuSelection(void)
     IR_handleMiscSettings() ||
     IR_handleInfoDisplay();
 
-    // Reset activity timer on valid IR input or repeat signal
-    bool isRepeat = (results.value == 0xFFFFFFFF || results.repeat);
-    if ((IR_isValidMenuKey(results.value) || isRepeat) && irDecodedFlag && oled_menuItem != OLED_None) {
+    // Reset activity timer on valid IR input or repeat signal (keeps menu open while holding)
+    bool isRepeatSignal = (results.value == 0xFFFFFFFF || results.repeat);
+    if ((IR_isValidMenuKey(results.value) || isRepeatSignal) && irDecodedFlag && oled_menuItem != OLED_None) {
         lastMenuItemTime = millis();
         irDecodedFlag = 0;
         resetOLEDScreenSaverTimer();
@@ -253,8 +253,10 @@ static void IR_handleMenuKeyPress(void)
     lastMenuItemTime = millis();
     NEW_OLED_MENU = false;
 
-    // Check if source is disconnected or board has no power
-    bool noSignal = rto->sourceDisconnected ||
+    // Check if source is disconnected or board has no power.
+    // noSignalBlackScreenMode means we intentionally have output active with no real input,
+    // so treat it like a connected source to give access to the full menu.
+    bool noSignal = (rto->sourceDisconnected && !rto->noSignalBlackScreenMode) ||
                     !rto->boardHasPower ||
                     GBS::PAD_CKIN_ENZ::read();
 
@@ -271,7 +273,7 @@ static void IR_handleMenuKeyPress(void)
 
         // Initialize display for info
         writeProgramArrayNew(ntsc_720x480, false);
-        doPostPresetLoadSteps(true);
+        doPostPresetLoadSteps();
         GBS::VDS_DIS_HB_ST::write(0x00);
         GBS::VDS_DIS_HB_SP::write(0xffff);
         freezeVideo();

@@ -36,3 +36,6 @@ adv-controller/build/
 *.bin
 *.hex
 *.map
+/gbs-control/.vs/gbs-control.slnx/FileContentIndex
+/gbs-control/.vs
+/.gitignore

@@ -4,7 +4,7 @@
   "description": "gbscontrol-webui",
   "scripts": {
     "start": "tsc --watch ./src/index.ts",
-    "build": "tsc ./src/index.ts --target ES6 && cd scripts && node ./build.js && ./html2h.sh",
+    "build": "tsc ./src/index.ts --target ES6 && cd scripts && node ./build.js && sh ./html2h.sh",
     "dev": "node dev-server.js"
   },
   "author": "",

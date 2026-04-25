@@ -1338,6 +1338,26 @@
               </tr>
               <tr>
                 <td>
+                  Keep Output on No Signal
+                  <!-- prettier-ignore -->
+                  <ul class="gbs-help">
+                    <li>When enabled, keeps HDMI output active (black screen) when no input signal is present.</li>
+                    <li>The TV stays locked and the OSD remains accessible via the remote.</li>
+                    <li>Useful to avoid missing console intros while the TV re-syncs.</li>
+                  </ul>
+                </td>
+                <td
+                  gbs-message="|"
+                  gbs-message-type="user"
+                  gbs-click="normal"
+                  class="gbs-icon"
+                  gbs-toggle-switch="keepOutputOnNoSignal"
+                >
+                  toggle_off
+                </td>
+              </tr>
+              <tr>
+                <td>
                   ADC calibration
                   <!-- prettier-ignore -->
                   <ul class="gbs-help">
