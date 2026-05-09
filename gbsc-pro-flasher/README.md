@@ -40,7 +40,7 @@ Or install manually:
 pip install pyserial esptool
 
 # Optional (for GUI)
-pip install PyQt6
+pip install PySide6
 ```
 
 ## Installation
@@ -193,8 +193,8 @@ python gbsc_flasher.py --list
 
 ### GUI doesn't start
 
-- Ensure PyQt6 is installed: `pip install PyQt6`
-- On Linux, you may need: `sudo apt install python3-pyqt6`
+- Ensure PySide6 is installed: `pip install PySide6`
+- On Linux, you may need: `sudo apt install python3-pyside6.qtwidgets`
 - Use CLI mode as fallback: `python gbsc_flasher.py firmware.bin`
 
 ## Building Firmware
