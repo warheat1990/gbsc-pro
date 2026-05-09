@@ -8,4 +8,4 @@ pyserial>=3.5
 esptool>=4.0
 
 # Optional - GUI interface (CLI works without this)
-PyQt6>=6.4.0
+PySide6>=6.4.0
