@@ -683,19 +683,19 @@ const handleRequest = (req, res) => {
     const css = fs.readFileSync(path.join(__dirname, 'src', 'style.css'), 'utf-8');
 
     // Read assets as base64
-    const icon1024 = fs.readFileSync(path.join(__dirname, 'assets/icons/icon-1024-maskable.png')).toString('base64');
+    const icon192 = fs.readFileSync(path.join(__dirname, 'assets/icons/icon-192-maskable.png')).toString('base64');
     const favicon = fs.readFileSync(path.join(__dirname, 'assets/icons/gbsc-logo.png')).toString('base64');
-    const oswald = fs.readFileSync(path.join(__dirname, 'assets/fonts/oswald.woff2')).toString('base64');
-    const material = fs.readFileSync(path.join(__dirname, 'assets/fonts/material.woff2')).toString('base64');
+    // const oswald = fs.readFileSync(path.join(__dirname, 'assets/fonts/oswald.woff2')).toString('base64');
+    // const material = fs.readFileSync(path.join(__dirname, 'assets/fonts/material.woff2')).toString('base64');
 
     // Process CSS with fonts
     const cssProcessed = css
-      .replace('${oswald}', oswald)
-      .replace('${material}', material);
+      // .replace('${oswald}', oswald)
+      // .replace('${material}', material);
 
     // Process manifest
     const manifestContent = fs.readFileSync(path.join(__dirname, 'src', 'manifest.json'), 'utf-8')
-      .replace(/\$\{icon1024\}/g, `data:image/png;base64,${icon1024}`);
+      .replace(/\$\{icon192\}/g, `data:image/png;base64,${icon192}`);
 
     // Generate final HTML with all substitutions
     const htmlFinal = htmlTemplate
@@ -703,7 +703,7 @@ const handleRequest = (req, res) => {
       .replace('${js}', js)
       .replace('${favicon}', `data:image/png;base64,${favicon}`)
       .replace('${manifest}', `data:application/json;base64,${Buffer.from(manifestContent).toString('base64')}`)
-      .replace('${icon1024}', `data:image/png;base64,${icon1024}`);
+      .replace('${icon192}', `data:image/png;base64,${icon192}`);
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(htmlFinal);

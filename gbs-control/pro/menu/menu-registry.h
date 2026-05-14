@@ -329,11 +329,17 @@ typedef struct {
 
 // Output Resolution Menu Mappings
 #define MENU_ITEMS_OUTPUT \
-    MENU_ITEM(OLED_OutputResolution_1080, OSD_CMD_OUTPUT_1080_1024_960, 1) \
-    MENU_ITEM(OLED_OutputResolution_1024, OSD_CMD_OUTPUT_1080_1024_960, 2) \
-    MENU_ITEM(OLED_OutputResolution_960,  OSD_CMD_OUTPUT_1080_1024_960, 3) \
-    MENU_ITEM(OLED_OutputResolution_720,  OSD_CMD_OUTPUT_720_480, 1) \
-    MENU_ITEM(OLED_OutputResolution_480,  OSD_CMD_OUTPUT_720_480, 2)
+    MENU_ITEM(OLED_OutputResolution_1200, OSD_CMD_OUTPUT_1200_1080_1024, 1) \
+    MENU_ITEM(OLED_OutputResolution_1080, OSD_CMD_OUTPUT_1200_1080_1024, 2) \
+    MENU_ITEM(OLED_OutputResolution_1024, OSD_CMD_OUTPUT_1200_1080_1024, 3) \
+    MENU_ITEM(OLED_OutputResolution_960,  OSD_CMD_OUTPUT_960_720_480, 1) \
+    MENU_ITEM(OLED_OutputResolution_720,  OSD_CMD_OUTPUT_960_720_480, 2) \
+    MENU_ITEM(OLED_OutputResolution_480,  OSD_CMD_OUTPUT_960_720_480, 3)
+    // MENU_ITEM(OLED_OutputResolution_1080, OSD_CMD_OUTPUT_1080_1024_960, 1) \
+    // MENU_ITEM(OLED_OutputResolution_1024, OSD_CMD_OUTPUT_1080_1024_960, 2) \
+    // MENU_ITEM(OLED_OutputResolution_960,  OSD_CMD_OUTPUT_1080_1024_960, 3) \
+    // MENU_ITEM(OLED_OutputResolution_720,  OSD_CMD_OUTPUT_720_480, 1) \
+    // MENU_ITEM(OLED_OutputResolution_480,  OSD_CMD_OUTPUT_720_480, 2)
 
 // Screen Settings Menu Mappings
 #define MENU_ITEMS_SCREEN \

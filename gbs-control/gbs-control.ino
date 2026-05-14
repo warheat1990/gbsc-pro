@@ -3307,7 +3307,7 @@ uint32_t getPllRate()
 
 #define AUTO_GAIN_INIT 0x48
 
-void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
+void doPostPresetLoadSteps()
 {
     //unsigned long postLoadTimer = millis();
 
@@ -4112,19 +4112,7 @@ void doPostPresetLoadSteps(bool skipApplyActiveInputType = false)
     applyHdmiLimitedRange();
 
     // Active Input Type
-    bool noSignal = rto->sourceDisconnected || !rto->boardHasPower || GBS::PAD_CKIN_ENZ::read();
-    SerialM.print(F("sourceDisconnected: "));
-    SerialM.println(rto->sourceDisconnected);
-    SerialM.print(F("boardhasPower: "));
-    SerialM.println(rto->boardHasPower);
-    SerialM.print(F("PAD_CKIN_ENZ: "));
-    SerialM.println(GBS::PAD_CKIN_ENZ::read());
-    SerialM.print(F("noSignal: "));
-    SerialM.println(noSignal);
-    SerialM.print(F("isInfoDisplayActive: "));
-    SerialM.println(isInfoDisplayActive);
-
-    if (!skipApplyActiveInputType) {
+    if (isInfoDisplayActive == 0) {
         SerialM.print(F("Apply active input type"));
         applyActiveInputType();
     }
@@ -10133,29 +10121,21 @@ void handleType2Command(char argument)
             }
             break;
         case 'Z':
-            // Y_offset +
+            // Y_offset (Brightness) +
             GBS::VDS_Y_OFST::write(GBS::VDS_Y_OFST::read() + 1);
+            SerialM.print(F("Y_offset + : "));
+            SerialM.println(GBS::VDS_Y_OFST::read(), DEC);
             if (GBS::VDS_Y_OFST::read() == 0x80)
                 GBS::VDS_Y_OFST::write(0x00);
             break;
         case 'T':
-            // Y_offset -
+            // Y_offset (Brightness) -
             GBS::VDS_Y_OFST::write(GBS::VDS_Y_OFST::read() - 1);
+            SerialM.print(F("Y_offset - : "));
+            SerialM.println(GBS::VDS_Y_OFST::read(), DEC);
             if (GBS::VDS_Y_OFST::read() == 0x7F) {
                 GBS::VDS_Y_OFST::write(0x00);
             }
-            break;
-        case 'N':
-            // Contrast +
-            GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() + 1);
-            SerialM.print(F("Contrast + : "));
-            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
-            break;
-        case 'M':
-            // Contrast -
-            GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() - 1);
-            SerialM.print(F("Contrast - : "));
-            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
             break;
         case 'Q':
             // U_offset +
@@ -10193,29 +10173,71 @@ void handleType2Command(char argument)
                 GBS::VDS_V_OFST::write(0x00);
             }
             break;
-        case 'V':
-            // Цвет +
-            GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() + 1);
-            GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() + 1);
-            SerialM.print(F("Color + : "));
-            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC); // потолок 3D
-            if (GBS::VDS_UCOS_GAIN::read() >= 0x39) {
-                GBS::VDS_UCOS_GAIN::write(0x1C);
-                GBS::VDS_VCOS_GAIN::write(0x29);
+        case 'N':
+            // Y_Gain (Contrast) +
+            if (GBS::VDS_Y_GAIN::read() < 255) { 
+                GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() + 1);
             }
+            SerialM.print(F("Contrast + : "));
+            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            break;
+        case 'M':
+            // Y_Gain (Contrast) -
+            if (GBS::VDS_Y_GAIN::read() > 0) { 
+                GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() - 1);
+            }
+            SerialM.print(F("Contrast - : "));
+            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            break;
+        case 'V':
+            // Color +
+            if (GBS::VDS_UCOS_GAIN::read() < 56) {
+                GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() + 1);
+                GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() + 1);
+            }
+            SerialM.print(F("Color + : "));
+            SerialM.println(GBS::VDS_UCOS_GAIN::read(), DEC);
+            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC);
             break;
         case 'R':
-            // Цвет -
-            GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() - 1);
-            GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() - 1);
+            // Color -
+            if (GBS::VDS_UCOS_GAIN::read() > 8) {
+                GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() - 1);
+                GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() - 1);
+            }
             SerialM.print(F("Color - : "));
-            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC); // потолок 14
-            if (GBS::VDS_UCOS_GAIN::read() <= 0x07) {
-                GBS::VDS_UCOS_GAIN::write(0x1C);
-            }
-            if (GBS::VDS_VCOS_GAIN::read() <= 0x14) {
-                GBS::VDS_VCOS_GAIN::write(0x29);
-            }
+            SerialM.println(GBS::VDS_UCOS_GAIN::read(), DEC);
+            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC);
+            break;
+        case 'b':
+            // RED +
+            uopt->gbsColorR = MIN(uopt->gbsColorR + 1, 255);
+            applyRGBtoYUVConversion();
+            break;
+        case 'c':
+            // RED -
+            uopt->gbsColorR = MAX(0, uopt->gbsColorR - 1);
+            applyRGBtoYUVConversion();
+            break;
+        case 'd':
+            // GREEN +
+            uopt->gbsColorG = MIN(uopt->gbsColorG + 1, 255);
+            applyRGBtoYUVConversion();
+            break;
+        case 'j':
+            // GREEN -
+            uopt->gbsColorG = MAX(0, uopt->gbsColorG - 1);
+            applyRGBtoYUVConversion();
+            break;
+        case 'k':
+            // BLUE +
+            uopt->gbsColorB = MIN(uopt->gbsColorB + 1, 255);
+            applyRGBtoYUVConversion();
+            break;
+        case 'y':
+            // BLUE -
+            uopt->gbsColorB = MAX(0, uopt->gbsColorB - 1);
+            applyRGBtoYUVConversion();
             break;
         case 'O':
             // Инфо

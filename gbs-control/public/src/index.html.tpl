@@ -9,7 +9,7 @@
     </style>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="icon" type="image/png" href="${favicon}" />
-    <link rel="apple-touch-icon" href="${icon1024}" />
+    <link rel="apple-touch-icon" href="${icon192}" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta
       name="viewport"
@@ -96,48 +96,47 @@
         </svg>
         <button
           gbs-section="presets"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
           active
         >
-          input
+          ☰
         </button>
         <button
           gbs-section="control"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
         >
-          control_camera
+          ❖
         </button>
         <button
           gbs-section="filters"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
         >
-          blur_on
+          ◑
         </button>
         <button
           gbs-section="preferences"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
         >
-          tune
+          ⛭
         </button>
         <button
           gbs-section="developer"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
           hidden
         >
-          developer_mode
+          &lt;/&gt;
         </button>
         <button
           gbs-section="system"
-          class="gbs-button gbs-button__menu gbs-icon"
+          class="gbs-button gbs-button__menu"
         >
-          bolt
+          ⌥
         </button>
       </div>
       <div class="gbs-scroll">
         <section name="presets">
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">aspect_ratio</div>
               <div>Resolution</div>
             </legend>
             <!-- prettier-ignore -->
@@ -240,7 +239,6 @@
           </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">cable</div>
               <div>Input Source</div>
             </legend>
             <!-- prettier-ignore -->
@@ -300,7 +298,6 @@
           </fieldset>
           <fieldset id="gbs-pro-cv-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">tv</div>
               <div>AV/S-Video Options</div>
             </legend>
             <!-- prettier-ignore -->
@@ -317,7 +314,7 @@
                 class="gbs-button gbs-button__control"
                 style="flex: 1;"
               >
-                <div class="gbs-icon">tv</div>
+                <div class="gbs-icon">▣</div>
                 <div>Auto</div>
               </button>
               <button
@@ -326,7 +323,7 @@
                 class="gbs-button gbs-button__control gbs-button__secondary"
                 style="flex: 1;"
               >
-                <div class="gbs-icon">filter_2</div>
+                <div class="gbs-icon">⧉</div>
                 <div>2X</div>
               </button>
               <button
@@ -335,7 +332,7 @@
                 class="gbs-button gbs-button__control gbs-button__secondary"
                 style="flex: 1;"
               >
-                <div class="gbs-icon">blur_on</div>
+                <div class="gbs-icon">≈</div>
                 <div>Smooth</div>
               </button>
               <button
@@ -344,14 +341,13 @@
                 class="gbs-button gbs-button__control gbs-button__secondary"
                 style="flex: 1;"
               >
-                <div class="gbs-icon">wb_sunny</div>
+                <div class="gbs-icon">✺</div>
                 <div>ACE</div>
               </button>
             </div>
           </fieldset>
           <fieldset id="gbs-pro-ace-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">wb_sunny</div>
               <div>ACE Settings</div>
             </legend>
             <!-- prettier-ignore -->
@@ -362,101 +358,59 @@
               <li><strong>Gamma Gain</strong>: Contrast enhancement via gamma (0-15, default 8)</li>
               <li><strong>Response Speed</strong>: ACE adaptation speed (0-15, default 15)</li>
             </ul>
-            <!-- Luma Gain -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Luma Gain</span>
-              <button
-                id="gbs-pro-ace-luma-dec"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-ace-luma-value" style="width: 40px; text-align: center; padding: 8px;">13</span>
-              <button
-                id="gbs-pro-ace-luma-inc"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">add</div>
-              </button>
+
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+              <!-- Luma Gain -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-ace-luma-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Luma Gain</span>
+                  <span id="gbs-pro-ace-luma-value" class="gbs-slider-value">13</span>
+                </div>
+                <button id="gbs-pro-ace-luma-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <!-- Chroma Gain -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-ace-chroma-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Chroma Gain</span>
+                  <span id="gbs-pro-ace-chroma-value" class="gbs-slider-value">8</span>
+                </div>
+                <button id="gbs-pro-ace-chroma-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <!-- Chroma Max -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-ace-chromamax-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Chroma Max</span>
+                  <span id="gbs-pro-ace-chromamax-value" class="gbs-slider-value">8</span>
+                </div>
+                <button id="gbs-pro-ace-chromamax-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <!-- Gamma Gain -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-ace-gamma-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Gamma Gain</span>
+                  <span id="gbs-pro-ace-gamma-value" class="gbs-slider-value">8</span>
+                </div>
+                <button id="gbs-pro-ace-gamma-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <!-- Response Speed (spans both columns) -->
+              <div class="gbs-slider-row" style="grid-column: 1 / -1;">
+                <button id="gbs-pro-ace-response-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Response Speed</span>
+                  <span id="gbs-pro-ace-response-value" class="gbs-slider-value">15</span>
+                </div>
+                <button id="gbs-pro-ace-response-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
             </div>
-            <!-- Chroma Gain -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Chroma Gain</span>
-              <button
-                id="gbs-pro-ace-chroma-dec"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-ace-chroma-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
-              <button
-                id="gbs-pro-ace-chroma-inc"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Chroma Max -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Chroma Max</span>
-              <button
-                id="gbs-pro-ace-chromamax-dec"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-ace-chromamax-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
-              <button
-                id="gbs-pro-ace-chromamax-inc"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Gamma Gain -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Gamma Gain</span>
-              <button
-                id="gbs-pro-ace-gamma-dec"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-ace-gamma-value" style="width: 40px; text-align: center; padding: 8px;">8</span>
-              <button
-                id="gbs-pro-ace-gamma-inc"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Response Speed -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Response Speed</span>
-              <button
-                id="gbs-pro-ace-response-dec"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-ace-response-value" style="width: 40px; text-align: center; padding: 8px;">15</span>
-              <button
-                id="gbs-pro-ace-response-inc"
-                class="gbs-button gbs-button__control"
-                style="width: 40px; height: 42px;"
-              >
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
+
             <!-- Default button -->
             <div class="gbs-flex">
               <button
@@ -464,14 +418,13 @@
                 class="gbs-button gbs-button__control gbs-button__secondary"
                 style="flex: 1;"
               >
-                <div class="gbs-icon">restore</div>
+                <div class="gbs-icon">↲</div>
                 <div>Reset to Defaults</div>
               </button>
             </div>
           </fieldset>
           <fieldset id="gbs-pro-filters-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">tune</div>
               <div>Video Filters</div>
             </legend>
             <!-- prettier-ignore -->
@@ -483,90 +436,95 @@
               <li><strong>Luma/Chr Mode</strong>: Comb filter algorithm</li>
               <li><strong>Chr Taps</strong>: Comb filter line averaging</li>
             </ul>
-            <!-- Y Filter -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Y Filter</span>
-              <button id="gbs-pro-filter-yfilter-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-yfilter-value" style="width: 80px; text-align: center; padding: 8px;">AutoNarrow</span>
-              <button id="gbs-pro-filter-yfilter-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- C Filter (AV only) -->
-            <div id="gbs-pro-filter-cfilter-row" class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">C Filter</span>
-              <button id="gbs-pro-filter-cfilter-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-cfilter-value" style="width: 80px; text-align: center; padding: 8px;">Auto1.5M</span>
-              <button id="gbs-pro-filter-cfilter-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Override (SV only) -->
-            <table id="gbs-pro-filter-override-row" class="gbs-preferences" style="display: none; width: 100%;">
-              <tr id="gbs-pro-filter-override-tr">
-                <td style="width: 100%; padding: 6px;">Override</td>
-                <td id="gbs-pro-filter-override" class="gbs-icon">toggle_off</td>
-              </tr>
-            </table>
-            <!-- Comb Filter -->
-            <div class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Comb Filter</span>
-              <button id="gbs-pro-filter-comb-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-comb-value" style="width: 80px; text-align: center; padding: 8px;">Medium</span>
-              <button id="gbs-pro-filter-comb-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Comb Luma Mode -->
-            <div id="gbs-pro-filter-luma-row" class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Luma Mode</span>
-              <button id="gbs-pro-filter-luma-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-luma-value" style="width: 80px; text-align: center; padding: 8px;">Adaptive</span>
-              <button id="gbs-pro-filter-luma-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Comb Chroma Mode -->
-            <div id="gbs-pro-filter-chroma-row" class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Chr Mode</span>
-              <button id="gbs-pro-filter-chroma-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-chroma-value" style="width: 80px; text-align: center; padding: 8px;">Adaptive</span>
-              <button id="gbs-pro-filter-chroma-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
-            </div>
-            <!-- Comb Chroma Taps -->
-            <div id="gbs-pro-filter-taps-row" class="gbs-flex gbs-margin__bottom--8">
-              <span style="flex: 1; padding: 8px;">Chr Taps</span>
-              <button id="gbs-pro-filter-taps-dec" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">remove</div>
-              </button>
-              <span id="gbs-pro-filter-taps-value" style="width: 80px; text-align: center; padding: 8px;">5->3</span>
-              <button id="gbs-pro-filter-taps-inc" class="gbs-button gbs-button__control" style="width: 40px; height: 42px;">
-                <div class="gbs-icon">add</div>
-              </button>
+
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+
+              <!-- Y Filter (slot 1) -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-filter-yfilter-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Y Filter</span>
+                  <span id="gbs-pro-filter-yfilter-value" class="gbs-slider-value">AutoNarrow</span>
+                </div>
+                <button id="gbs-pro-filter-yfilter-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+              </div>
+
+              <!-- Slot 2: C Filter (AV) or Override (SVideo) -->
+              <div style="position: relative; min-height: 50px;">
+
+                <!-- C Filter (AV only) -->
+                <div id="gbs-pro-filter-cfilter-row" class="gbs-slider-row">
+                  <button id="gbs-pro-filter-cfilter-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                  <div class="gbs-slider-center">
+                    <span class="gbs-slider-name">C Filter</span>
+                    <span id="gbs-pro-filter-cfilter-value" class="gbs-slider-value">Auto1.5M</span>
+                  </div>
+                  <button id="gbs-pro-filter-cfilter-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+                </div>
+
+                <!-- Override (SVideo only) -->
+                <div id="gbs-pro-filter-override-row" class="gbs-slider-row gbs-toggle" style="display: none; position: absolute; inset: 0; cursor: pointer;">
+                  <div style="flex: 1;"></div>
+                  <div class="gbs-slider-center">
+                    <span class="gbs-slider-name">Override</span>
+                    <span class="gbs-slider-value" id="gbs-pro-filter-override">OFF</span>
+                  </div>
+                  <div style="flex: 1;"></div>
+                </div>
+
+              </div>
+
+              <!-- Comb Filter (slot 3) -->
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-filter-comb-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Comb Filter</span>
+                  <span id="gbs-pro-filter-comb-value" class="gbs-slider-value">Medium</span>
+                </div>
+                <button id="gbs-pro-filter-comb-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+              </div>
+
+              <!-- Luma Mode (slot 4) -->
+              <div id="gbs-pro-filter-luma-row" class="gbs-slider-row">
+                <button id="gbs-pro-filter-luma-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Luma Mode</span>
+                  <span id="gbs-pro-filter-luma-value" class="gbs-slider-value">Adaptive</span>
+                </div>
+                <button id="gbs-pro-filter-luma-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+              </div>
+
+              <!-- Chr Mode (slot 5) -->
+              <div id="gbs-pro-filter-chroma-row" class="gbs-slider-row">
+                <button id="gbs-pro-filter-chroma-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Chr Mode</span>
+                  <span id="gbs-pro-filter-chroma-value" class="gbs-slider-value">Adaptive</span>
+                </div>
+                <button id="gbs-pro-filter-chroma-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+              </div>
+
+              <!-- Chr Taps (slot 6) -->
+              <div id="gbs-pro-filter-taps-row" class="gbs-slider-row">
+                <button id="gbs-pro-filter-taps-dec" class="gbs-button gbs-slider-btn">&lt;</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Chr Taps</span>
+                  <span id="gbs-pro-filter-taps-value" class="gbs-slider-value">5->3</span>
+                </div>
+                <button id="gbs-pro-filter-taps-inc" class="gbs-button gbs-slider-btn">&gt;</button>
+              </div>
+
             </div>
             <!-- Reset -->
             <div class="gbs-flex">
               <button id="gbs-pro-filter-default" class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
-                <div class="gbs-icon">restore</div>
+                <div class="gbs-icon">↲</div>
                 <div>Reset to Defaults</div>
               </button>
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset presets">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">input</div>
               <div>Presets</div>
             </legend>
             <!-- prettier-ignore -->
@@ -583,7 +541,7 @@
                 gbs-role="preset"
                 onclick="loadPreset()"
               >
-                <div class="gbs-icon">play_arrow</div>
+                <div class="gbs-icon">▷</div>
                 <div>load preset</div>
               </button>
               <button
@@ -591,7 +549,7 @@
                 onclick="savePreset()"
                 active
               >
-                <div class="gbs-icon">add_circle_outline</div>
+                <div class="gbs-icon">⨁</div>
                 <div>save preset</div>
               </button>
               <button
@@ -599,7 +557,7 @@
                 onclick="removePreset()"
                 active
               >
-                <div class="gbs-icon">highlight_remove</div>
+                <div class="gbs-icon">⨂</div>
                 <div>remove preset</div>
               </button>
             </div>
@@ -609,7 +567,6 @@
         <section name="control" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">wb_sunny</div>
               <div>ADC Gain (brightness)</div>
             </legend>
             <!-- prettier-ignore -->
@@ -624,8 +581,8 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control"
               >
-                <div class="gbs-icon">remove_circle_outline</div>
-                <div>gain</div>
+                <div class="gbs-icon">-</div>
+                <div>Gain</div>
               </button>
               <button
                 gbs-message="n"
@@ -633,8 +590,8 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control"
               >
-                <div class="gbs-icon">add_circle_outline</div>
-                <div>gain</div>
+                <div class="gbs-icon">+</div>
+                <div>Gain</div>
               </button>
               <button
                 gbs-message="T"
@@ -643,14 +600,13 @@
                 gbs-toggle="adcAutoGain"
                 class="gbs-button gbs-button__control gbs-button__secondary"
               >
-                <div class="gbs-icon">brightness_auto</div>
+                <div class="gbs-icon">Ⓐ</div>
                 <div>Auto Gain</div>
               </button>
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset gbs-controls">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">control_camera</div>
               <div>Picture Control</div>
             </legend>
             <div class="gbs-flex">
@@ -658,19 +614,19 @@
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
                 gbs-control-key="left"
               >
-                keyboard_arrow_left
+                ◀
               </button>
               <button
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
                 gbs-control-key="up"
               >
-                keyboard_arrow_up
+                ▲
               </button>
               <button
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
                 gbs-control-key="right"
               >
-                keyboard_arrow_right
+                ▶
               </button>
             </div>
             <div class="gbs-flex gbs-margin__bottom--16">
@@ -681,10 +637,10 @@
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
                 gbs-control-key="down"
               >
-                keyboard_arrow_down
+                ▼
               </button>
               <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                south_east
+                ↘
               </button>
             </div>
             <div class="gbs-flex">
@@ -693,28 +649,27 @@
                 gbs-control-target="move"
                 active
               >
-                <div class="gbs-icon">open_with</div>
+                <div class="gbs-icon">✜</div>
                 <div>move</div>
               </button>
               <button
                 class="gbs-button gbs-button__control"
                 gbs-control-target="scale"
               >
-                <div class="gbs-icon">zoom_out_map</div>
+                <div class="gbs-icon">✥</div>
                 <div>scale</div>
               </button>
               <button
                 class="gbs-button gbs-button__control"
                 gbs-control-target="borders"
               >
-                <div class="gbs-icon">crop_free</div>
+                <div class="gbs-icon">⛶</div>
                 <div>borders</div>
               </button>
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset gbs-controls__desktop">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">control_camera</div>
               <div>Picture Control</div>
             </legend>
             <div class="gbs-flex">
@@ -724,7 +679,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_left
+                ◀
               </button>
               <button
                 gbs-message="*"
@@ -732,7 +687,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_up
+                ▲
               </button>
               <button
                 gbs-message="6"
@@ -740,12 +695,12 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_right
+                ▶
               </button>
             </div>
             <div class="gbs-flex gbs-margin__bottom--16">
               <button class="gbs-button gbs-button__control" active>
-                <div class="gbs-icon">open_with</div>
+                <div class="gbs-icon">✜</div>
                 <div>move</div>
               </button>
               <button
@@ -754,10 +709,10 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_down
+                ▼
               </button>
               <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                south_east
+                ↘
               </button>
             </div>
 
@@ -768,7 +723,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_left
+                ◀
               </button>
               <button
                 gbs-message="4"
@@ -776,7 +731,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_up
+                ▲
               </button>
               <button
                 gbs-message="z"
@@ -784,13 +739,13 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_right
+                ▶
               </button>
             </div>
 
             <div class="gbs-flex gbs-margin__bottom--16">
               <button class="gbs-button gbs-button__control" active>
-                <div class="gbs-icon">zoom_out_map</div>
+                <div class="gbs-icon">✥</div>
                 <div>scale</div>
               </button>
               <button
@@ -799,10 +754,10 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_down
+                ▼
               </button>
               <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                south_east
+                ↘
               </button>
             </div>
             <div class="gbs-flex">
@@ -812,7 +767,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_left
+                ◀
               </button>
               <button
                 gbs-message="C"
@@ -820,7 +775,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_up
+                ▲
               </button>
               <button
                 gbs-message="A"
@@ -828,7 +783,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_right
+                ▶
               </button>
             </div>
 
@@ -838,7 +793,7 @@
                 gbs-control-target="borders"
                 active
               >
-                <div class="gbs-icon">crop_free</div>
+                <div class="gbs-icon">⛶</div>
                 <div>borders</div>
               </button>
               <button
@@ -847,10 +802,10 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control gbs-icon gbs-button__secondary"
               >
-                keyboard_arrow_down
+                ▼
               </button>
               <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                south_east
+                ↘
               </button>
             </div>
           </fieldset>
@@ -1019,7 +974,6 @@
         <section name="filters" hidden>
           <fieldset class="gbs-fieldset filters">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">blur_on</div>
               <div>Filters</div>
             </legend>
             <div class="gbs-margin__bottom--16">
@@ -1031,7 +985,7 @@
                   gbs-toggle="scanlines"
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">gradient</div>
+                  <div class="gbs-icon">☰</div>
                   <div>scanlines</div>
                 </button>
                 <button
@@ -1040,8 +994,8 @@
                   gbs-click="normal"
                   class="gbs-button gbs-button__control"
                 >
-                  <div class="gbs-icon">gradientbolt</div>
-                  <div>intensity</div>
+                  <div class="gbs-icon">▤</div>
+                  <div><span id="gbs-scanlineStrength-value">[20]</span> intensity</div>
                 </button>
                 <button
                   gbs-message="m"
@@ -1050,7 +1004,7 @@
                   gbs-toggle="vdsLineFilter"
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">power_input</div>
+                  <div class="gbs-icon">┄</div>
                   <div>line filter</div>
                 </button>
               </div>
@@ -1067,7 +1021,7 @@
                   gbs-toggle="peaking"
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">blur_linear</div>
+                  <div class="gbs-icon">░</div>
                   <div>peaking</div>
                 </button>
                 <button
@@ -1077,7 +1031,7 @@
                   gbs-toggle="sharpness"
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">blur_linearbolt</div>
+                  <div class="gbs-icon">▒</div>
                   <div>sharpness</div>
                 </button>
                 <button
@@ -1087,7 +1041,7 @@
                   gbs-toggle="step"
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">grain</div>
+                  <div class="gbs-icon">⁙</div>
                   <div>step response</div>
                 </button>
               </div>
@@ -1099,89 +1053,122 @@
           </fieldset>
           <fieldset class="gbs-fieldset filters">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">wb_sunny</div>
-              <div>Сolor correction</div>
+              <div>Сolor Correction</div>
             </legend>
-            <div class="gbs-flex">
-              <button
-                gbs-message="Z"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">add_circle_outline</div>
-                <div>Brightness</div>
-              </button>
-              <button
-                gbs-message="T"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">remove_circle_outline</div>
-                <div>Brightness</div>
-              </button>
+
+            <div class="gbs-slider-grid">
+              <!-- <div class="gbs-slider-header">RGB</div> -->
+                <div class="gbs-slider-row">
+                    <button gbs-message="c" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Red</span>
+                        <span class="gbs-slider-value" id="gbs-red-value">255</span>
+                    </div>
+
+                    <button gbs-message="b" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+
+                <div class="gbs-slider-row">
+                    <button gbs-message="j" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Green</span>
+                        <span class="gbs-slider-value" id="gbs-green-value">255</span>
+                    </div>
+
+                    <button gbs-message="d" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+
+                <div class="gbs-slider-row">
+                    <button gbs-message="y" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Blue</span>
+                        <span class="gbs-slider-value" id="gbs-blue-value">255</span>
+                    </div>
+
+                    <button gbs-message="k" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
             </div>
-            <div class="gbs-flex">
-              <button
-                gbs-message="N"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">add_circle_outline</div>
-                <div>Contrast</div>
-              </button>
-              <button
-                gbs-message="M"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">remove_circle_outline</div>
-                <div>Contrast</div>
-              </button>
+
+            <div class="gbs-slider-grid--2col">
+              <!-- <div class="gbs-slider-header">Gain</div> -->
+                <div class="gbs-slider-row">
+                    <button gbs-message="M" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Y Gain</span>
+                        <span class="gbs-slider-value" id="gbs-ygain-value">255</span>
+                    </div>
+
+                    <button gbs-message="N" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+
+                <div class="gbs-slider-row">
+                    <button gbs-message="R" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Color</span>
+                        <span class="gbs-slider-value" id="gbs-uvgain-value">U:28 V:41</span>
+                    </div>
+
+                    <button gbs-message="V" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
             </div>
-            <div class="gbs-flex">
-              <button
-                gbs-message="Q"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">add_circle_outline</div>
-                <div>Pb/U gain</div>
-              </button>
-              <button
-                gbs-message="H"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">remove_circle_outline</div>
-                <div>Pb/U gain</div>
-              </button>
-            </div>
-            <div class="gbs-flex">
-              <button
-                gbs-message="P"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-                >
-                <div class="gbs-icon">add_circle_outline</div>
-                <div>Pr/V gain</div>
-              </button>
-              <button
-                gbs-message="S"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-                >
-                <div class="gbs-icon">remove_circle_outline</div>
-                <div>Pr/V gain</div>
-              </button>
-            </div>
+
+            <!-- <div class="gbs-slider-grid">
+              <div class="gbs-slider-header">Offset</div>
+                <div class="gbs-slider-row">
+                    <button gbs-message="T" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Y</span>
+                        <span class="gbs-slider-value" id="contrast-value">255</span>
+                    </div>
+
+                    <button gbs-message="Z" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+
+                <div class="gbs-slider-row">
+                    <button gbs-message="H" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Pb/U</span>
+                        <span class="gbs-slider-value" id="pbu-value">255</span>
+                    </div>
+
+                    <button gbs-message="Q" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+
+                <div class="gbs-slider-row">
+                    <button gbs-message="S" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">−</button>
+
+                    <div class="gbs-slider-center">
+                        <span class="gbs-slider-name">Pr/V</span>
+                        <span class="gbs-slider-value" id="prv-value">255</span>
+                    </div>
+
+                    <button gbs-message="P" gbs-message-type="user" gbs-click="repeat"
+                        class="gbs-button gbs-slider-btn">+</button>
+                </div>
+            </div> -->
+
             <div class="gbs-flex">
               <button
                 gbs-message="O"
@@ -1189,7 +1176,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control"
               >
-              <div class="gbs-icon">info</div>
+              <div class="gbs-icon">i</div>
               <div>Info</div>
               </button>
               <button
@@ -1198,7 +1185,7 @@
                 gbs-click="repeat"
                 class="gbs-button gbs-button__control"
               >
-                <div class="gbs-icon">settings_backup_restore</div>
+                <div class="gbs-icon">↲</div>
                 <div>Default</div>
               </button>
             </div>
@@ -1213,46 +1200,49 @@
         <section name="preferences" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div class="gbs-icon">tune</div>
               <div>Settings</div>
             </legend>
             <table class="gbs-preferences">
               <tr>
                 <td>
-                  Matched Presets
-                  <ul class="gbs-help">
-                    <!-- prettier-ignore -->
-                    <li>If enabled, default to 1280x960 for NTSC 60 and 1280x1024 for PAL 50 (does not apply for 720p / 1080p presets).</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Matched Presets</span>
+                    <ul class="gbs-help">
+                      <!-- prettier-ignore -->
+                      <li>If enabled, default to 1280x960 for NTSC 60 and 1280x1024 for PAL 50 (does not apply for 720p / 1080p presets).</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="Z"
                   gbs-message-type="action"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="matched"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
                 <td>
-                  Full Height
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Some presets default to not using the entire vertical output resolution, leaving some lines black.</li>
-                    <li>With Full Height enabled, these presets will instead scale to fill more of the screen height.</li>
-                    <li>(This currently only affects 1920 x 1080)</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Full Height</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Some presets default to not using the entire vertical output resolution, leaving some lines black.</li>
+                      <li>With Full Height enabled, these presets will instead scale to fill more of the screen height.</li>
+                      <li>(This currently only affects 1920 x 1080)</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="v"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="fullHeight"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <!-- PRO: Low Res Upscaling and Output Component not supported
@@ -1274,7 +1264,7 @@
                   class="gbs-icon"
                   gbs-toggle-switch="preferScalingRgbhv"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
@@ -1292,103 +1282,113 @@
                   class="gbs-icon"
                   gbs-toggle-switch="wantOutputComponent"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               -->
               <tr>
                 <td>
-                  Output Frame Rate: Force PAL 50Hz to 60Hz
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>If your TV does not support 50Hz sources (displaying unknown format, no matter the preset), try this option.
-                    </li>
-                    <li>The frame rate will not be as smooth. Reboot required.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Force PAL 50Hz to 60Hz</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>If your TV does not support 50Hz sources (displaying unknown format, no matter the preset), try this option.
+                      </li>
+                      <li>The frame rate will not be as smooth. Reboot required.</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="0"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="palForce60"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
                 <td>
-                  Disable External Clock Generator
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>By default the external clock generator is enabled when installed.</li>
-                    <li>You can disable it if you have issues with other options, e.g  Force PAL 50Hz to 60Hz.
-                    Reboot required.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Disable External Clock Generator</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>By default the external clock generator is enabled when installed.</li>
+                      <li>You can disable it if you have issues with other options, e.g  Force PAL 50Hz to 60Hz.
+                      Reboot required.</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="X"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="disableExternalClockGenerator"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
                 <td>
-                  ADC calibration
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Gbscontrol calibrates the ADC offsets on startup.</li>
-                    <li>In case of color shift problems, try disabling this function.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">ADC calibration</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Gbscontrol calibrates the ADC offsets on startup.</li>
+                      <li>In case of color shift problems, try disabling this function.</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="w"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="enableCalibrationADC"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
                 <td>
-                  Sync Stripper
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Enable LM1881 sync stripper for RGB sources.</li>
-                    <li>Useful for sources with dirty or non-standard sync signals.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Sync Stripper</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Enable LM1881 sync stripper for RGB sources.</li>
+                      <li>Useful for sources with dirty or non-standard sync signals.</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-pro-toggle="syncstripper"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="syncStripper"
                 >
-                  toggle_on
+                  ON
                 </td>
               </tr>
               <tr>
                 <td>
-                  HDMI Limited Range
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Workaround for MS9288 and similar VGA-to-HDMI converters that mark certain resolutions as Limited Range.</li>
-                    <li>OFF: No compensation. HD: Apply to 720p/1080p. SD: Apply to 480p/576p/960p/1024p. ALL: Apply to all resolutions.</li>
-                    <li>If colors appear washed out or clipped at certain resolutions, try cycling through these options.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">HDMI Limited Range</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Workaround for MS9288 and similar VGA-to-HDMI converters that mark certain resolutions as Limited Range.</li>
+                      <li>OFF: No compensation. HD: Apply to 720p/1080p. SD: Apply to 480p/576p/960p/1024p. ALL: Apply to all resolutions.</li>
+                      <li>If colors appear washed out or clipped at certain resolutions, try cycling through these options.</li>
+                    </ul>
+                  </div>
                 </td>
                 <td
                   gbs-message="%"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  style="cursor: pointer; padding-left: 8px;"
                   gbs-hdmi-limited-range
                   id="gbs-hdmi-limited-range-value"
+                  class="gbs-preference-toggle"
                 >
                   OFF
                 </td>
@@ -1404,27 +1404,35 @@
                 </td>
               </tr>
               <tr>
-                <td class="gbs-padding__left-16">FrameTime Lock</td>
+                <td class="gbs-padding__left-16">
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">FrameTime Lock</span>
+                  </div>
+                </td>
                 <td
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-message="5"
                   gbs-message-type="user"
                   gbs-click="normal"
                   gbs-toggle-switch="frameTimeLock"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
-                <td class="gbs-padding__left-16">Switch Lock Method</td>
+                <td class="gbs-padding__left-16">
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Switch Lock Method</span>
+                  </div>
+                </td>
                 <td
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-message="i"
                   gbs-message-type="user"
                   gbs-click="normal"
                   style="cursor: pointer"
                 >
-                  swap_horiz
+                  &lt;-&gt;
                 </td>
               </tr>
               <tr>
@@ -1440,61 +1448,77 @@
                 </td>
               </tr>
               <tr>
-                <td class="gbs-padding__left-16">Motion Adaptive</td>
+                <td class="gbs-padding__left-16">
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Motion Adaptive</span>
+                  </div>
+                </td>
                 <td
                   gbs-message="r"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="bob"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr>
-                <td class="gbs-padding__left-16">Bob</td>
+                <td class="gbs-padding__left-16">
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Bob</span>
+                  </div>
+                </td>
                 <td
                   gbs-message="q"
                   gbs-message-type="user"
                   gbs-click="normal"
-                  class="gbs-icon"
+                  class="gbs-preference-toggle"
                   gbs-toggle-switch="motionAdaptive"
                 >
-                  toggle_off
+                  OFF
                 </td>
               </tr>
               <tr gbs-dev-switch>
                 <td>
-                  Developer Mode
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>Enables the developer menu which contains various debugging tools</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Developer Mode</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Enables the developer menu which contains various debugging tools</li>
+                    </ul>
+                  </div>
                 </td>
-                <td class="gbs-icon">toggle_off</td>
+                <td class="gbs-icon">OFF</td>
               </tr>
               <tr gbs-slot-custom-filters>
                 <td>
-                  Save Filtering Per Slot
-                  <!-- prettier-ignore -->
-                  <ul class="gbs-help">
-                    <li>When enabled, saved slots recover their own filter preferences.</li>
-                    <li>When disabled, saved slots maintain current filter settings.</li>
-                  </ul>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">Save Filtering Per Slot</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>When enabled, saved slots recover their own filter preferences.</li>
+                      <li>When disabled, saved slots maintain current filter settings.</li>
+                    </ul>
+                  </div>
                 </td>
-                <td class="gbs-icon">toggle_off</td>
+                <td class="gbs-icon">OFF</td>
               </tr>
               
-              <td>
-                IR Remote Control: Key Codes
-                <!-- prettier-ignore -->
-                <ul class="gbs-help">
-                  <li>Reading the code of the IR remote control buttons.</li>
-                </ul>
-              </td>
-              <td class="gbs-icon" gbs-message="I" gbs-message-type="user" gbs-click="normal" style="cursor: pointer">
-                  swap_horiz
-              </td>
+              <tr>
+                <td>
+                  <div class="gbs-preference-label">
+                    <span class="gbs-preference-label__title">IR Remote Control: Key Codes</span>
+                    <!-- prettier-ignore -->
+                    <ul class="gbs-help">
+                      <li>Reading the code of the IR remote control buttons.</li>
+                    </ul>
+                  </div>
+                </td>
+                <td class="gbs-preference-toggle" gbs-message="I" gbs-message-type="user" gbs-click="normal" style="cursor: pointer">
+                  &lt;-&gt;
+                </td>
+              </tr>
             </table>
           </fieldset>
         </section>
@@ -1502,12 +1526,11 @@
         <section name="developer" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">input</div>
               <div>Developer</div>
             </legend>
             <div class="gbs-flex gbs-margin__bottom--16">
               <button class="gbs-button" gbs-output-toggle>
-                <div class="gbs-icon">code</div>
+                <div class="gbs-icon">&lt; &gt;</div>
                 <div>Toggle Console</div>
               </button>
             </div>
@@ -1518,7 +1541,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">keyboard_arrow_left</div>
+                <div class="gbs-icon">◀</div>
                 <div>MEM Left</div>
               </button>
               <button
@@ -1527,7 +1550,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">keyboard_arrow_right</div>
+                <div class="gbs-icon">▶</div>
                 <div>MEM Right</div>
               </button>
               <button
@@ -1536,7 +1559,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">keyboard_arrow_left</div>
+                <div class="gbs-icon">◀</div>
                 <div>HS Left</div>
               </button>
               <button
@@ -1545,7 +1568,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">keyboard_arrow_right</div>
+                <div class="gbs-icon">▶</div>
                 <div>HS Right</div>
               </button>
             </div>
@@ -1556,7 +1579,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">list</div>
+                <div class="gbs-icon">☰</div>
                 <div>List Options</div>
               </button>
               <button
@@ -1565,7 +1588,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">info</div>
+                <div class="gbs-icon">i</div>
                 <div>Print Info</div>
               </button>
               <button
@@ -1574,7 +1597,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">alarm</div>
+                <div class="gbs-icon">◴</div>
                 <div>Get Video Timings</div>
               </button>
             </div>
@@ -1586,7 +1609,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-margin__bottom--16"
               >
-                <div class="gbs-icon">add_a_photo</div>
+                <div class="gbs-icon">⬒</div>
                 <div>Freeze Capture</div>
               </button>
             </div>
@@ -1598,7 +1621,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">wb_sunny</div>
+                <div class="gbs-icon">✺</div>
                 <div>ADC Filter</div>
               </button>
               <button
@@ -1607,7 +1630,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">memory</div>
+                <div class="gbs-icon">⬢</div>
                 <div>Cycle SDRAM</div>
               </button>
             </div>
@@ -1618,7 +1641,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">bug_report</div>
+                <div class="gbs-icon">≚</div>
                 <div>Debug View</div>
               </button>
             </div>
@@ -1629,7 +1652,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">add_circle_outline</div>
+                <div class="gbs-icon">+</div>
                 <div>HTotal++</div>
               </button>
               <button
@@ -1638,7 +1661,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">remove_circle_outline</div>
+                <div class="gbs-icon">-</div>
                 <div>HTotal--</div>
               </button>
               <button
@@ -1647,7 +1670,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">sync_problem</div>
+                <div class="gbs-icon">⥀</div>
                 <div>Resync HTotal</div>
               </button>
             </div>
@@ -1658,7 +1681,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">calculate</div>
+                <div class="gbs-icon">∿</div>
                 <div>PLL divider++</div>
               </button>
               <button
@@ -1667,7 +1690,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">invert_colors</div>
+                <div class="gbs-icon">◪</div>
                 <div>Invert Sync</div>
               </button>
             </div>
@@ -1678,7 +1701,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">devices_other</div>
+                <div class="gbs-icon">⚲</div>
                 <div>SyncWatcher</div>
               </button>
 
@@ -1688,7 +1711,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">settings_backup_restore</div>
+                <div class="gbs-icon">⥀</div>
                 <div>SyncProcessor</div>
               </button>
             </div>
@@ -1699,7 +1722,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">insights</div>
+                <div class="gbs-icon">⧉</div>
                 <div>Oversampling</div>
               </button>
               <button
@@ -1708,7 +1731,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">settings_input_hdmi</div>
+                <div class="gbs-icon">⚯</div>
                 <div>60/50Hz HDMI</div>
               </button>
 
@@ -1718,7 +1741,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">bug_report</div>
+                <div class="gbs-icon">Ⓐ</div>
                 <div>IF Auto Offset</div>
               </button>
             </div>
@@ -1729,7 +1752,7 @@
                 gbs-click="normal"
                 class="gbs-button"
               >
-                <div class="gbs-icon">format_align_justify</div>
+                <div class="gbs-icon">⚍</div>
                 <div>SOG Level--</div>
               </button>
 
@@ -1739,7 +1762,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__secondary"
               >
-                <div class="gbs-icon">model_training</div>
+                <div class="gbs-icon">↲</div>
                 <div>Reset Chip</div>
               </button>
             </div>
@@ -1749,7 +1772,6 @@
         <section name="system" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">bolt</div>
               <div>System</div>
             </legend>
             <div class="gbs-flex">
@@ -1759,7 +1781,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__control"
               >
-                <div class="gbs-icon">system_update_alt</div>
+                <div class="gbs-icon">⚇</div>
                 <div>Enable OTA</div>
               </button>
               <button
@@ -1768,7 +1790,7 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__control"
               >
-                <div class="gbs-icon">settings_backup_restore</div>
+                <div class="gbs-icon">⟳</div>
                 <div>Restart</div>
               </button>
               <button
@@ -1777,14 +1799,13 @@
                 gbs-click="normal"
                 class="gbs-button gbs-button__control gbs-button__secondary"
               >
-                <div class="gbs-icon">settings_backup_restore offline_bolt</div>
+                <div class="gbs-icon">↲</div>
                 <div>Reset Defaults</div>
               </button>
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help"">
-              <div class="gbs-icon">sd_card</div>
               <div>Backup [intended for same device]</div>
             </legend>
             <!-- prettier-ignore -->
@@ -1797,13 +1818,13 @@
               <button
                 class="gbs-button gbs-button__control gbs-button__secondary gbs-backup-button"
               >
-                <div class="gbs-icon">cloud_download</div>
+                <div class="gbs-icon">▭↓</div>
                 <div gbs-progress gbs-progress-backup>Backup</div>
               </button>
               <button
                 class="gbs-button gbs-button__control gbs-button__secondary"
               >
-                <div class="gbs-icon">cloud_upload</div>
+                <div class="gbs-icon">▭↑</div>
                 <input type="file" class="gbs-backup-input" accept=".bin"/>
                 <div gbs-progress gbs-progress-restore>Restore</div>
               </button>
@@ -1811,30 +1832,27 @@
           </fieldset>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">wifi</div>
               <div>Wi-Fi</div>
             </legend>
 
             <div class="gbs-flex gbs-margin__bottom--16">
               <button class="gbs-button gbs-button__control" gbs-wifi-ap>
-                <div class="gbs-icon">location_on</div>
+                <div class="gbs-icon">၊၊||၊</div>
                 <div>Access Point</div>
               </button>
               <button class="gbs-button gbs-button__control" gbs-wifi-station>
-                <div class="gbs-icon">radio</div>
+                <div class="gbs-icon">ᯤ</div>
                 <div gbs-wifi-station-ssid>Station</div>
               </button>
             </div>
             <fieldset class="gbs-fieldset" gbs-wifi-list hidden>
               <legend class="gbs-fieldset__legend">
-                <div class="gbs-icon">router</div>
                 <div>Select SSID</div>
               </legend>
               <table class="gbs-wifi__list"></table>
             </fieldset>
             <fieldset class="gbs-fieldset gsb-wifi__connect" hidden>
               <legend class="gbs-fieldset__legend">
-                <div class="gbs-icon">login</div>
                 <div>Connect to SSID</div>
               </legend>
               <div class="gbs-flex">
@@ -1859,7 +1877,7 @@
                   gbs-wifi-connect-button
                   class="gbs-button gbs-button__control gbs-button__secondary"
                 >
-                  <div class="gbs-icon">network_check</div>
+                  <div class="gbs-icon">⏵</div>
                   <div>Connect</div>
                 </button>
               </div>
@@ -1869,7 +1887,6 @@
         <section name="prompt" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">keyboard</div>
               <div gbs-prompt-content>Prompt</div>
             </legend>
             <div class="gbs-flex gbs-margin__bottom--16">
@@ -1882,14 +1899,14 @@
             </div>
             <div class="gbs-flex">
               <button gbs-prompt-cancel class="gbs-button gbs-button__control">
-                <div class="gbs-icon">close</div>
+                <div class="gbs-icon">✕</div>
                 <div>CANCEL</div>
               </button>
               <button
                 gbs-prompt-ok
                 class="gbs-button gbs-button__control gbs-button__secondary"
               >
-                <div class="gbs-icon">done</div>
+                <div class="gbs-icon">✓</div>
                 <div>OK</div>
               </button>
             </div>
@@ -1898,7 +1915,6 @@
         <section name="alert" hidden>
           <fieldset class="gbs-fieldset">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">warning</div>
               <div>ALERT</div>
             </legend>
             <div
@@ -1911,7 +1927,7 @@
                 gbs-alert-ok
                 class="gbs-button gbs-button__control gbs-button__secondary"
               >
-                <div class="gbs-icon">done</div>
+                <div class="gbs-icon">✓</div>
                 <div>OK</div>
               </button>
             </div>
@@ -1920,11 +1936,10 @@
         <div class="gbs-output">
           <fieldset class="gbs-fieldset gbs-fieldset-output">
             <legend class="gbs-fieldset__legend">
-              <div class="gbs-icon">code</div>
               <div>Output</div>
             </legend>
             <div class="gbs-flex gbs-margin__bottom--16" gbs-output-clear>
-              <button class="gbs-button gbs-icon">delete_outline</button>
+              <button class="gbs-button gbs-icon">☒</button>
             </div>
             <div class="gbs-flex gbs-margin__bottom--16 gbs-custom-i2c">
               <label class="gbs-custom-i2c__label">ADV Controller - Custom I2C</label>
@@ -1935,7 +1950,7 @@
                 placeholder="42,0E,00,42,17,01"
               />
               <button class="gbs-button gbs-custom-i2c__btn" id="customI2CSend" title="Send I2C">
-                <span class="gbs-icon">send</span>Send
+                ▷ Send
               </button>
             </div>
             <div class="gbs-flex">
@@ -1950,7 +1965,7 @@
       <div class="gbs-loader"><img /></div>
     </div>
     <div class="gbs-wifi-warning" id="websocketWarning">
-      <div class="gbs-icon blink_me">signal_wifi_off</div>
+      <div class="gbs-icon blink_me">∅</div>
     </div>
     <script>
       ${js}

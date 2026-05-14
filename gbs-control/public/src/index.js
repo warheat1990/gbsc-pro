@@ -321,6 +321,18 @@ const createWebSocket = () => {
                     return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
                 return 0;
             };
+            // RGB (position 27-32) - each color is 2 hex chars (0-255), encoded as high nibble and low nibble chars
+            const redValue = (fromHexChar(message.data[27] || "0") << 4) | fromHexChar(message.data[28] || "0");
+            const greenValue = (fromHexChar(message.data[29] || "0") << 4) | fromHexChar(message.data[30] || "0");
+            const blueValue = (fromHexChar(message.data[31] || "0") << 4) | fromHexChar(message.data[32] || "0");
+            // Y Gain (position 33-34) - 0-255 encoded as two hex chars
+            const yGainValue = (fromHexChar(message.data[33] || "0") << 4) | fromHexChar(message.data[34] || "0");
+            // U Gain (position 35-36) - 0-255 encoded as two hex chars
+            const uGainValue = (fromHexChar(message.data[35] || "0") << 4) | fromHexChar(message.data[36] || "0");
+            // Scanline Strength (position 37) - encoded 0-5
+            //const scanlineStrengthValue: string = (parseInt(message.data[37] || "0") * 10).toString();
+            const scanlineStrengthValue = parseInt(message.data[37] || "0") === 0 ? "00" :
+                (parseInt(message.data[37] || "0") * 10).toString();
             // Update input source buttons
             const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
             allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -350,8 +362,8 @@ const createWebSocket = () => {
             const cFilterRow = document.getElementById("gbs-pro-filter-cfilter-row");
             const overrideRow = document.getElementById("gbs-pro-filter-override-row");
             if (cFilterRow && overrideRow) {
-                cFilterRow.style.display = isSV ? "none" : "flex";
-                overrideRow.style.display = isSV ? "table" : "none";
+                cFilterRow.style.display = isSV ? "none" : "grid";
+                overrideRow.style.display = isSV ? "flex" : "none";
             }
             // Update Y Filter value (different for AV vs SV)
             const yFilterValueEl = document.getElementById("gbs-pro-filter-yfilter-value");
@@ -390,14 +402,9 @@ const createWebSocket = () => {
             }
             // Update Override toggle state (SV only)
             const overrideToggle = document.getElementById("gbs-pro-filter-override");
-            const overrideTr = document.getElementById("gbs-pro-filter-override-tr");
-            if (overrideToggle && overrideTr) {
+            if (overrideToggle) {
                 const isManual = wyOverrideChar === "1";
-                overrideToggle.textContent = isManual ? "toggle_on" : "toggle_off";
-                if (isManual)
-                    overrideTr.setAttribute("active", "");
-                else
-                    overrideTr.removeAttribute("active");
+                overrideToggle.textContent = isManual ? "ON" : "OFF";
             }
             // Update Comb Filter value (in Video Filters section - legacy unified)
             const combValueEl = document.getElementById("gbs-pro-filter-comb-value");
@@ -514,6 +521,24 @@ const createWebSocket = () => {
                 gammaValueSpan.textContent = fromHexChar(gammaGainChar).toString();
             if (responseValueSpan)
                 responseValueSpan.textContent = fromHexChar(responseSpeedChar).toString();
+            //RGB
+            const redValueSpan = document.getElementById("gbs-red-value");
+            const greenValueSpan = document.getElementById("gbs-green-value");
+            const blueValueSpan = document.getElementById("gbs-blue-value");
+            if (redValueSpan)
+                redValueSpan.textContent = redValue.toString();
+            if (greenValueSpan)
+                greenValueSpan.textContent = greenValue.toString();
+            if (blueValueSpan)
+                blueValueSpan.textContent = blueValue.toString();
+            //Y Gain
+            const yGainValueSpan = document.getElementById("gbs-ygain-value");
+            if (yGainValueSpan)
+                yGainValueSpan.textContent = yGainValue.toString();
+            //UCOS / VCOS
+            const uvGainValueSpan = document.getElementById("gbs-uvgain-value");
+            if (uvGainValueSpan)
+                uvGainValueSpan.textContent = "U:" + uGainValue.toString() + " V:" + (uGainValue + 13).toString();
             // Update Sharpness & Peaking Lock
             const isSharpnessActive = sharpnessChar === '1';
             const btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
@@ -543,7 +568,7 @@ const createWebSocket = () => {
             if (syncStripperToggle) {
                 const isSyncStripperOn = syncStripperChar === "1";
                 const isSyncStripperAvailable = inputType !== "5" && inputType !== "6"; // Not SV/AV
-                syncStripperToggle.textContent = isSyncStripperOn ? "toggle_on" : "toggle_off";
+                syncStripperToggle.textContent = isSyncStripperOn ? "ON" : "OFF";
                 syncStripperToggle.style.opacity = isSyncStripperAvailable ? "1" : "0.5";
                 syncStripperToggle.style.pointerEvents = isSyncStripperAvailable ? "auto" : "none";
                 const syncStripperRow = syncStripperToggle.parentElement;
@@ -567,6 +592,10 @@ const createWebSocket = () => {
                     btnScanlines.removeAttribute('active');
                 }
             }
+            // Scanlines strength
+            const scanlineStrengthValueSpan = document.getElementById("gbs-scanlineStrength-value");
+            if (scanlineStrengthValueSpan)
+                scanlineStrengthValueSpan.textContent = "[" + scanlineStrengthValue + "]";
         }
         else if (messageDataAt0 != "#") {
             GBSControl.queuedText += message.data;
@@ -598,7 +627,7 @@ const createWebSocket = () => {
                 ];
                 const toggleMethod = (button, mode) => {
                     if (button.tagName === "TD") {
-                        button.innerText = mode ? "toggle_on" : "toggle_off";
+                        button.innerText = mode ? "ON" : "OFF";
                     }
                     button = button.tagName !== "TD" ? button : button.parentElement;
                     if (mode) {
@@ -919,7 +948,7 @@ const updateDeveloperMode = (developerMode) => {
         GBSControl.ui.developerSwitch.removeAttribute("active");
         document.body.classList.add("gbs-output-hide");
     }
-    GBSControl.ui.developerSwitch.querySelector(".gbs-icon").innerText = developerMode ? "toggle_on" : "toggle_off";
+    GBSControl.ui.developerSwitch.querySelector(".gbs-icon").innerText = developerMode ? "ON" : "OFF";
 };
 const updateCustomSlotFilters = (customFilters = GBSStorage.read("customSlotFilters") === true) => {
     if (customFilters) {
@@ -928,7 +957,7 @@ const updateCustomSlotFilters = (customFilters = GBSStorage.read("customSlotFilt
     else {
         GBSControl.ui.customSlotFilters.removeAttribute("active");
     }
-    GBSControl.ui.customSlotFilters.querySelector(".gbs-icon").innerText = customFilters ? "toggle_on" : "toggle_off";
+    GBSControl.ui.customSlotFilters.querySelector(".gbs-icon").innerText = customFilters ? "ON" : "OFF";
 };
 const GBSStorage = {
     lsObject: {},
@@ -1169,9 +1198,9 @@ const wifiScanSSID = () => {
         .then((ssids) => {
         return ssids.reduce((acc, ssid) => {
             return `${acc}<tr gbs-ssid="${ssid.ssid}">
-        <td class="gbs-icon" style="opacity:${parseInt(ssid.strength, 10) / 100}">wifi</td>
+        <td class="gbs-icon" style="opacity:${parseInt(ssid.strength, 10) / 100}">ᯤ</td>
         <td>${ssid.ssid}</td>
-        <td class="gbs-icon">${ssid.encripted ? "lock" : "lock_open"}</td>
+        <td class="gbs-icon">${ssid.encripted ? "🔒" : "🔓"}</td>
       </tr>`;
         }, "");
     })
@@ -1530,7 +1559,7 @@ const initProButtons = () => {
     const syncStripperToggle = document.querySelector('[gbs-pro-toggle="syncstripper"]');
     if (syncStripperToggle) {
         syncStripperToggle.addEventListener("click", () => {
-            const isActive = syncStripperToggle.textContent === "toggle_on";
+            const isActive = syncStripperToggle.textContent === "ON";
             const newState = isActive ? "0" : "1";
             const formData = new URLSearchParams();
             formData.append("ss", newState);
@@ -1541,7 +1570,7 @@ const initProButtons = () => {
                 .then((response) => response.text())
                 .then((data) => {
                 if (data === "true") {
-                    syncStripperToggle.textContent = isActive ? "toggle_off" : "toggle_on";
+                    syncStripperToggle.textContent = isActive ? "OFF" : "ON";
                     const row = syncStripperToggle.parentElement;
                     if (row) {
                         if (isActive) {
@@ -1695,12 +1724,13 @@ const initVideoFilters = () => {
     if (cFilterIncBtn)
         cFilterIncBtn.addEventListener("click", () => updateCFilter(1));
     // Override toggle (S-Video only)
-    const overrideToggle = document.getElementById("gbs-pro-filter-override");
-    if (overrideToggle) {
+    const overrideToggle = document.getElementById("gbs-pro-filter-override-row");
+    const overrideToggleValue = document.getElementById("gbs-pro-filter-override");
+    if (overrideToggle && overrideToggleValue) {
         overrideToggle.addEventListener("click", () => {
-            const isManual = overrideToggle.textContent === "toggle_on";
+            const isManual = overrideToggleValue.textContent === "ON";
             const newState = isManual ? "0" : "1";
-            overrideToggle.textContent = isManual ? "toggle_off" : "toggle_on";
+            overrideToggleValue.textContent = isManual ? "OFF" : "ON";
             const row = overrideToggle.parentElement;
             if (row) {
                 if (isManual)

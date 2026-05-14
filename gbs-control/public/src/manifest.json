@@ -11,15 +11,15 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "${icon1024}",
+      "src": "${icon192}",
       "type": "image/png",
-      "sizes": "1024x1024",
+      "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "${icon1024}",
+      "src": "${icon192}",
       "type": "image/png",
-      "sizes": "1024x1024",
+      "sizes": "192x192",
       "purpose": "any"
     }
   ]

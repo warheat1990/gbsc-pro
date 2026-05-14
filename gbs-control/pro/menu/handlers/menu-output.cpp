@@ -27,10 +27,10 @@ bool IR_handleOutputResolution(void)
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_OutputResolution_1080);  // Wrap to last
+                    Menu_navigateTo(OLED_OutputResolution_480);  // Wrap to last
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_OutputResolution_480);
+                    Menu_navigateTo(OLED_OutputResolution_1080);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'L';
@@ -52,7 +52,7 @@ bool IR_handleOutputResolution(void)
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_OutputResolution_480);  // Wrap to last
+                    Menu_navigateTo(OLED_OutputResolution_1200);  // Wrap to last
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_OutputResolution_1024);
@@ -159,7 +159,7 @@ bool IR_handleOutputResolution(void)
                     Menu_navigateTo(OLED_OutputResolution_720);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_OutputResolution_1080);  // Wrap to first
+                    Menu_navigateTo(OLED_OutputResolution_1200);  // Wrap to first
                     break;
                 case IR_KEY_OK:
                     userCommand = 'h';

@@ -66,8 +66,10 @@ typedef enum : uint8_t {
     OSD_CMD_PREFERENCES_PAGE1_VALUES,
 
     // Output Resolution
-    OSD_CMD_OUTPUT_1080_1024_960,
-    OSD_CMD_OUTPUT_720_480,
+    OSD_CMD_OUTPUT_1200_1080_1024,
+    OSD_CMD_OUTPUT_960_720_480,
+    // OSD_CMD_OUTPUT_1080_1024_960,
+    // OSD_CMD_OUTPUT_720_480,
 
     // Screen Settings
     OSD_CMD_SCREEN_PAGE1,
@@ -195,8 +197,10 @@ void handle_Preferences_Page1_Values(void);
 // Handler Function Declarations - Output Resolution
 // ====================================================================================
 
-void handle_OutputRes_1080_1024_960(void);
-void handle_OutputRes_720_480(void);
+void handle_OutputRes_1200_1080_1024(void);
+void handle_OutputRes_960_720_480(void);
+// void handle_OutputRes_1080_1024_960(void);
+// void handle_OutputRes_720_480(void);
 
 // ====================================================================================
 // Handler Function Declarations - Screen Settings
@@ -345,8 +349,8 @@ void handle_FactoryResetConfirm(void);
     DISPATCH_ENTRY(OSD_CMD_MAIN_PAGE4, handle_MainMenu_Page4) \
     \
     /* Output Resolution */ \
-    DISPATCH_ENTRY(OSD_CMD_OUTPUT_1080_1024_960, handle_OutputRes_1080_1024_960) \
-    DISPATCH_ENTRY(OSD_CMD_OUTPUT_720_480,       handle_OutputRes_720_480) \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_1200_1080_1024, handle_OutputRes_1200_1080_1024) \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_960_720_480, handle_OutputRes_960_720_480) \
     \
     /* Screen Settings */ \
     DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1) \
