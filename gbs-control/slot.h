@@ -3,6 +3,24 @@
 #define SLOTS_FILE "/slots.bin" // the file where to store slots metadata
 #define SLOTS_TOTAL 36          // max number of slots (A-Z, 0-9)
 #define EMPTY_SLOT_NAME "Empty                   "
+
+// --- slots.bin file format header ---
+// Bumped each time SlotMeta layout changes. Firmware auto-wipes slots.bin
+// (and all preset_*.X files) when the on-disk version doesn't match.
+#define SLOTS_HEADER_MAGIC      "GBSPS"   // 5 ASCII chars
+#define SLOTS_HEADER_MAGIC_LEN  6         // includes the trailing null
+#define SLOTS_FORMAT_VERSION    0x01      // bump when SlotMeta layout changes
+#define SLOTS_HEADER_SIZE       16
+
+typedef struct
+{
+    char magic[6];          // "GBSPS\0"
+    uint8_t version;        // SLOTS_FORMAT_VERSION
+    uint8_t reserved[9];
+} __attribute__((packed)) SlotsFileHeader;
+
+static_assert(sizeof(SlotsFileHeader) == SLOTS_HEADER_SIZE, "SlotsFileHeader must be 16 bytes");
+
 typedef struct
 {
     // --- ORIGINAL GBS-CONTROL ---
@@ -57,10 +75,42 @@ typedef struct
     uint8_t hdmiLimitedRange;    // 0=Off, 1=HD, 2=SD, 3=All (default 1)
     // --- PRO: ADV7280 Hue ---
     uint8_t advHue;              // 0-255 (default 128 = 0°)
+    // --- PRO: Developer menu tweaks for NTSC group (videoStandardInput in {1,3,5,6,7,8,9}) ---
+    // (0 / 0xFF = no override, use preset default)
+    uint16_t devHTotal_ntsc;     // VDS_HSYNC_RST custom (0 = no override)
+    uint16_t devPllDiv_ntsc;     // PLLAD_MD custom (0 = no override)
+    uint8_t  devSdramClock_ntsc; // PLL_MS (0xFF = no override)
+    uint8_t  devAdcFilter_ntsc;  // ADC_FLTR (0xFF = no override)
+    uint8_t  devOsr_ntsc;        // OSR (0xFF = no override)
+    uint8_t  devSogLevel_ntsc;   // ADC_SOGCTRL custom (0xFF = no override)
+    uint8_t  devSyncInvert_ntsc; // bit0=HS, bit1=VS, bit7=set (0 = no override)
+    // --- PRO: Screen Move / Scale for NTSC group ---
+    uint16_t screenHMove_ntsc;   // IF_HBIN_SP (0 = no override)
+    uint16_t screenVMoveSt_ntsc; // IF_VB_ST  (0xFFFF = no override)
+    uint16_t screenVMoveSp_ntsc; // IF_VB_SP  (0xFFFF = no override)
+    uint16_t screenHScale_ntsc;  // VDS_HSCALE (0 = no override)
+    uint16_t screenVScale_ntsc;  // VDS_VSCALE (0 = no override)
+    // --- PRO: Developer menu tweaks for PAL group (videoStandardInput in {2,4}) ---
+    uint16_t devHTotal_pal;
+    uint16_t devPllDiv_pal;
+    uint8_t  devSdramClock_pal;
+    uint8_t  devAdcFilter_pal;
+    uint8_t  devOsr_pal;
+    uint8_t  devSogLevel_pal;
+    uint8_t  devSyncInvert_pal;
+    // --- PRO: Screen Move / Scale for PAL group ---
+    uint16_t screenHMove_pal;
+    uint16_t screenVMoveSt_pal;
+    uint16_t screenVMoveSp_pal;
+    uint16_t screenHScale_pal;
+    uint16_t screenVScale_pal;
+    // --- PRO: Per-slot SyncWatcher override ---
+    uint8_t  slotSyncwatcherMode;  // 0=inherit global, 1=force ON, 2=force OFF
+
     uint8_t activeInputType;    // 1=RGBs, 2=RGsB, 3=VGA, 4=YPbPr, 5=SV, 6=AV (0=unset)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[60];        // Padding to make SlotMeta 128 bytes total
-} SlotMeta;
+    uint8_t reserved[21];        // Padding to make SlotMeta 128 bytes total
+} __attribute__((packed)) SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)
 static_assert(sizeof(SlotMeta) == 128, "SlotMeta must be exactly 128 bytes");

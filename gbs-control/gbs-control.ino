@@ -771,6 +771,31 @@ void resetInterruptNoHsyncBadBit()
     GBS::INT_CONTROL_RST_NOHSYNC::write(0);
 }
 
+// Returns true if the current videoStandardInput is in the PAL group (50Hz),
+// false otherwise (NTSC group + non-SD HD modes).
+static inline bool isPalGroup()
+{
+    return rto->videoStandardInput == 2 || rto->videoStandardInput == 4;
+}
+
+// Helpers to capture dev menu / screen tweak writes into the correct standard
+// group (PAL vs NTSC). Callers should invoke these instead of writing to
+// uopt->dev*/uopt->screen* directly so that PAL and NTSC tweaks stay independent
+// within the same slot.
+static inline void setDevHTotal(uint16_t v)     { if (isPalGroup()) uopt->devHTotal_pal     = v; else uopt->devHTotal_ntsc     = v; }
+static inline void setDevPllDiv(uint16_t v)     { if (isPalGroup()) uopt->devPllDiv_pal     = v; else uopt->devPllDiv_ntsc     = v; }
+static inline void setDevSdramClock(uint8_t v)  { if (isPalGroup()) uopt->devSdramClock_pal = v; else uopt->devSdramClock_ntsc = v; }
+static inline void setDevAdcFilter(uint8_t v)   { if (isPalGroup()) uopt->devAdcFilter_pal  = v; else uopt->devAdcFilter_ntsc  = v; }
+static inline void setDevOsr(uint8_t v)         { if (isPalGroup()) uopt->devOsr_pal        = v; else uopt->devOsr_ntsc        = v; }
+static inline void setDevSogLevel(uint8_t v)    { if (isPalGroup()) uopt->devSogLevel_pal   = v; else uopt->devSogLevel_ntsc   = v; }
+static inline uint8_t getDevSyncInvert()        { return isPalGroup() ? uopt->devSyncInvert_pal : uopt->devSyncInvert_ntsc; }
+static inline void setDevSyncInvert(uint8_t v)  { if (isPalGroup()) uopt->devSyncInvert_pal = v; else uopt->devSyncInvert_ntsc = v; }
+static inline void setScreenHMove(uint16_t v)   { if (isPalGroup()) uopt->screenHMove_pal   = v; else uopt->screenHMove_ntsc   = v; }
+static inline void setScreenVMoveSt(uint16_t v) { if (isPalGroup()) uopt->screenVMoveSt_pal = v; else uopt->screenVMoveSt_ntsc = v; }
+static inline void setScreenVMoveSp(uint16_t v) { if (isPalGroup()) uopt->screenVMoveSp_pal = v; else uopt->screenVMoveSp_ntsc = v; }
+static inline void setScreenHScale(uint16_t v)  { if (isPalGroup()) uopt->screenHScale_pal  = v; else uopt->screenHScale_ntsc  = v; }
+static inline void setScreenVScale(uint16_t v)  { if (isPalGroup()) uopt->screenVScale_pal  = v; else uopt->screenVScale_ntsc  = v; }
+
 void setResetParameters()
 {
     SerialM.println("<reset>");
@@ -2422,6 +2447,8 @@ void shiftVerticalUpIF()
     }
     GBS::IF_VB_SP::write(stop);
     GBS::IF_VB_ST::write(start);
+    setScreenVMoveSt((uint16_t)start);
+    setScreenVMoveSp((uint16_t)stop);
 }
 
 void shiftVerticalDownIF()
@@ -2445,6 +2472,8 @@ void shiftVerticalDownIF()
     }
     GBS::IF_VB_SP::write(stop);
     GBS::IF_VB_ST::write(start);
+    setScreenVMoveSt((uint16_t)start);
+    setScreenVMoveSp((uint16_t)stop);
 }
 
 void setHSyncStartPosition(uint16_t value)
@@ -3307,6 +3336,91 @@ uint32_t getPllRate()
 
 #define AUTO_GAIN_INIT 0x48
 
+// Pro: apply per-slot Developer and Screen tweaks on top of the preset.
+// Called from doPostPresetLoadSteps after the preset has written its own register
+// values, so these overrides have the final say. Sentinel values (0 / 0xFF / 0xFFFF)
+// mean "no override, keep preset default".
+void applyDevOverrides()
+{
+    // Skip for RGBHV scaling mode — it has its own register layout
+    if (rto->videoStandardInput == 15) {
+        return;
+    }
+
+    // Pick the override set matching the current standard group (PAL vs NTSC).
+    // This keeps PAL and NTSC tweaks independent within the same slot.
+    bool pal = isPalGroup();
+    uint16_t cfgHTotal     = pal ? uopt->devHTotal_pal     : uopt->devHTotal_ntsc;
+    uint16_t cfgPllDiv     = pal ? uopt->devPllDiv_pal     : uopt->devPllDiv_ntsc;
+    uint8_t  cfgSdramClock = pal ? uopt->devSdramClock_pal : uopt->devSdramClock_ntsc;
+    uint8_t  cfgAdcFilter  = pal ? uopt->devAdcFilter_pal  : uopt->devAdcFilter_ntsc;
+    uint8_t  cfgOsr        = pal ? uopt->devOsr_pal        : uopt->devOsr_ntsc;
+    uint8_t  cfgSogLevel   = pal ? uopt->devSogLevel_pal   : uopt->devSogLevel_ntsc;
+    uint8_t  cfgSyncInvert = pal ? uopt->devSyncInvert_pal : uopt->devSyncInvert_ntsc;
+    uint16_t cfgHMove      = pal ? uopt->screenHMove_pal   : uopt->screenHMove_ntsc;
+    uint16_t cfgVMoveSt    = pal ? uopt->screenVMoveSt_pal : uopt->screenVMoveSt_ntsc;
+    uint16_t cfgVMoveSp    = pal ? uopt->screenVMoveSp_pal : uopt->screenVMoveSp_ntsc;
+    uint16_t cfgHScale     = pal ? uopt->screenHScale_pal  : uopt->screenHScale_ntsc;
+    uint16_t cfgVScale     = pal ? uopt->screenVScale_pal  : uopt->screenVScale_ntsc;
+
+    // PLL divider (PLLAD_MD) — apply BEFORE HTotal so IF_HSYNC_RST resync path is valid
+    if (cfgPllDiv != 0) {
+        GBS::PLLAD_MD::write(cfgPllDiv);
+    }
+    // HTotal (VDS_HSYNC_RST)
+    if (cfgHTotal != 0) {
+        GBS::VDS_HSYNC_RST::write(cfgHTotal);
+    }
+    // SDRAM clock (PLL_MS, 3-bit)
+    if (cfgSdramClock != 0xFF) {
+        GBS::PLL_MS::write(cfgSdramClock);
+    }
+    // ADC filter (ADC_FLTR, 2-bit)
+    if (cfgAdcFilter != 0xFF) {
+        GBS::ADC_FLTR::write(cfgAdcFilter);
+    }
+    // Oversampling ratio
+    if (cfgOsr != 0xFF) {
+        setOverSampleRatio(cfgOsr, 1); // prepareOnly=1 avoids double-init
+    }
+    // SOG level
+    if (cfgSogLevel != 0xFF) {
+        setAndUpdateSogLevel(cfgSogLevel);
+    }
+
+    // Screen Move H (IF_HBIN_SP, 12-bit; 0 means no override)
+    if (cfgHMove != 0) {
+        GBS::IF_HBIN_SP::write(cfgHMove);
+    }
+    // Screen Move V (IF_VB_ST and IF_VB_SP moved together; 0xFFFF = no override)
+    if (cfgVMoveSt != 0xFFFF && cfgVMoveSp != 0xFFFF) {
+        GBS::IF_VB_ST::write(cfgVMoveSt);
+        GBS::IF_VB_SP::write(cfgVMoveSp);
+    }
+    // Scale H (VDS_HSCALE)
+    if (cfgHScale != 0) {
+        GBS::VDS_HSCALE::write(cfgHScale);
+    }
+    // Scale V (VDS_VSCALE)
+    if (cfgVScale != 0) {
+        GBS::VDS_VSCALE::write(cfgVScale);
+    }
+
+    // Sync inversion override (toggles HS/VS relative to preset default).
+    // bit7 = override active; bit0 toggles HS, bit1 toggles VS.
+    if (cfgSyncInvert & 0x80) {
+        if (cfgSyncInvert & 0x01) invertHS();
+        if (cfgSyncInvert & 0x02) invertVS();
+    }
+
+    // Per-slot SyncWatcher override
+    if (uopt->slotSyncwatcherMode == 1) {
+        rto->syncWatcherEnabled = true;
+    } else if (uopt->slotSyncwatcherMode == 2) {
+        rto->syncWatcherEnabled = false;
+    }
+}
+
 void doPostPresetLoadSteps()
 {
     //unsigned long postLoadTimer = millis();
@@ -4105,6 +4219,9 @@ void doPostPresetLoadSteps()
     // Pro: Apply ADV7280 settings (brightness, contrast, saturation, smooth, I2P)
     ADV_applySlotSettings();
 
+    // Pro: Apply Developer menu and Screen per-slot overrides (if any)
+    applyDevOverrides();
+
     // Pro: Apply GBS color balance
     applyRGBtoYUVConversion();
 
@@ -4194,6 +4311,14 @@ static File initSlotsFile()
         return File();
     }
 
+    // Write versioned header at the start of the file. Firmware uses the magic
+    // and version on subsequent boots to detect layout changes and wipe stale data.
+    SlotsFileHeader hdr;
+    memset(&hdr, 0, sizeof(hdr));
+    memcpy(hdr.magic, SLOTS_HEADER_MAGIC, SLOTS_HEADER_MAGIC_LEN);
+    hdr.version = SLOTS_FORMAT_VERSION;
+    slotsBinaryFile.write((byte *)&hdr, sizeof(hdr));
+
     SlotMeta emptySlot;
     memset(&emptySlot, 0, sizeof(emptySlot));
     strncpy(emptySlot.name, EMPTY_SLOT_NAME, 25);
@@ -4238,6 +4363,23 @@ static File initSlotsFile()
     emptySlot.hdmiLimitedRange = 1;  // Default 1 (HD only)
     // ADV7280 Hue default
     emptySlot.advHue = 128;  // Default 128 (0°)
+    // Developer / Screen tweak defaults (all "no override"), per group (PAL/NTSC)
+    emptySlot.devHTotal_ntsc = 0;        emptySlot.devHTotal_pal = 0;
+    emptySlot.devPllDiv_ntsc = 0;        emptySlot.devPllDiv_pal = 0;
+    emptySlot.devSdramClock_ntsc = 0xFF; emptySlot.devSdramClock_pal = 0xFF;
+    emptySlot.devAdcFilter_ntsc = 0xFF;  emptySlot.devAdcFilter_pal = 0xFF;
+    emptySlot.devOsr_ntsc = 0xFF;        emptySlot.devOsr_pal = 0xFF;
+    emptySlot.devSogLevel_ntsc = 0xFF;   emptySlot.devSogLevel_pal = 0xFF;
+    emptySlot.devSyncInvert_ntsc = 0;    emptySlot.devSyncInvert_pal = 0;
+    emptySlot.screenHMove_ntsc = 0;      emptySlot.screenHMove_pal = 0;
+    emptySlot.screenVMoveSt_ntsc = 0xFFFF; emptySlot.screenVMoveSt_pal = 0xFFFF;
+    emptySlot.screenVMoveSp_ntsc = 0xFFFF; emptySlot.screenVMoveSp_pal = 0xFFFF;
+    emptySlot.screenHScale_ntsc = 0;     emptySlot.screenHScale_pal = 0;
+    emptySlot.screenVScale_ntsc = 0;     emptySlot.screenVScale_pal = 0;
+    // Per-slot SyncWatcher mode (inherit global)
+    emptySlot.slotSyncwatcherMode = 0;
+    // Active Input Type (default RGBs)
+    emptySlot.activeInputType = 1;
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4249,7 +4391,7 @@ static File initSlotsFile()
 }
 
 // Save current settings to a specific slot in slots.bin
-// slotIndex: 0-19 (slot A-T)
+// slotIndex: 0-35 (slots A-Z, 0-9)
 // name: optional slot name (NULL to keep existing name)
 bool saveSlotSettingsAt(int slotIndex, const char* name)
 {
@@ -4267,7 +4409,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
 
     // Read current slot data
     SlotMeta slotData;
-    slotsBinaryFile.seek(slotIndex * sizeof(SlotMeta));
+    slotsBinaryFile.seek(SLOTS_HEADER_SIZE + slotIndex * sizeof(SlotMeta));
     slotsBinaryFile.read((byte *)&slotData, sizeof(SlotMeta));
 
     // Update with current values
@@ -4321,6 +4463,36 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.hdmiLimitedRange = uopt->hdmiLimitedRange;
     // ADV7280 Hue
     slotData.advHue = uopt->advHue;
+    // Developer menu tweaks - NTSC group
+    slotData.devHTotal_ntsc = uopt->devHTotal_ntsc;
+    slotData.devPllDiv_ntsc = uopt->devPllDiv_ntsc;
+    slotData.devSdramClock_ntsc = uopt->devSdramClock_ntsc;
+    slotData.devAdcFilter_ntsc = uopt->devAdcFilter_ntsc;
+    slotData.devOsr_ntsc = uopt->devOsr_ntsc;
+    slotData.devSogLevel_ntsc = uopt->devSogLevel_ntsc;
+    slotData.devSyncInvert_ntsc = uopt->devSyncInvert_ntsc;
+    // Screen Move/Scale - NTSC group
+    slotData.screenHMove_ntsc = uopt->screenHMove_ntsc;
+    slotData.screenVMoveSt_ntsc = uopt->screenVMoveSt_ntsc;
+    slotData.screenVMoveSp_ntsc = uopt->screenVMoveSp_ntsc;
+    slotData.screenHScale_ntsc = uopt->screenHScale_ntsc;
+    slotData.screenVScale_ntsc = uopt->screenVScale_ntsc;
+    // Developer menu tweaks - PAL group
+    slotData.devHTotal_pal = uopt->devHTotal_pal;
+    slotData.devPllDiv_pal = uopt->devPllDiv_pal;
+    slotData.devSdramClock_pal = uopt->devSdramClock_pal;
+    slotData.devAdcFilter_pal = uopt->devAdcFilter_pal;
+    slotData.devOsr_pal = uopt->devOsr_pal;
+    slotData.devSogLevel_pal = uopt->devSogLevel_pal;
+    slotData.devSyncInvert_pal = uopt->devSyncInvert_pal;
+    // Screen Move/Scale - PAL group
+    slotData.screenHMove_pal = uopt->screenHMove_pal;
+    slotData.screenVMoveSt_pal = uopt->screenVMoveSt_pal;
+    slotData.screenVMoveSp_pal = uopt->screenVMoveSp_pal;
+    slotData.screenHScale_pal = uopt->screenHScale_pal;
+    slotData.screenVScale_pal = uopt->screenVScale_pal;
+    // Per-slot SyncWatcher mode
+    slotData.slotSyncwatcherMode = uopt->slotSyncwatcherMode;
     // Active input type (RGBs, RGsB, YPbPr, VGA, SV, AV)
     slotData.activeInputType = uopt->activeInputType;
 
@@ -4332,7 +4504,7 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     }
 
     // Write back to file
-    slotsBinaryFile.seek(slotIndex * sizeof(SlotMeta));
+    slotsBinaryFile.seek(SLOTS_HEADER_SIZE + slotIndex * sizeof(SlotMeta));
     slotsBinaryFile.write((byte *)&slotData, sizeof(SlotMeta));
     slotsBinaryFile.close();
 
@@ -4354,7 +4526,7 @@ bool loadSlotSettings()
     }
 
     SlotMeta slotData;
-    f.seek(currentSlot * sizeof(SlotMeta));
+    f.seek(SLOTS_HEADER_SIZE + currentSlot * sizeof(SlotMeta));
     f.read((byte *)&slotData, sizeof(SlotMeta));
     f.close();
 
@@ -4425,8 +4597,42 @@ bool loadSlotSettings()
     uopt->hdmiLimitedRange = (slotData.hdmiLimitedRange <= 3) ? slotData.hdmiLimitedRange : 1;
     // ADV7280 Hue (default 128 for old slots)
     uopt->advHue = (slotData.advHue != 0 && slotData.advHue != 0xFF) ? slotData.advHue : 128;
+    // Developer menu tweaks - NTSC group (0 or 0xFF = no override)
+    uopt->devHTotal_ntsc = slotData.devHTotal_ntsc;
+    uopt->devPllDiv_ntsc = slotData.devPllDiv_ntsc;
+    uopt->devSdramClock_ntsc = (slotData.devSdramClock_ntsc <= 7) ? slotData.devSdramClock_ntsc : 0xFF;
+    uopt->devAdcFilter_ntsc = (slotData.devAdcFilter_ntsc <= 3) ? slotData.devAdcFilter_ntsc : 0xFF;
+    // OSR valid set is {1, 2, 4} (passed directly to setOverSampleRatio); anything else → no override
+    uopt->devOsr_ntsc = (slotData.devOsr_ntsc == 1 || slotData.devOsr_ntsc == 2 || slotData.devOsr_ntsc == 4)
+                            ? slotData.devOsr_ntsc : 0xFF;
+    uopt->devSogLevel_ntsc = (slotData.devSogLevel_ntsc <= 16) ? slotData.devSogLevel_ntsc : 0xFF;
+    uopt->devSyncInvert_ntsc = slotData.devSyncInvert_ntsc;
+    // Screen Move/Scale - NTSC group
+    uopt->screenHMove_ntsc = slotData.screenHMove_ntsc;
+    uopt->screenVMoveSt_ntsc = slotData.screenVMoveSt_ntsc;
+    uopt->screenVMoveSp_ntsc = slotData.screenVMoveSp_ntsc;
+    uopt->screenHScale_ntsc = slotData.screenHScale_ntsc;
+    uopt->screenVScale_ntsc = slotData.screenVScale_ntsc;
+    // Developer menu tweaks - PAL group
+    uopt->devHTotal_pal = slotData.devHTotal_pal;
+    uopt->devPllDiv_pal = slotData.devPllDiv_pal;
+    uopt->devSdramClock_pal = (slotData.devSdramClock_pal <= 7) ? slotData.devSdramClock_pal : 0xFF;
+    uopt->devAdcFilter_pal = (slotData.devAdcFilter_pal <= 3) ? slotData.devAdcFilter_pal : 0xFF;
+    uopt->devOsr_pal = (slotData.devOsr_pal == 1 || slotData.devOsr_pal == 2 || slotData.devOsr_pal == 4)
+                           ? slotData.devOsr_pal : 0xFF;
+    uopt->devSogLevel_pal = (slotData.devSogLevel_pal <= 16) ? slotData.devSogLevel_pal : 0xFF;
+    uopt->devSyncInvert_pal = slotData.devSyncInvert_pal;
+    // Screen Move/Scale - PAL group
+    uopt->screenHMove_pal = slotData.screenHMove_pal;
+    uopt->screenVMoveSt_pal = slotData.screenVMoveSt_pal;
+    uopt->screenVMoveSp_pal = slotData.screenVMoveSp_pal;
+    uopt->screenHScale_pal = slotData.screenHScale_pal;
+    uopt->screenVScale_pal = slotData.screenVScale_pal;
+    // Per-slot SyncWatcher mode (0=inherit, 1=force on, 2=force off)
+    uopt->slotSyncwatcherMode = (slotData.slotSyncwatcherMode <= 2) ? slotData.slotSyncwatcherMode : 0;
     // Load active input type
     uopt->activeInputType = (slotData.activeInputType >= 1 && slotData.activeInputType <= 6) ? slotData.activeInputType : 1;
+    
     return true;
 }
 
@@ -7586,6 +7792,21 @@ void loadDefaultUserOptions()
     uopt->advFilterCombPAL = ADV_FILTER_COMB_PAL_DEFAULT;
     // HDMI Limited Range
     uopt->hdmiLimitedRange = 1;
+    // Developer menu / Screen tweaks defaults (all "no override"), per group (PAL/NTSC)
+    uopt->devHTotal_ntsc = 0;        uopt->devHTotal_pal = 0;
+    uopt->devPllDiv_ntsc = 0;        uopt->devPllDiv_pal = 0;
+    uopt->devSdramClock_ntsc = 0xFF; uopt->devSdramClock_pal = 0xFF;
+    uopt->devAdcFilter_ntsc = 0xFF;  uopt->devAdcFilter_pal = 0xFF;
+    uopt->devOsr_ntsc = 0xFF;        uopt->devOsr_pal = 0xFF;
+    uopt->devSogLevel_ntsc = 0xFF;   uopt->devSogLevel_pal = 0xFF;
+    uopt->devSyncInvert_ntsc = 0;    uopt->devSyncInvert_pal = 0;
+    uopt->screenHMove_ntsc = 0;      uopt->screenHMove_pal = 0;
+    uopt->screenVMoveSt_ntsc = 0xFFFF; uopt->screenVMoveSt_pal = 0xFFFF;
+    uopt->screenVMoveSp_ntsc = 0xFFFF; uopt->screenVMoveSp_pal = 0xFFFF;
+    uopt->screenHScale_ntsc = 0;     uopt->screenHScale_pal = 0;
+    uopt->screenVScale_ntsc = 0;     uopt->screenVScale_pal = 0;
+    // Per-slot SyncWatcher mode (inherit global)
+    uopt->slotSyncwatcherMode = 0;
 }
 
 //RF_PRE_INIT() {
@@ -7846,6 +8067,32 @@ void setup()
     if (!LittleFS.begin()) {
         SerialM.println(F("LittleFS mount failed! ((1M LittleFS) selected?)"));
     } else {
+        // Validate slots.bin format (magic + version). On mismatch, wipe slots
+        // and all preset files so the user doesn't have to remember to do a
+        // Factory Reset after a firmware upgrade with a new slot layout.
+        bool slotsNeedWipe = false;
+        if (LittleFS.exists(SLOTS_FILE)) {
+            File sf = LittleFS.open(SLOTS_FILE, "r");
+            if (!sf) {
+                slotsNeedWipe = true;
+            } else if (sf.size() != (size_t)(SLOTS_HEADER_SIZE + sizeof(SlotMeta) * SLOTS_TOTAL)) {
+                slotsNeedWipe = true;
+                sf.close();
+            } else {
+                SlotsFileHeader hdr;
+                sf.read((uint8_t *)&hdr, sizeof(hdr));
+                sf.close();
+                if (memcmp(hdr.magic, SLOTS_HEADER_MAGIC, SLOTS_HEADER_MAGIC_LEN) != 0
+                    || hdr.version != SLOTS_FORMAT_VERSION) {
+                    slotsNeedWipe = true;
+                }
+            }
+        }
+        if (slotsNeedWipe) {
+            SerialM.println(F("slots.bin format changed, performing automatic wipe of slots and preset files..."));
+            deleteAllSlotsAndPresets();
+        }
+
         // load user preferences file
         File f = LittleFS.open("/preferencesv2.txt", "r");
         if (!f) {
@@ -8512,10 +8759,12 @@ void loop()
             case 'z':
                 SerialM.println(F("scale+"));
                 scaleHorizontal(2, true);
+                setScreenHScale(GBS::VDS_HSCALE::read());
                 break;
             case 'h':
                 SerialM.println(F("scale-"));
                 scaleHorizontal(2, false);
+                setScreenHScale(GBS::VDS_HSCALE::read());
                 break;
             case 'q':
                 resetDigital();
@@ -8735,6 +8984,7 @@ void loop()
                     delay(1);
                     updateClampPosition();
                     updateCoastPosition(0);
+                    setDevPllDiv(pll_divider);
                 }
             } break;
             case 'N': {
@@ -8765,6 +9015,7 @@ void loop()
                     }
                     rto->forceRetime = 1;
                     applyBestHTotal(GBS::VDS_HSYNC_RST::read() + 1);
+                    setDevHTotal(GBS::VDS_HSYNC_RST::read());
                 }
                 break;
             case 'A':
@@ -8777,6 +9028,7 @@ void loop()
                     }
                     rto->forceRetime = 1;
                     applyBestHTotal(GBS::VDS_HSYNC_RST::read() - 1);
+                    setDevHTotal(GBS::VDS_HSYNC_RST::read());
                 }
                 break;
             case 'M': {
@@ -8794,6 +9046,7 @@ void loop()
                     delay(1);
                     updateClampPosition();
                     updateCoastPosition(0);
+                    setDevPllDiv(pll_divider);
                 }
             } break;
             case 'm':
@@ -8857,6 +9110,7 @@ void loop()
                     GBS::ADC_FLTR::write(3);
                     SerialM.println("on");
                 }
+                setDevAdcFilter(GBS::ADC_FLTR::read());
                 break;
             case 'L': {
                 // Component / VGA Output
@@ -8921,6 +9175,7 @@ void loop()
                     break;
                 }
                 scaleVertical(2, true);
+                setScreenVScale(GBS::VDS_VSCALE::read());
                 // actually requires full vertical mask + position offset calculation
             } break;
             case '5': {
@@ -8930,6 +9185,7 @@ void loop()
                     break;
                 }
                 scaleVertical(2, false);
+                setScreenVScale(GBS::VDS_VSCALE::read());
                 // actually requires full vertical mask + position offset calculation
             } break;
             case '6':
@@ -8940,6 +9196,7 @@ void loop()
                             GBS::IF_HSYNC_RST::write(GBS::IF_HSYNC_RST::read() - 4); // shrink 1_0e
                             GBS::IF_LINE_SP::write(GBS::IF_LINE_SP::read() - 4);     // and 1_22 to go with it
                         }
+                        setScreenHMove(GBS::IF_HBIN_SP::read());
                     } else {
                         SerialM.println("limit");
                     }
@@ -8962,6 +9219,7 @@ void loop()
                 if (videoStandardInputIsPalNtscSd() && !rto->outModeHdBypass) {
                     if (GBS::IF_HBIN_SP::read() < 0x150) {                   // (arbitrary) max limit
                         GBS::IF_HBIN_SP::write(GBS::IF_HBIN_SP::read() + 8); // canvas move left
+                        setScreenHMove(GBS::IF_HBIN_SP::read());
                     } else {
                         SerialM.println("limit");
                     }
@@ -8984,6 +9242,9 @@ void loop()
                 //SerialM.println("invert sync");
                 invertHS();
                 invertVS();
+                // Track sync inversion as a per-slot override (relative to preset default).
+                // bit0 = HS toggled, bit1 = VS toggled, bit7 = override active.
+                setDevSyncInvert((getDevSyncInvert() ^ 0x03) | 0x80);
                 //optimizePhaseSP();
                 break;
             case '9':
@@ -9004,6 +9265,7 @@ void loop()
                 SerialM.print(rto->osr);
                 SerialM.println("x");
                 rto->phaseIsSet = 0; // do it again in modes applicable
+                setDevOsr(rto->osr);
             } break;
             case 'g':
                 inputStage++;
@@ -9657,6 +9919,8 @@ void handleType2Command(char argument)
             // Reset ADV Controller to default input (RGBs) before restart
             InputRGBs();
             SerialM.println(F("factory reset complete, restarting"));
+            // Flush filesystem to ensure all writes hit flash before reset.
+            LittleFS.end();
             delay(60);
             ESP.reset(); // don't use restart(), messes up websocket reconnects
             //
@@ -9883,6 +10147,7 @@ void handleType2Command(char argument)
                     SerialM.print(F("SDRAM clock: "));
                     SerialM.println(F("Feedback clock"));
                 }
+                setDevSdramClock(PLL_MS);
             }
             break;
         case 'm':
@@ -10064,6 +10329,7 @@ void handleType2Command(char argument)
             SerialM.print(" SOG: ");
             SerialM.print(rto->currentLevelSOG);
             SerialM.println();
+            setDevSogLevel(rto->currentLevelSOG);
             break;
         case 'E':
             // test option for now
@@ -10506,7 +10772,7 @@ void startWebserver()
                         request->send(500, "application/json", "false");
                         return;
                     }
-                    slotsBinaryFile.seek(currentSlot * sizeof(SlotMeta));
+                    slotsBinaryFile.seek(SLOTS_HEADER_SIZE + currentSlot * sizeof(SlotMeta));
                     slotsBinaryFile.read((byte *)&slotData, sizeof(SlotMeta));
                     String slotName = slotData.name;
 
@@ -10524,7 +10790,7 @@ void startWebserver()
 
                     // Mark slot as empty (soft delete)
                     strncpy(slotData.name, EMPTY_SLOT_NAME, 25);
-                    slotsBinaryFile.seek(currentSlot * sizeof(SlotMeta));
+                    slotsBinaryFile.seek(SLOTS_HEADER_SIZE + currentSlot * sizeof(SlotMeta));
                     size_t written = slotsBinaryFile.write((byte *)&slotData, sizeof(SlotMeta));
                     slotsBinaryFile.close();
 
@@ -10561,7 +10827,22 @@ void startWebserver()
                 request->_tempFile.write(data, len);
             }
             if (final) {
+                String finalPath = filename.startsWith("/") ? filename : ("/" + filename);
+                size_t written = request->_tempFile.size();
                 request->_tempFile.close();
+                // Defensive size validation for critical binary files. Webapp already validates
+                // magic/version/CRC of the backup, so this catches only corruption that slipped
+                // through. If the size is wrong, delete the file to avoid applying garbage.
+                if (finalPath == SLOTS_FILE) {
+                    size_t expected = SLOTS_HEADER_SIZE + sizeof(SlotMeta) * SLOTS_TOTAL;
+                    if (written != expected) {
+                        SerialM.print(F("[upload] slots.bin size mismatch: "));
+                        SerialM.print(written);
+                        SerialM.print(F(" != "));
+                        SerialM.println(expected);
+                        LittleFS.remove(finalPath);
+                    }
+                }
             }
         });
 
@@ -10601,7 +10882,20 @@ void startWebserver()
     });
 
     server.on("/filesystem/format", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "application/json", LittleFS.format() ? "true" : "false");
+        // Cleanly unmount before formatting to release any open file descriptors,
+        // then format and re-mount. Returns the actual outcome of each step so the
+        // webapp can show a meaningful error if any phase fails.
+        SerialM.println(F("filesystem format requested"));
+        LittleFS.end();
+        bool formatted = LittleFS.format();
+        bool remounted = LittleFS.begin();
+        if (!formatted) {
+            SerialM.println(F("LittleFS.format() failed"));
+        }
+        if (!remounted) {
+            SerialM.println(F("LittleFS.begin() failed after format"));
+        }
+        request->send(200, "application/json", (formatted && remounted) ? "true" : "false");
     });
 
     server.on("/wifi/status", HTTP_GET, [](AsyncWebServerRequest *request) {

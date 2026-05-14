@@ -374,11 +374,6 @@ body {
   letter-spacing: 0.05em;
 }
 
-.gbs-preference-toggle:hover {
-  background: rgba(var(--color-primary-rgba), 0.12);
-  border-color: rgba(var(--color-primary-rgba), 0.35);
-}
-
 /* Style dev-switch and slot-custom-filters icons like preference toggles */
 tr[gbs-dev-switch] td.gbs-icon,
 tr[gbs-slot-custom-filters] td.gbs-icon {
@@ -391,12 +386,6 @@ tr[gbs-slot-custom-filters] td.gbs-icon {
   font-size: 12px;
   letter-spacing: 0.05em;
   line-height: normal;
-}
-
-tr[gbs-dev-switch] td.gbs-icon:hover,
-tr[gbs-slot-custom-filters] td.gbs-icon:hover {
-  background: rgba(var(--color-primary-rgba), 0.12);
-  border-color: rgba(var(--color-primary-rgba), 0.35);
 }
 
 .gbs-preferences td[active] > button.gbs-button__secondary {
@@ -796,11 +785,6 @@ section[name="alert"] {
   letter-spacing: 0.05em;
 }
 
-.gbs-toggle:hover {
-  background: rgba(var(--color-primary-rgba), 0.12);
-  border-color: rgba(var(--color-primary-rgba), 0.35);
-}
-
 @media (min-width: 415px) {
   .gbs-button:hover {
     border: 1px solid var(--color-primary);
@@ -880,6 +864,22 @@ section[name="alert"] {
 
   .gbs-fieldset-output {
     height: calc(100vh - 16px);
+  }
+
+  .gbs-toggle:hover {
+    background: rgba(var(--color-primary-rgba), 0.12);
+    border-color: rgba(var(--color-primary-rgba), 0.35);
+  }
+
+  .gbs-preference-toggle:hover {
+    background: rgba(var(--color-primary-rgba), 0.12);
+    border-color: rgba(var(--color-primary-rgba), 0.35);
+  }
+
+  tr[gbs-dev-switch] td.gbs-icon:hover,
+  tr[gbs-slot-custom-filters] td.gbs-icon:hover {
+    background: rgba(var(--color-primary-rgba), 0.12);
+    border-color: rgba(var(--color-primary-rgba), 0.35);
   }
 }
 

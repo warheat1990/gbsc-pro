@@ -150,9 +150,9 @@ bool presetsCreationMenuHandler(OLEDMenuManager *manager, OLEDMenuItem *item, OL
     File slotsBinaryFileRead = LittleFS.open(SLOTS_FILE, "r");
     int curNumSlot = 0;
     if (slotsBinaryFileRead) {
-        SlotMeta slot;  // Read one slot at a time (47 bytes vs 940+ for full array)
+        SlotMeta slot;
         for (int i = 0; i < SLOTS_TOTAL; ++i) {
-            slotsBinaryFileRead.seek(i * sizeof(SlotMeta));
+            slotsBinaryFileRead.seek(SLOTS_HEADER_SIZE + i * sizeof(SlotMeta));
             slotsBinaryFileRead.read((byte *)&slot, sizeof(SlotMeta));
             if (strcmp(EMPTY_SLOT_NAME, slot.name) == 0 || !strlen(slot.name)) {
                 continue;
