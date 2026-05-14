@@ -37,7 +37,7 @@ static bool getSlotName(uint8_t slotIndex, char* nameBuffer, uint8_t maxLen)
     if (!f) return false;
 
     SlotMeta slotData;
-    f.seek(slotIndex * sizeof(SlotMeta));
+    f.seek(SLOTS_HEADER_SIZE + slotIndex * sizeof(SlotMeta));
     size_t bytesRead = f.read((byte*)&slotData, sizeof(SlotMeta));
     f.close();
 

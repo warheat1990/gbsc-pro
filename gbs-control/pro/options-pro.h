@@ -109,6 +109,37 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t advCombChromaModePAL;   /* PAL Chroma Mode (0=Adaptive, 4=Off, 5-7=Fixed) */ \
     uint8_t advCombChromaTapsPAL;   /* PAL Chroma Taps (0-3, default 3=5→4 lines) */ \
     /* HDMI Limited Range */ \
-    uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */
+    uint8_t hdmiLimitedRange;       /* Force Limited Range output (0=Off, 1=HD, 2=SD, 3=All) */ \
+    /* Developer menu persistent tweaks for NTSC group (videoStandardInput in {1,3,5,6,7,8,9}) */ \
+    /* (0 / 0xFF = no override, use preset default) */ \
+    uint16_t devHTotal_ntsc;        /* VDS_HSYNC_RST custom (0 = no override) */ \
+    uint16_t devPllDiv_ntsc;        /* PLLAD_MD custom (0 = no override) */ \
+    uint8_t  devSdramClock_ntsc;    /* PLL_MS (0xFF = no override, range 0-7) */ \
+    uint8_t  devAdcFilter_ntsc;     /* ADC_FLTR (0xFF = no override, range 0-3) */ \
+    uint8_t  devOsr_ntsc;           /* OSR (0xFF = no override, valid: 1/2/4) */ \
+    uint8_t  devSogLevel_ntsc;      /* ADC_SOGCTRL (0xFF = no override, range 0-16) */ \
+    uint8_t  devSyncInvert_ntsc;    /* bit0=HS, bit1=VS, bit7=set (0 = no override) */ \
+    /* Screen Move / Scale for NTSC group */ \
+    uint16_t screenHMove_ntsc;      /* IF_HBIN_SP (0 = no override) */ \
+    uint16_t screenVMoveSt_ntsc;    /* IF_VB_ST (0xFFFF = no override) */ \
+    uint16_t screenVMoveSp_ntsc;    /* IF_VB_SP (0xFFFF = no override) */ \
+    uint16_t screenHScale_ntsc;     /* VDS_HSCALE (0 = no override) */ \
+    uint16_t screenVScale_ntsc;     /* VDS_VSCALE (0 = no override) */ \
+    /* Developer menu persistent tweaks for PAL group (videoStandardInput in {2,4}) */ \
+    uint16_t devHTotal_pal; \
+    uint16_t devPllDiv_pal; \
+    uint8_t  devSdramClock_pal; \
+    uint8_t  devAdcFilter_pal; \
+    uint8_t  devOsr_pal; \
+    uint8_t  devSogLevel_pal; \
+    uint8_t  devSyncInvert_pal; \
+    /* Screen Move / Scale for PAL group */ \
+    uint16_t screenHMove_pal; \
+    uint16_t screenVMoveSt_pal; \
+    uint16_t screenVMoveSp_pal; \
+    uint16_t screenHScale_pal; \
+    uint16_t screenVScale_pal; \
+    /* Per-slot SyncWatcher override */ \
+    uint8_t  slotSyncwatcherMode;   /* 0=inherit global, 1=force ON, 2=force OFF */
 
 #endif // OPTIONS_PRO_H_

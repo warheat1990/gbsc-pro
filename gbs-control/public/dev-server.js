@@ -295,7 +295,15 @@ const handleRequest = (req, res) => {
   }
 
   if (url.pathname === '/bin/slots.bin') {
-    const buffer = createMockSlotsData();
+    //const buffer = createMockSlotsData();
+    
+    const slotsBuffer = createMockSlotsData();
+    const header = Buffer.alloc(16);
+    header.write('GBSPS', 0, 'ascii');
+    header[5] = 0;
+    header[6] = 0x01;
+
+    const buffer = Buffer.concat([header, slotsBuffer]);
     console.log(`  ├─ 📦 Slots Binary: ${buffer.length} bytes`);
     res.writeHead(200, {
       'Content-Type': 'application/octet-stream',

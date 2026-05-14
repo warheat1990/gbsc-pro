@@ -44,7 +44,7 @@ static void loadPresetList() {
 
     SlotMeta slot;
     for (uint8_t i = 0; i < SLOTS_TOTAL; ++i) {
-        file.seek(i * sizeof(SlotMeta));
+        file.seek(SLOTS_HEADER_SIZE + i * sizeof(SlotMeta));
         file.read((byte *)&slot, sizeof(SlotMeta));
         if (strcmp(EMPTY_SLOT_NAME, slot.name) == 0 || !slot.name[0]) continue;
         strncpy(presetList[presetCount].name, slot.name, 24);
