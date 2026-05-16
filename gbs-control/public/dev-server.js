@@ -515,6 +515,85 @@ const handleRequest = (req, res) => {
         return;
       }
 
+      // Handle Adv Brightness (pb parameter)
+      const pb = parseInt(params.get('pb'));
+      if (!isNaN(pb)) {
+        if (pb >= 0 && pb <= 254) {
+          currentAdvBrightness = pb;
+          console.log(`  ├─ ⚡ Pro: Set Adv Brightness to ${pb}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle Adv Contrast (pc parameter)
+      const pc = parseInt(params.get('pc'));
+      if (!isNaN(pc)) {
+        if (pc >= 0 && pc <= 254) {
+          currentAdvContrast = pc;
+          console.log(`  ├─ ⚡ Pro: Set Adv Contrast to ${pc}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle Adv Saturation (ps parameter)
+      const ps = parseInt(params.get('ps'));
+      if (!isNaN(ps)) {
+        if (ps >= 0 && ps <= 254) {
+          currentAdvSaturation = ps;
+          console.log(`  ├─ ⚡ Pro: Set Adv Saturation to ${ps}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle Adv Hue (ph parameter)
+      const ph = parseInt(params.get('ph'));
+      if (!isNaN(ph)) {
+        if (ph >= 0 && ph <= 254) {
+          currentAdvHue = ph;
+          console.log(`  ├─ ⚡ Pro: Set Adv Hue to ${ph}`);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end('true');
+          broadcastStatus();
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end('false');
+        }
+        return;
+      }
+
+      // Handle Adv Picture Defaults (pd parameter)
+      const pd = parseInt(params.get('pd'));
+      if (!isNaN(pd) && pd === 1) {
+        // Reset BCSH to defaults
+        currentBrightness = 128;
+        currentContrast = 128;
+        currentSaturation = 128;
+        currentHue = 128;
+        console.log(`  ├─ ⚡ Pro: Reset Adv Picture parameters to defaults`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end('true');
+        broadcastStatus();
+        return;
+      }
+
       // =====================================================================
       // Video Filters API - fy, fc, fo, fb, fd
       // =====================================================================
@@ -764,6 +843,11 @@ let currentACEChromaMax = 8; // 0-15, default 8
 let currentACEGammaGain = 8; // 0-15, default 8
 let currentACEResponseSpeed = 15; // 0-15, default 15
 
+let currentAdvBrightness = 128; // 0-255, default 128
+let currentAdvContrast = 128;   // 0-255, default 128
+let currentAdvSaturation = 128; // 0-255, default 128
+let currentAdvHue = 128;        // 0-255, default 128
+
 // Video Filter state - Shaping filters
 let currentFilterY = 1;           // AV default (AutoNarrow)
 let currentFilterC = 0;           // AV default (Auto1.5M)
@@ -817,6 +901,8 @@ const buildProStatusMessage = () => {
          `${toHexChar32(currentACELumaGain)}${toHexChar16(currentACEChromaGain)}` +
          `${toHexChar16(currentACEChromaMax)}${toHexChar16(currentACEGammaGain)}` +
          `${toHexChar16(currentACEResponseSpeed)}` +
+         `${toHexChar32(currentAdvBrightness)}${toHexChar32(currentAdvContrast)}` +
+         `${toHexChar32(currentAdvSaturation)}${toHexChar32(currentAdvHue)}` +
          `${toHexChar32(currentFilterY)}${toHexChar16(currentFilterC)}` +
          `${toHexChar16(currentFilterWY)}${currentFilterWYOverride}${toHexChar16(currentFilterCombPAL)}` +
          `${currentHdmiLimitedRange}${currentSyncStripper}`;
@@ -849,7 +935,7 @@ wss.on('connection', (ws) => {
       const inputNames = ['', 'RGBs', 'RGsB', 'VGA', 'YPbPr', 'S-Video', 'Composite'];
       const formatNames = ['Auto', 'PAL', 'NTSC-M', 'PAL-60', 'NTSC443', 'NTSC-J', 'PAL-N w/ p', 'PAL-M w/o p', 'PAL-M', 'PAL Cmb -N', 'PAL Cmb -N w/ p', 'SECAM'];
 
-      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}, Sharpness=${currentSharpness ? 'ON' : 'OFF'}, ACE=${currentACE ? 'ON' : 'OFF'}, LumaGain=${currentACELumaGain}, ChromaGain=${currentACEChromaGain}, ChromaMax=${currentACEChromaMax}, GammaGain=${currentACEGammaGain}, ResponseSpeed=${currentACEResponseSpeed}`);
+      console.log(`[${ts}] 📤 WS → Pro: Input=${inputNames[currentInputType]} (${currentInputType}), Format=${formatNames[currentFormat]} (${currentFormat}), 2X=${current2X ? 'ON' : 'OFF'}, Smooth=${currentSmooth ? 'ON' : 'OFF'}, Sharpness=${currentSharpness ? 'ON' : 'OFF'}, ACE=${currentACE ? 'ON' : 'OFF'}, LumaGain=${currentACELumaGain}, ChromaGain=${currentACEChromaGain}, ChromaMax=${currentACEChromaMax}, GammaGain=${currentACEGammaGain}, ResponseSpeed=${currentACEResponseSpeed}, AdvBrightness=${currentAdvBrightness}, AdvContrast=${currentAdvContrast}, AdvSaturation=${currentAdvSaturation}, AdvHue=${currentAdvHue}`);
       ws.send(buildProStatusMessage());
     }
   };

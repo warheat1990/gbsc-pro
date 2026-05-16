@@ -583,11 +583,13 @@ void broadcastProStatus(WebSocketsServer& ws)
     //  [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
     //  [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue][scanLines]
     //  [R][G][B][Y Gain][U Gain][scanlineStrength]
+    //  [advBrightness][advContrast][advSaturation][advHue]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
     //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
     //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanLines
     //            27-32=RGB 33-34=YGain 35-36=UGain 37=scanlineStrength
-    constexpr size_t MESSAGE_LEN = 38;
+    //            38-39=advBrightness 40-41=advContrast 42-43=advSaturation 44-45=advHue
+    constexpr size_t MESSAGE_LEN = 46;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -662,6 +664,22 @@ void broadcastProStatus(WebSocketsServer& ws)
 
     //Scanline Strength
     buffer[37] = toHexChar16(uopt->scanlineStrength >> 4);      // 0-5 Scanline Strength
+
+    //advBrightness
+    buffer[38] = toHexChar16(uopt->advBrightness >> 4);      // 0-255 advBrightness - high
+    buffer[39] = toHexChar16(uopt->advBrightness & 0x0F);    // 0-255 advBrightness - low
+
+    //advContrast
+    buffer[40] = toHexChar16(uopt->advContrast >> 4);        // 0-255 advContrast - high
+    buffer[41] = toHexChar16(uopt->advContrast & 0x0F);      // 0-255 advContrast - low
+
+    //advSaturation
+    buffer[42] = toHexChar16(uopt->advSaturation >> 4);      // 0-255 advSaturation - high
+    buffer[43] = toHexChar16(uopt->advSaturation & 0x0F);    // 0-255 advSaturation - low
+
+    //advHue
+    buffer[44] = toHexChar16(uopt->advHue >> 4);           // 0-255 advHue - high
+    buffer[45] = toHexChar16(uopt->advHue & 0x0F);         // 0-255 advHue - low
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

@@ -84,6 +84,12 @@ static const unsigned char ADV_BCSH[4]              = {ADV_HEADER_0, ADV_HEADER_
 #define ADV_ACE_GAMMA_GAIN_DEFAULT      8
 #define ADV_ACE_RESPONSE_SPEED_DEFAULT  15  // 0x0F
 
+// CVBS Picture parameter default values
+#define ADV_BRIGHTNESS_DEFAULT  128
+#define ADV_CONTRAST_DEFAULT    128
+#define ADV_SATURATION_DEFAULT  128
+#define ADV_HUE_DEFAULT         128
+
 // Packet templates for ACE parameters (use writeReg to fill value)
 static const unsigned char ADV_ACE_Param[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, 0x00};
 static const unsigned char ADV_ACE_Defaults[4] = {ADV_HEADER_0, ADV_HEADER_1, ADV_CMD_SOURCE, ADV_ACE_DEFAULTS};
