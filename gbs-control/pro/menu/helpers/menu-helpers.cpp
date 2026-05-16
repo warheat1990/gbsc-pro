@@ -159,6 +159,7 @@ bool handleProfileRow(bool isLoadRow) {
     extern char userCommand;
     extern void saveUserPrefs();
     extern void applyPresets(uint8_t videoMode);
+    extern void applyActiveInputType();
     extern bool loadSlotSettings();
     extern bool saveSlotSettingsAt(int slotIndex, const char* name);
 
@@ -221,6 +222,7 @@ bool handleProfileRow(bool isLoadRow) {
                     applyPresets(rto->videoStandardInput);
                     saveUserPrefs();
                     OSD_showOkFeedback(ROW_1);
+                    applyActiveInputType();
                 } else {
                     saveUserPrefs();
                     userCommand = '4';  // Save GBS preset

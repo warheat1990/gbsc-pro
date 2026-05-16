@@ -315,9 +315,13 @@ const createWebSocket = () => {
             // Pro status: $[inputType][format][2x][smooth][sharpness][ace][lumaGain][chromaGain][chromaMax][gammaGain][responseSpeed]
             //             [yFilter][cFilter][wyFilter][wyOverride][comb][hdmiLimitedRange][syncStripper]
             //             [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue][scanlines]
+            //             [R][G][B][Y Gain][U Gain][scanlineStrength]
+            //             [advBrightness][advContrast][advSaturation][advHue]
             // Positions: 0=$ 1=input 2=format 3=2x 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
             //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
             //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanlines
+            //            27-32=RGB 33-34=YGain 35-36=UGain 37=scanlineStrength
+            //            38-39=advBrightness 40-41=advContrast 42-43=advSaturation 44-45=advHue
             const inputType = messageDataAt1;
             const formatChar = messageDataAt2;
             const line2xChar = messageDataAt3;
@@ -370,6 +374,14 @@ const createWebSocket = () => {
             //const scanlineStrengthValue: string = (parseInt(message.data[37] || "0") * 10).toString();
             const scanlineStrengthValue = parseInt(message.data[37] || "0") === 0 ? "00" :
                 (parseInt(message.data[37] || "0") * 10).toString();
+            // Brightness (position 38-39) - 0-255 encoded as two hex chars
+            const advBrightnessValue = (fromHexChar(message.data[38] || "0") << 4) | fromHexChar(message.data[39] || "0");
+            // Contrast (position 40-41) - 0-255 encoded as two hex chars
+            const advContrastValue = (fromHexChar(message.data[40] || "0") << 4) | fromHexChar(message.data[41] || "0");
+            // Saturation (position 42-43) - 0-255 encoded as two hex chars
+            const advSaturationValue = (fromHexChar(message.data[42] || "0") << 4) | fromHexChar(message.data[43] || "0");
+            // Hue (position 44-45) - 0-255 encoded as two hex chars
+            const advHueValue = (fromHexChar(message.data[44] || "0") << 4) | fromHexChar(message.data[45] || "0");
             // Update input source buttons
             const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
             allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -383,6 +395,11 @@ const createWebSocket = () => {
             const cvSection = document.getElementById("gbs-pro-cv-section");
             if (cvSection) {
                 cvSection.style.display = isCVInput ? "block" : "none";
+            }
+            // Show/hide Picture Settings section based on input type
+            const pictureSection = document.getElementById("gbs-pro-advpic-section");
+            if (pictureSection) {
+                pictureSection.style.display = isCVInput ? "block" : "none";
             }
             // Show/hide ACE Settings section based on input type and ACE enabled
             const aceSection = document.getElementById("gbs-pro-ace-section");
@@ -558,6 +575,19 @@ const createWebSocket = () => {
                 gammaValueSpan.textContent = fromHexChar(gammaGainChar).toString();
             if (responseValueSpan)
                 responseValueSpan.textContent = fromHexChar(responseSpeedChar).toString();
+            //Update Brightness, Contrast, Saturation, Hue values in UI
+            const advBrightnessValueSpan = document.getElementById("gbs-pro-adv-brightness-value");
+            const advContrastValueSpan = document.getElementById("gbs-pro-adv-contrast-value");
+            const advSaturationValueSpan = document.getElementById("gbs-pro-adv-saturation-value");
+            const advHueValueSpan = document.getElementById("gbs-pro-adv-hue-value");
+            if (advBrightnessValueSpan)
+                advBrightnessValueSpan.textContent = advBrightnessValue.toString();
+            if (advContrastValueSpan)
+                advContrastValueSpan.textContent = advContrastValue.toString();
+            if (advSaturationValueSpan)
+                advSaturationValueSpan.textContent = advSaturationValue.toString();
+            if (advHueValueSpan)
+                advHueValueSpan.textContent = advHueValue.toString();
             //RGB
             const redValueSpan = document.getElementById("gbs-red-value");
             const greenValueSpan = document.getElementById("gbs-green-value");
@@ -1170,7 +1200,6 @@ const rejectRestore = (message) => {
     gbsAlert(message).then(release, release).catch(release);
 };
 const doRestore = (file) => {
-    const { backupInput } = GBSControl.ui;
     const fileBuffer = new Uint8Array(file);
     // Extended header v1 required (see doBackup for layout).
     if (fileBuffer.length < BACKUP_HEADER_SIZE + 4) {
@@ -1696,6 +1725,87 @@ const initProButtons = () => {
             })
                 .catch((error) => {
                 console.error("Pro API ACE defaults error:", error);
+            });
+        });
+    }
+    // advPicture Settings parameter handlers
+    const advPicParams = {
+        brightness: { param: "pb", max: 254, default: 128 },
+        contrast: { param: "pc", max: 254, default: 128 },
+        saturation: { param: "ps", max: 254, default: 128 },
+        hue: { param: "ph", max: 254, default: 128 },
+    };
+    const sendAdvPicParam = (param, value) => {
+        const formData = new URLSearchParams();
+        formData.append(param, value.toString());
+        fetch("/pro", {
+            method: "POST",
+            body: formData,
+        })
+            .then((response) => response.text())
+            .then((data) => {
+            if (data !== "true") {
+                console.error("Pro API CV Picture param error:", data);
+            }
+        })
+            .catch((error) => {
+            console.error("Pro API CV Picture param error:", error);
+        });
+    };
+    // Setup handlers for each Picture Options parameter
+    const advPicParamNames = ["brightness", "contrast", "saturation", "hue"];
+    advPicParamNames.forEach((name) => {
+        const config = advPicParams[name];
+        const incBtn = document.getElementById(`gbs-pro-adv-${name}-inc`);
+        const decBtn = document.getElementById(`gbs-pro-adv-${name}-dec`);
+        const valueSpan = document.getElementById(`gbs-pro-adv-${name}-value`);
+        if (incBtn && decBtn && valueSpan) {
+            incBtn.addEventListener("click", () => {
+                let val = parseInt(valueSpan.textContent || "0", 10);
+                if (val < config.max) {
+                    val++;
+                    valueSpan.textContent = val.toString();
+                    sendAdvPicParam(config.param, val);
+                }
+            });
+            decBtn.addEventListener("click", () => {
+                let val = parseInt(valueSpan.textContent || "0", 10);
+                if (val > 0) {
+                    val--;
+                    valueSpan.textContent = val.toString();
+                    sendAdvPicParam(config.param, val);
+                }
+            });
+        }
+    });
+    // CV Picture Reset to Defaults button
+    const advPicDefaultBtn = document.getElementById("gbs-pro-advpic-default");
+    if (advPicDefaultBtn) {
+        advPicDefaultBtn.addEventListener("click", () => {
+            const formData = new URLSearchParams();
+            formData.append("pd", "1");
+            fetch("/pro", {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => response.text())
+                .then((data) => {
+                if (data === "true") {
+                    // Update UI to show default values
+                    advPicParamNames.forEach((name) => {
+                        const config = advPicParams[name];
+                        const valueSpan = document.getElementById(`gbs-pro-adv-${name}-value`);
+                        if (valueSpan) {
+                            valueSpan.textContent = config.default.toString();
+                        }
+                    });
+                }
+                else {
+                    console.error("Pro API CV Picture defaults error:", data);
+                }
+            })
+                .catch((error) => {
+                console.error("Pro API CV Picture defaults error:", error);
             });
         });
     }

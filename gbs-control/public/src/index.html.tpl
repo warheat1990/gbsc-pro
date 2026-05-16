@@ -346,6 +346,57 @@
               </button>
             </div>
           </fieldset>
+          <fieldset id="gbs-pro-advpic-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
+            <legend class="gbs-fieldset__legend">
+              <div>Picture Options</div>
+            </legend>
+
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-adv-brightness-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Brightness</span>
+                  <span id="gbs-pro-adv-brightness-value" class="gbs-slider-value">128</span>
+                </div>
+                <button id="gbs-pro-adv-brightness-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-adv-saturation-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Saturation</span>
+                  <span id="gbs-pro-adv-saturation-value" class="gbs-slider-value">128</span>
+                </div>
+                <button id="gbs-pro-adv-saturation-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-adv-contrast-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Contrast</span>
+                  <span id="gbs-pro-adv-contrast-value" class="gbs-slider-value">128</span>
+                </div>
+                <button id="gbs-pro-adv-contrast-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+
+              <div class="gbs-slider-row">
+                <button id="gbs-pro-adv-hue-dec" class="gbs-button gbs-slider-btn">−</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">Hue</span>
+                  <span id="gbs-pro-adv-hue-value" class="gbs-slider-value">128</span>
+                </div>
+                <button id="gbs-pro-adv-hue-inc" class="gbs-button gbs-slider-btn">+</button>
+              </div>
+            </div>
+
+            <!-- Default button -->
+            <div class="gbs-flex">
+              <button id="gbs-pro-advpic-default" class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
+                <div class="gbs-icon">↲</div>
+                <div>Reset to Defaults</div>
+              </button>
+            </div>
+          </fieldset>
           <fieldset id="gbs-pro-ace-section" class="gbs-fieldset" style="padding: 8px 2px; display: none;">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
               <div>ACE Settings</div>

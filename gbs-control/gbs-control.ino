@@ -1071,35 +1071,34 @@ void applyHdmiLimitedRange()
 // This is called during preset loading
 void applyActiveInputType()
 {
-    const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
+    if (uopt->activeInputType == 0) return;
+
     switch (uopt->activeInputType) {
         case 1:
             InputRGBs();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         case 2:
             InputRGsB();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         case 3:
             InputVGA();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         case 4:
             InputYUV();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         case 5:
             InputSV();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         case 6:
             InputAV();
-            SerialM.print(F("Input: ")); SerialM.println(inputNames[uopt->activeInputType]);
             break;
         default:
             break;
     }
+
+    const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
+    SerialM.print(F("Apply activeInputType: "));
+    SerialM.println(inputNames[uopt->activeInputType]);
 }
 
 /// Write ADC gain registers, and save in adco->r_gain to properly transfer it
@@ -4227,12 +4226,6 @@ void doPostPresetLoadSteps()
 
     // HDMI Limited Range (must be after applyRGBtoYUVConversion)
     applyHdmiLimitedRange();
-
-    // Active Input Type
-    if (isInfoDisplayActive == 0) {
-        SerialM.print(F("Apply active input type"));
-        applyActiveInputType();
-    }
 
     SerialM.print(F("\npreset applied: "));
     if (rto->presetID == 0x01 || rto->presetID == 0x11)
@@ -9945,6 +9938,7 @@ void handleType2Command(char argument)
             loadSlotSettings();
             applyPresets(rto->videoStandardInput);
             saveUserPrefs();
+            applyActiveInputType();
         } break;
         case '4': // save custom preset
             savePresetToLittleFS();
@@ -10918,475 +10912,574 @@ void startWebserver()
     });
 
     server.on("/pro", HTTP_POST, [](AsyncWebServerRequest *request) {
-        // Handle input source selection (i parameter)
-        if (request->hasArg("i")) {
-            uint8_t i = request->arg("i").toInt();
+        if (ESP.getFreeHeap() > 10000) {
+            // Handle input source selection (i parameter)
+            if (request->hasArg("i")) {
+                uint8_t i = request->arg("i").toInt();
 
-            const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
-            switch (i) {
-                case 1:
-                    InputRGBs();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                case 2:
-                    InputRGsB();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                case 3:
-                    InputVGA();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                case 4:
-                    InputYUV();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                case 5:
-                    InputSV();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                case 6:
-                    InputAV();
-                    SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
-                    request->send(200, "application/json", "true");
-                    break;
-                default:
-                    request->send(400, "application/json", "false");
-                    break;
+                const char* inputNames[] = {"", "RGBs", "RGsB", "VGA", "YPbPr", "S-Video", "AV"};
+                switch (i) {
+                    case 1:
+                        InputRGBs();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    case 2:
+                        InputRGsB();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    case 3:
+                        InputVGA();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    case 4:
+                        InputYUV();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    case 5:
+                        InputSV();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    case 6:
+                        InputAV();
+                        SerialM.print(F("Input: ")); SerialM.println(inputNames[i]);
+                        request->send(200, "application/json", "true");
+                        break;
+                    default:
+                        request->send(400, "application/json", "false");
+                        break;
+                }
+                return;
             }
-            return;
-        }
 
-        // Handle video format selection (f parameter)
-        // 0=Auto, 1=PAL, 2=NTSC-M, 3=PAL-60, 4=NTSC443, 5=NTSC-J,
-        // 6=PAL-N w/ p, 7=PAL-M w/o p, 8=PAL-M, 9=PAL Cmb -N, 10=PAL Cmb -N w/ p, 11=SECAM
-        if (request->hasArg("f")) {
-            uint8_t f = request->arg("f").toInt();
+            // Handle video format selection (f parameter)
+            // 0=Auto, 1=PAL, 2=NTSC-M, 3=PAL-60, 4=NTSC443, 5=NTSC-J,
+            // 6=PAL-N w/ p, 7=PAL-M w/o p, 8=PAL-M, 9=PAL Cmb -N, 10=PAL Cmb -N w/ p, 11=SECAM
+            if (request->hasArg("f")) {
+                uint8_t f = request->arg("f").toInt();
 
-            if (f <= 11) {
-                // Format selection only applies to composite/s-video inputs
-                if (uopt->activeInputType == InputTypeAV || uopt->activeInputType == InputTypeSV) {
-                    uopt->TVMODE_presetPreference = (TVMODE_PresetPreference)f;
+                if (f <= 11) {
+                    // Format selection only applies to composite/s-video inputs
+                    if (uopt->activeInputType == InputTypeAV || uopt->activeInputType == InputTypeSV) {
+                        uopt->TVMODE_presetPreference = (TVMODE_PresetPreference)f;
 
-                    // Update mode option
-                    if (uopt->activeInputType == InputTypeAV) {
-                        uopt->avVideoFormat = f;
-                    } else if (uopt->activeInputType == InputTypeSV) {
-                        uopt->svVideoFormat = f;
+                        // Update mode option
+                        if (uopt->activeInputType == InputTypeAV) {
+                            uopt->avVideoFormat = f;
+                        } else if (uopt->activeInputType == InputTypeSV) {
+                            uopt->svVideoFormat = f;
+                        }
+                        //saveUserPrefs();
+
+                        // Send the video format command
+                        ADV_sendVideoFormat(ADV_VideoFormats[f]);
+
+                        const char* formatNames[] = {"Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"};
+                        SerialM.print(F("Video format: "));
+                        SerialM.println(formatNames[f]);
+
+                        request->send(200, "application/json", "true");
+                    } else {
+                        // Format not applicable for current input type
+                        request->send(400, "application/json", "false");
                     }
-                    saveUserPrefs();
-
-                    // Send the video format command
-                    ADV_sendVideoFormat(ADV_VideoFormats[f]);
-
-                    const char* formatNames[] = {"Auto", "PAL", "NTSC-M", "PAL-60", "NTSC443", "NTSC-J", "PAL-N w/ p", "PAL-M w/o p", "PAL-M", "PAL Cmb -N", "PAL Cmb -N w/ p", "SECAM"};
-                    SerialM.print(F("Video format: "));
-                    SerialM.println(formatNames[f]);
-
-                    request->send(200, "application/json", "true");
                 } else {
-                    // Format not applicable for current input type
                     request->send(400, "application/json", "false");
                 }
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle 2X toggle (x parameter)
-        // 0=1X (off), 1=2X (on)
-        if (request->hasArg("x")) {
-            uint8_t x = request->arg("x").toInt();
+            // Handle 2X toggle (x parameter)
+            // 0=1X (off), 1=2X (on)
+            if (request->hasArg("x")) {
+                uint8_t x = request->arg("x").toInt();
 
-            if (x <= 1) {
-                uopt->advI2P = x;
-                ADV_sendI2P(uopt->advI2P);
-                SerialM.println(uopt->advI2P ? F("I2P enabled") : F("I2P disabled"));
+                if (x <= 1) {
+                    uopt->advI2P = x;
+                    ADV_sendI2P(uopt->advI2P);
+                    SerialM.println(uopt->advI2P ? F("I2P enabled") : F("I2P disabled"));
 
-                // If I2P is disabled, also disable Smooth (smooth only works with I2P)
-                if (!uopt->advI2P && uopt->advSmooth) {
-                    uopt->advSmooth = 0;
-                    ADV_sendSmooth(false);
-                    SerialM.println(F("Smooth disabled (requires I2P)"));
-                }
+                    // If I2P is disabled, also disable Smooth (smooth only works with I2P)
+                    if (!uopt->advI2P && uopt->advSmooth) {
+                        uopt->advSmooth = 0;
+                        ADV_sendSmooth(false);
+                        SerialM.println(F("Smooth disabled (requires I2P)"));
+                    }
 
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle Smooth toggle (s parameter)
-        // 0=off, 1=on
-        // Note: Smooth only works when I2P is enabled
-        if (request->hasArg("s")) {
-            uint8_t s = request->arg("s").toInt();
-
-            if (s <= 1) {
-                // Force smooth off if I2P is not enabled
-                if (!uopt->advI2P && s == 1) {
-                    uopt->advSmooth = 0;
-                    SerialM.println(F("Smooth not enabled (requires I2P)"));
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
                 } else {
-                    uopt->advSmooth = s;
-                    SerialM.println(uopt->advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
+                    request->send(400, "application/json", "false");
                 }
-                ADV_sendSmooth(uopt->advSmooth);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle ACE toggle (a parameter)
-        // 0=off, 1=on
-        if (request->hasArg("a")) {
-            uint8_t a = request->arg("a").toInt();
+            // Handle Smooth toggle (s parameter)
+            // 0=off, 1=on
+            // Note: Smooth only works when I2P is enabled
+            if (request->hasArg("s")) {
+                uint8_t s = request->arg("s").toInt();
 
-            if (a <= 1) {
-                uopt->advACE = a;
-                ADV_sendACE(uopt->advACE);
-                SerialM.println(uopt->advACE ? F("ACE enabled") : F("ACE disabled"));
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Luma Gain (al parameter)
-        // 0-31
-        if (request->hasArg("al")) {
-            uint8_t val = request->arg("al").toInt();
-            if (val <= 31) {
-                uopt->advACELumaGain = val;
-                ADV_sendACELumaGain(uopt->advACELumaGain);
-                SerialM.print(F("ACE Luma Gain: "));
-                SerialM.println(uopt->advACELumaGain);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Chroma Gain (ac parameter)
-        // 0-15
-        if (request->hasArg("ac")) {
-            uint8_t val = request->arg("ac").toInt();
-            if (val <= 15) {
-                uopt->advACEChromaGain = val;
-                ADV_sendACEChromaGain(uopt->advACEChromaGain);
-                SerialM.print(F("ACE Chroma Gain: "));
-                SerialM.println(uopt->advACEChromaGain);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Chroma Max (am parameter)
-        // 0-15
-        if (request->hasArg("am")) {
-            uint8_t val = request->arg("am").toInt();
-            if (val <= 15) {
-                uopt->advACEChromaMax = val;
-                ADV_sendACEChromaMax(uopt->advACEChromaMax);
-                SerialM.print(F("ACE Chroma Max: "));
-                SerialM.println(uopt->advACEChromaMax);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Gamma Gain (ag parameter)
-        // 0-15
-        if (request->hasArg("ag")) {
-            uint8_t val = request->arg("ag").toInt();
-            if (val <= 15) {
-                uopt->advACEGammaGain = val;
-                ADV_sendACEGammaGain(uopt->advACEGammaGain);
-                SerialM.print(F("ACE Gamma Gain: "));
-                SerialM.println(uopt->advACEGammaGain);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Response Speed (ar parameter)
-        // 0-15
-        if (request->hasArg("ar")) {
-            uint8_t val = request->arg("ar").toInt();
-            if (val <= 15) {
-                uopt->advACEResponseSpeed = val;
-                ADV_sendACEResponseSpeed(uopt->advACEResponseSpeed);
-                SerialM.print(F("ACE Response Speed: "));
-                SerialM.println(uopt->advACEResponseSpeed);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle ACE Defaults (ad parameter)
-        // Reset all ACE parameters to defaults
-        if (request->hasArg("ad")) {
-            uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
-            uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
-            uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
-            uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
-            uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
-            ADV_sendACEDefaults();
-            SerialM.println(F("ACE parameters reset to defaults"));
-            saveUserPrefs();
-            request->send(200, "application/json", "true");
-            return;
-        }
-
-        // =====================================================================
-        // Video Filters API - fy, fc, fo, fb, fd
-        // =====================================================================
-
-        // Handle Video Filter Y Shaping (fy parameter)
-        // AV: 0-30, SV: 2-19 (raw value, firmware handles based on input type)
-        if (request->hasArg("fy")) {
-            uint8_t val = request->arg("fy").toInt();
-            if (val <= 30) {
-                if (uopt->activeInputType == InputTypeSV) {
-                    // S-Video uses WY register (2-19)
-                    uopt->advFilterWYShaping = val;
-                    ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
-                    SerialM.print(F("Filter WY Shaping: "));
-                    SerialM.println(uopt->advFilterWYShaping);
+                if (s <= 1) {
+                    // Force smooth off if I2P is not enabled
+                    if (!uopt->advI2P && s == 1) {
+                        uopt->advSmooth = 0;
+                        SerialM.println(F("Smooth not enabled (requires I2P)"));
+                    } else {
+                        uopt->advSmooth = s;
+                        SerialM.println(uopt->advSmooth ? F("Smooth enabled") : F("Smooth disabled"));
+                    }
+                    ADV_sendSmooth(uopt->advSmooth);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
                 } else {
-                    // Composite uses Y register (0-30)
-                    uopt->advFilterYShaping = val;
-                    ADV_sendFilterYShaping(uopt->advFilterYShaping);
-                    SerialM.print(F("Filter Y Shaping: "));
-                    SerialM.println(uopt->advFilterYShaping);
+                    request->send(400, "application/json", "false");
                 }
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle Video Filter C Shaping (fc parameter) - Composite only
-        // 0-7
-        if (request->hasArg("fc")) {
-            uint8_t val = request->arg("fc").toInt();
-            if (val <= 7 && uopt->activeInputType == InputTypeAV) {
-                uopt->advFilterCShaping = val;
-                ADV_sendFilterCShaping(uopt->advFilterCShaping);
-                SerialM.print(F("Filter C Shaping: "));
-                SerialM.println(uopt->advFilterCShaping);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
+            // Handle ACE toggle (a parameter)
+            // 0=off, 1=on
+            if (request->hasArg("a")) {
+                uint8_t a = request->arg("a").toInt();
 
-        // Handle Video Filter WY Override (fo parameter) - S-Video only
-        // 0=Auto, 1=Manual
-        if (request->hasArg("fo")) {
-            uint8_t val = request->arg("fo").toInt();
-            if (val <= 1 && uopt->activeInputType == InputTypeSV) {
-                uopt->advFilterWYOverride = val;
-                ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
-                SerialM.print(F("Filter WY Override: "));
-                SerialM.println(uopt->advFilterWYOverride ? "Manual" : "Auto");
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle Video Filter Comb Bandwidth (fb parameter)
-        // 0-3 (Narrow, Medium, Wide, Widest) - unified for PAL and NTSC
-        if (request->hasArg("fb")) {
-            uint8_t val = request->arg("fb").toInt();
-            if (val <= 3) {
-                uopt->advFilterCombPAL = val;
-                uopt->advFilterCombNTSC = val;
-                ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
-                ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
-                SerialM.print(F("Filter Comb BW: "));
-                SerialM.println(val);
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle Video Filter Defaults (fd parameter)
-        // Reset all filter and comb control parameters to defaults
-        if (request->hasArg("fd")) {
-            ADV_sendVideoFiltersDefaults();
-            SerialM.println(F("Video filter parameters reset to defaults"));
-            saveUserPrefs();
-            request->send(200, "application/json", "true");
-            return;
-        }
-
-        // Handle Comb Control Luma Mode (cl parameter)
-        // Value is 0,4,5,6,7 (Adaptive, Notch, Fixed 2L, 3L, 4L)
-        // Second char: 'n'=NTSC, 'p'=PAL
-        if (request->hasArg("cl")) {
-            String valStr = request->arg("cl");
-            uint8_t val = valStr.toInt();
-            if (val == 0 || (val >= 4 && val <= 7)) {
-                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
-                if (target == 'n') {
-                    uopt->advCombLumaModeNTSC = val;
-                    ADV_sendCombLumaModeNTSC(val);
-                    SerialM.print(F("Comb Luma NTSC: ")); SerialM.println(val);
+                if (a <= 1) {
+                    uopt->advACE = a;
+                    ADV_sendACE(uopt->advACE);
+                    SerialM.println(uopt->advACE ? F("ACE enabled") : F("ACE disabled"));
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
                 } else {
-                    uopt->advCombLumaModePAL = val;
-                    ADV_sendCombLumaModePAL(val);
-                    SerialM.print(F("Comb Luma PAL: ")); SerialM.println(val);
+                    request->send(400, "application/json", "false");
                 }
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle Comb Control Chroma Mode (cc parameter)
-        // Value is 0,4,5,6,7 (Adaptive, Off, Fixed 2L, 3L, 4L)
-        if (request->hasArg("cc")) {
-            String valStr = request->arg("cc");
-            uint8_t val = valStr.toInt();
-            if (val == 0 || (val >= 4 && val <= 7)) {
-                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
-                if (target == 'n') {
-                    uopt->advCombChromaModeNTSC = val;
-                    ADV_sendCombChromaModeNTSC(val);
-                    SerialM.print(F("Comb Chroma NTSC: ")); SerialM.println(val);
+            // Handle ACE Luma Gain (al parameter)
+            // 0-31
+            if (request->hasArg("al")) {
+                uint8_t val = request->arg("al").toInt();
+                if (val <= 31) {
+                    uopt->advACELumaGain = val;
+                    ADV_sendACELumaGain(uopt->advACELumaGain);
+                    SerialM.print(F("ACE Luma Gain: "));
+                    SerialM.println(uopt->advACELumaGain);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
                 } else {
-                    uopt->advCombChromaModePAL = val;
-                    ADV_sendCombChromaModePAL(val);
-                    SerialM.print(F("Comb Chroma PAL: ")); SerialM.println(val);
+                    request->send(400, "application/json", "false");
                 }
-                saveUserPrefs();
-                request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle Comb Control Chroma Taps (ct parameter)
-        // Value is 0-3 (None, 3->1, 5->3/3->2, 5->4)
-        if (request->hasArg("ct")) {
-            String valStr = request->arg("ct");
-            uint8_t val = valStr.toInt();
-            if (val <= 3) {
-                char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
-                if (target == 'n') {
-                    uopt->advCombChromaTapsNTSC = val;
-                    ADV_sendCombChromaTapsNTSC(val);
-                    SerialM.print(F("Comb Taps NTSC: ")); SerialM.println(val);
+            // Handle ACE Chroma Gain (ac parameter)
+            // 0-15
+            if (request->hasArg("ac")) {
+                uint8_t val = request->arg("ac").toInt();
+                if (val <= 15) {
+                    uopt->advACEChromaGain = val;
+                    ADV_sendACEChromaGain(uopt->advACEChromaGain);
+                    SerialM.print(F("ACE Chroma Gain: "));
+                    SerialM.println(uopt->advACEChromaGain);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
                 } else {
-                    uopt->advCombChromaTapsPAL = val;
-                    ADV_sendCombChromaTapsPAL(val);
-                    SerialM.print(F("Comb Taps PAL: ")); SerialM.println(val);
+                    request->send(400, "application/json", "false");
                 }
-                saveUserPrefs();
+                return;
+            }
+
+            // Handle ACE Chroma Max (am parameter)
+            // 0-15
+            if (request->hasArg("am")) {
+                uint8_t val = request->arg("am").toInt();
+                if (val <= 15) {
+                    uopt->advACEChromaMax = val;
+                    ADV_sendACEChromaMax(uopt->advACEChromaMax);
+                    SerialM.print(F("ACE Chroma Max: "));
+                    SerialM.println(uopt->advACEChromaMax);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle ACE Gamma Gain (ag parameter)
+            // 0-15
+            if (request->hasArg("ag")) {
+                uint8_t val = request->arg("ag").toInt();
+                if (val <= 15) {
+                    uopt->advACEGammaGain = val;
+                    ADV_sendACEGammaGain(uopt->advACEGammaGain);
+                    SerialM.print(F("ACE Gamma Gain: "));
+                    SerialM.println(uopt->advACEGammaGain);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle ACE Response Speed (ar parameter)
+            // 0-15
+            if (request->hasArg("ar")) {
+                uint8_t val = request->arg("ar").toInt();
+                if (val <= 15) {
+                    uopt->advACEResponseSpeed = val;
+                    ADV_sendACEResponseSpeed(uopt->advACEResponseSpeed);
+                    SerialM.print(F("ACE Response Speed: "));
+                    SerialM.println(uopt->advACEResponseSpeed);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle ACE Defaults (ad parameter)
+            // Reset all ACE parameters to defaults
+            if (request->hasArg("ad")) {
+                uopt->advACELumaGain = ADV_ACE_LUMA_GAIN_DEFAULT;
+                uopt->advACEChromaGain = ADV_ACE_CHROMA_GAIN_DEFAULT;
+                uopt->advACEChromaMax = ADV_ACE_CHROMA_MAX_DEFAULT;
+                uopt->advACEGammaGain = ADV_ACE_GAMMA_GAIN_DEFAULT;
+                uopt->advACEResponseSpeed = ADV_ACE_RESPONSE_SPEED_DEFAULT;
+                ADV_sendACEDefaults();
+                SerialM.println(F("ACE parameters reset to defaults"));
+                //saveUserPrefs();
                 request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // Handle Sync Stripper toggle (ss parameter)
-        // 0=off, 1=on
-        if (request->hasArg("ss")) {
-            uint8_t ss = request->arg("ss").toInt();
+            // Handle Adv Brightness (pb parameter)
+            // 0-254
+            if (request->hasArg("pb")) {
+                uint8_t val = request->arg("pb").toInt();
+                if (val >= 0 && val <= 254) {
+                    uopt->advBrightness = val;
+                    ADV_sendBCSH(0x0a, uopt->advBrightness - 128);
+                    SerialM.print(F("Adv Brightness: "));
+                    SerialM.println(uopt->advBrightness);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
 
-            if (ss <= 1) {
-                uopt->advSyncStripper = ss;
-                ADV_sendSyncStripper(uopt->advSyncStripper);
-                SerialM.println(uopt->advSyncStripper ? F("Sync Stripper enabled") : F("Sync Stripper disabled"));
-                saveUserPrefs();
-                // Queue deferred command to reset sync processor (avoids watchdog timeout)
-                userCommandBuffer += '&';
+            // Handle Adv Contrast (pc parameter)
+            // 0-254
+            if (request->hasArg("pc")) {
+                uint8_t val = request->arg("pc").toInt();
+                if (val >= 0 && val <= 254) {
+                    uopt->advContrast = val;
+                    ADV_sendBCSH(0x08, uopt->advContrast);
+                    SerialM.print(F("Adv Contrast: "));
+                    SerialM.println(uopt->advContrast);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Adv Saturation (ps parameter)
+            // 0-254
+            if (request->hasArg("ps")) {
+                uint8_t val = request->arg("ps").toInt();
+                if (val >= 0 && val <= 254) {
+                    uopt->advSaturation = val;
+                    ADV_sendBCSH(0xe3, uopt->advSaturation);  // SD_SAT_Cb
+                    ADV_sendBCSH(0xe4, uopt->advSaturation);  // SD_SAT_Cr
+                    SerialM.print(F("Adv Saturation: "));
+                    SerialM.println(uopt->advSaturation);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Adv Hue (ph parameter)
+            // 0-254
+            if (request->hasArg("ph")) {
+                uint8_t val = request->arg("ph").toInt();
+                if (val >= 0 && val <= 254) {
+                    uopt->advHue = val;
+                    ADV_sendBCSH(0x0b, uopt->advHue - 128);
+                    SerialM.print(F("Adv Hue: "));
+                    SerialM.println(uopt->advHue);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Adv Picture Defaults (pd parameter)
+            // Reset all Adv Picture parameters to defaults
+            if (request->hasArg("pd")) {
+                // Reset BCSH to defaults
+                ADV_sendBCSH('D', 'E');
+                uopt->advBrightness = ADV_BRIGHTNESS_DEFAULT;
+                uopt->advContrast = ADV_CONTRAST_DEFAULT;
+                uopt->advSaturation = ADV_SATURATION_DEFAULT;
+                uopt->advHue = ADV_HUE_DEFAULT;
+
+                // Reset ACE
+                uopt->advACE = 0;
+                ADV_sendACE(false);
+
+                // Reset Video Filters to defaults
+                ADV_sendVideoFiltersDefaults();
+
+                // Reset I2P settings
+                uopt->advI2P = false;
+                uopt->advSmooth = false;
+                ADV_sendI2P(false);
+
+                SerialM.println(F("Adv Picture parameters reset to defaults"));
+                //saveUserPrefs();
                 request->send(200, "application/json", "true");
-            } else {
-                request->send(400, "application/json", "false");
-            }
-            return;
-        }
-
-        // Handle custom I2C batch command (c parameter)
-        // Format: hex string of triplets, e.g. "42,0E,00,56,17,02"
-        if (request->hasArg("c")) {
-            String hexStr = request->arg("c");
-
-            // Parse comma-separated hex values
-            unsigned char data[30];  // max 10 triplets
-            size_t dataLen = 0;
-
-            unsigned int start = 0;
-            int commaPos;
-            while ((commaPos = hexStr.indexOf(',', start)) != -1 && dataLen < 30) {
-                String byteStr = hexStr.substring(start, commaPos);
-                data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
-                start = commaPos + 1;
-            }
-            // Last value (no trailing comma)
-            if (start < hexStr.length() && dataLen < 30) {
-                String byteStr = hexStr.substring(start);
-                data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
+                return;
             }
 
-            // Validate: must be multiple of 3
-            if (dataLen > 0 && dataLen % 3 == 0) {
-                ADV_sendCustomI2C(data, dataLen);
-                SerialM.print(F("ADV Controller - Custom I2C sent: "));
-                SerialM.print(dataLen / 3);
-                SerialM.println(F(" commands"));
+            // =====================================================================
+            // Video Filters API - fy, fc, fo, fb, fd
+            // =====================================================================
+
+            // Handle Video Filter Y Shaping (fy parameter)
+            // AV: 0-30, SV: 2-19 (raw value, firmware handles based on input type)
+            if (request->hasArg("fy")) {
+                uint8_t val = request->arg("fy").toInt();
+                if (val <= 30) {
+                    if (uopt->activeInputType == InputTypeSV) {
+                        // S-Video uses WY register (2-19)
+                        uopt->advFilterWYShaping = val;
+                        ADV_sendFilterWYShaping(uopt->advFilterWYShaping);
+                        SerialM.print(F("Filter WY Shaping: "));
+                        SerialM.println(uopt->advFilterWYShaping);
+                    } else {
+                        // Composite uses Y register (0-30)
+                        uopt->advFilterYShaping = val;
+                        ADV_sendFilterYShaping(uopt->advFilterYShaping);
+                        SerialM.print(F("Filter Y Shaping: "));
+                        SerialM.println(uopt->advFilterYShaping);
+                    }
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Video Filter C Shaping (fc parameter) - Composite only
+            // 0-7
+            if (request->hasArg("fc")) {
+                uint8_t val = request->arg("fc").toInt();
+                if (val <= 7 && uopt->activeInputType == InputTypeAV) {
+                    uopt->advFilterCShaping = val;
+                    ADV_sendFilterCShaping(uopt->advFilterCShaping);
+                    SerialM.print(F("Filter C Shaping: "));
+                    SerialM.println(uopt->advFilterCShaping);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Video Filter WY Override (fo parameter) - S-Video only
+            // 0=Auto, 1=Manual
+            if (request->hasArg("fo")) {
+                uint8_t val = request->arg("fo").toInt();
+                if (val <= 1 && uopt->activeInputType == InputTypeSV) {
+                    uopt->advFilterWYOverride = val;
+                    ADV_sendFilterWYOverride(uopt->advFilterWYOverride);
+                    SerialM.print(F("Filter WY Override: "));
+                    SerialM.println(uopt->advFilterWYOverride ? "Manual" : "Auto");
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Video Filter Comb Bandwidth (fb parameter)
+            // 0-3 (Narrow, Medium, Wide, Widest) - unified for PAL and NTSC
+            if (request->hasArg("fb")) {
+                uint8_t val = request->arg("fb").toInt();
+                if (val <= 3) {
+                    uopt->advFilterCombPAL = val;
+                    uopt->advFilterCombNTSC = val;
+                    ADV_sendFilterCombPAL(uopt->advFilterCombPAL);
+                    ADV_sendFilterCombNTSC(uopt->advFilterCombNTSC);
+                    SerialM.print(F("Filter Comb BW: "));
+                    SerialM.println(val);
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Video Filter Defaults (fd parameter)
+            // Reset all filter and comb control parameters to defaults
+            if (request->hasArg("fd")) {
+                ADV_sendVideoFiltersDefaults();
+                SerialM.println(F("Video filter parameters reset to defaults"));
+                //saveUserPrefs();
                 request->send(200, "application/json", "true");
-            } else {
-                SerialM.println(F("ADV Controller - Custom I2C error: invalid data length"));
-                request->send(400, "application/json", "false");
+                return;
             }
-            return;
-        }
 
-        // No valid parameter provided
-        request->send(400, "application/json", "false");
+            // Handle Comb Control Luma Mode (cl parameter)
+            // Value is 0,4,5,6,7 (Adaptive, Notch, Fixed 2L, 3L, 4L)
+            // Second char: 'n'=NTSC, 'p'=PAL
+            if (request->hasArg("cl")) {
+                String valStr = request->arg("cl");
+                uint8_t val = valStr.toInt();
+                if (val == 0 || (val >= 4 && val <= 7)) {
+                    char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                    if (target == 'n') {
+                        uopt->advCombLumaModeNTSC = val;
+                        ADV_sendCombLumaModeNTSC(val);
+                        SerialM.print(F("Comb Luma NTSC: ")); SerialM.println(val);
+                    } else {
+                        uopt->advCombLumaModePAL = val;
+                        ADV_sendCombLumaModePAL(val);
+                        SerialM.print(F("Comb Luma PAL: ")); SerialM.println(val);
+                    }
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Comb Control Chroma Mode (cc parameter)
+            // Value is 0,4,5,6,7 (Adaptive, Off, Fixed 2L, 3L, 4L)
+            if (request->hasArg("cc")) {
+                String valStr = request->arg("cc");
+                uint8_t val = valStr.toInt();
+                if (val == 0 || (val >= 4 && val <= 7)) {
+                    char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                    if (target == 'n') {
+                        uopt->advCombChromaModeNTSC = val;
+                        ADV_sendCombChromaModeNTSC(val);
+                        SerialM.print(F("Comb Chroma NTSC: ")); SerialM.println(val);
+                    } else {
+                        uopt->advCombChromaModePAL = val;
+                        ADV_sendCombChromaModePAL(val);
+                        SerialM.print(F("Comb Chroma PAL: ")); SerialM.println(val);
+                    }
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Comb Control Chroma Taps (ct parameter)
+            // Value is 0-3 (None, 3->1, 5->3/3->2, 5->4)
+            if (request->hasArg("ct")) {
+                String valStr = request->arg("ct");
+                uint8_t val = valStr.toInt();
+                if (val <= 3) {
+                    char target = valStr.length() > 1 ? valStr.charAt(valStr.length() - 1) : 'n';
+                    if (target == 'n') {
+                        uopt->advCombChromaTapsNTSC = val;
+                        ADV_sendCombChromaTapsNTSC(val);
+                        SerialM.print(F("Comb Taps NTSC: ")); SerialM.println(val);
+                    } else {
+                        uopt->advCombChromaTapsPAL = val;
+                        ADV_sendCombChromaTapsPAL(val);
+                        SerialM.print(F("Comb Taps PAL: ")); SerialM.println(val);
+                    }
+                    //saveUserPrefs();
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle Sync Stripper toggle (ss parameter)
+            // 0=off, 1=on
+            if (request->hasArg("ss")) {
+                uint8_t ss = request->arg("ss").toInt();
+
+                if (ss <= 1) {
+                    uopt->advSyncStripper = ss;
+                    ADV_sendSyncStripper(uopt->advSyncStripper);
+                    SerialM.println(uopt->advSyncStripper ? F("Sync Stripper enabled") : F("Sync Stripper disabled"));
+                    saveUserPrefs();
+                    // Queue deferred command to reset sync processor (avoids watchdog timeout)
+                    userCommandBuffer += '&';
+                    request->send(200, "application/json", "true");
+                } else {
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // Handle custom I2C batch command (c parameter)
+            // Format: hex string of triplets, e.g. "42,0E,00,56,17,02"
+            if (request->hasArg("c")) {
+                String hexStr = request->arg("c");
+
+                // Parse comma-separated hex values
+                unsigned char data[30];  // max 10 triplets
+                size_t dataLen = 0;
+
+                unsigned int start = 0;
+                int commaPos;
+                while ((commaPos = hexStr.indexOf(',', start)) != -1 && dataLen < 30) {
+                    String byteStr = hexStr.substring(start, commaPos);
+                    data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
+                    start = commaPos + 1;
+                }
+                // Last value (no trailing comma)
+                if (start < hexStr.length() && dataLen < 30) {
+                    String byteStr = hexStr.substring(start);
+                    data[dataLen++] = (unsigned char)strtol(byteStr.c_str(), NULL, 16);
+                }
+
+                // Validate: must be multiple of 3
+                if (dataLen > 0 && dataLen % 3 == 0) {
+                    ADV_sendCustomI2C(data, dataLen);
+                    SerialM.print(F("ADV Controller - Custom I2C sent: "));
+                    SerialM.print(dataLen / 3);
+                    SerialM.println(F(" commands"));
+                    request->send(200, "application/json", "true");
+                } else {
+                    SerialM.println(F("ADV Controller - Custom I2C error: invalid data length"));
+                    request->send(400, "application/json", "false");
+                }
+                return;
+            }
+
+            // No valid parameter provided
+            request->send(400, "application/json", "false");
+        }
     });
 
     //webSocket.onEvent(webSocketEvent);
