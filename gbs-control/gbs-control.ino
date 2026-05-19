@@ -9580,6 +9580,14 @@ void loop()
                 //  Serial.println(bla, 5);
                 //}
                 break;
+            case 'U': //reset Move/Scale/Border
+                setScreenHMove(0);
+                setScreenVMoveSt(0xFFFF);
+                setScreenVMoveSp(0xFFFF);
+                setScreenHScale(0);
+                setScreenVScale(0);
+                applyPresets(rto->videoStandardInput);
+                break;
             default:
                 SerialM.print(F("unknown command "));
                 SerialM.println(serialCommand, HEX);
@@ -10160,13 +10168,17 @@ void handleType2Command(char argument)
         case 'n':
             SerialM.print(F("ADC gain++ : "));
             uopt->enableAutoGain = 0;
-            setAdcGain(GBS::ADC_RGCTRL::read() - 1);
+            if (GBS::ADC_RGCTRL::read() > 0) {
+                setAdcGain(GBS::ADC_RGCTRL::read() - 1);
+            }
             SerialM.println(GBS::ADC_RGCTRL::read(), HEX);
             break;
         case 'o':
             SerialM.print(F("ADC gain-- : "));
             uopt->enableAutoGain = 0;
-            setAdcGain(GBS::ADC_RGCTRL::read() + 1);
+            if (GBS::ADC_RGCTRL::read() < 255) {
+                setAdcGain(GBS::ADC_RGCTRL::read() + 1);
+            }
             SerialM.println(GBS::ADC_RGCTRL::read(), HEX);
             break;
         case 'A': {
