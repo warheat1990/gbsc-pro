@@ -443,6 +443,21 @@ const createWebSocket = () => {
       // Hue (position 44-45) - 0-255 encoded as two hex chars
       const advHueValue = (fromHexChar(message.data[44] || "0") << 4) | fromHexChar(message.data[45] || "0");
 
+      // Move H/V (46-49) - encoded as two hex chars
+      const moveHValue = (parseInt(message.data[46], 16) << 4) | parseInt(message.data[47], 16);
+      const moveVValue = (parseInt(message.data[48], 16) << 4) | parseInt(message.data[49], 16);
+
+      // Scale H/V (50-55) - encoded as three hex chars
+      const scaleHValue = (parseInt(message.data[50], 16) << 8) | (parseInt(message.data[51], 16) << 4) |  parseInt(message.data[52], 16);
+      const scaleVValue = (parseInt(message.data[53], 16) << 8) | (parseInt(message.data[54], 16) << 4) |  parseInt(message.data[55], 16);
+
+      // Move H/V (56-61) - encoded as two/three hex chars
+      const borderHValue = (parseInt(message.data[56], 16) << 8) | (parseInt(message.data[57], 16) << 4) |  parseInt(message.data[58], 16);
+      const borderVValue = (parseInt(message.data[59], 16) << 8) | (parseInt(message.data[60], 16) << 4) |  parseInt(message.data[61], 16);
+
+      // Adc Gain (62-63) - 0-255 encoded as two hex chars
+      const adcGainValue = (fromHexChar(message.data[62] || "0") << 4) | fromHexChar(message.data[63] || "0");
+
       // Update input source buttons
       const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
       allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -676,6 +691,24 @@ const createWebSocket = () => {
       //UCOS / VCOS
       const uvGainValueSpan = document.getElementById("gbs-uvgain-value");
       if (uvGainValueSpan) uvGainValueSpan.textContent = "U:" + uGainValue.toString() + " V:" + (uGainValue + 13).toString();
+
+      const pad4Digits = (val: number) => ('0000' + val).slice(-4);
+
+      //Move H/V
+      const moveSpan = document.getElementById('gbs-move-value');
+      if (moveSpan) moveSpan.textContent = pad4Digits(moveHValue) + "/" + pad4Digits(moveVValue);
+
+      //Scale H/V
+      const scaleSpan = document.getElementById('gbs-scale-value');
+      if (scaleSpan) scaleSpan.textContent = pad4Digits(scaleHValue) + "/" + pad4Digits(scaleVValue);
+
+      //Border H/V
+      const borderSpan = document.getElementById('gbs-border-value');
+      if (borderSpan) borderSpan.textContent = pad4Digits(borderHValue) + "/" + pad4Digits(borderVValue);
+
+      //ADC Gain
+      const adcGainSpan = document.getElementById('gbs-adcgain-value');
+      if (adcGainSpan) adcGainSpan.textContent = (255 - adcGainValue).toString();
 
       // Update Sharpness & Peaking Lock
       const isSharpnessActive = sharpnessChar === '1';
@@ -1548,7 +1581,7 @@ const wifiGetStatus = () => {
         GBSControl.ui.wifiApButton.classList.add("gbs-button__secondary");
         GBSControl.ui.wifiStaButton.removeAttribute("active", "");
         GBSControl.ui.wifiStaButton.classList.remove("gbs-button__secondary");
-        GBSControl.ui.wifiStaSSID.innerHTML = "STA | Scan Network";
+        GBSControl.ui.wifiStaSSID.innerHTML = "Connect to WiFi";
       } else {
         GBSControl.ui.wifiApButton.removeAttribute("active", "");
         GBSControl.ui.wifiApButton.classList.remove("gbs-button__secondary");

@@ -584,12 +584,14 @@ void broadcastProStatus(WebSocketsServer& ws)
     //  [combLumaN][combChromaN][combTapsN][combLumaP][combChromaP][combTapsP][hue][scanLines]
     //  [R][G][B][Y Gain][U Gain][scanlineStrength]
     //  [advBrightness][advContrast][advSaturation][advHue]
+    //  [Move H][Move V][Scale H][Scale V][Border H][Border V]
     // Positions: 0=$ 1=input 2=format 3=i2p 4=smooth 5=sharpness 6=ace 7=luma 8=chroma 9=chromamax 10=gamma 11=response
     //            12=yFilter 13=cFilter 14=wyFilter 15=wyOverride 16=comb 17=hdmiLimitedRange 18=syncStripper
     //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanLines
     //            27-32=RGB 33-34=YGain 35-36=UGain 37=scanlineStrength
     //            38-39=advBrightness 40-41=advContrast 42-43=advSaturation 44-45=advHue
-    constexpr size_t MESSAGE_LEN = 46;
+    //            46-50=Move H/V 51-55=Scale H/V 56-60=Border H/V
+    constexpr size_t MESSAGE_LEN = 64;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -660,7 +662,7 @@ void broadcastProStatus(WebSocketsServer& ws)
 
     //UCOS
     buffer[35] = toHexChar16(GBS::VDS_UCOS_GAIN::read() >> 4);  // 0-255 U Gain - high
-    buffer[36] = toHexChar32(GBS::VDS_UCOS_GAIN::read() & 0x0F);// 0-255 U Gain - low
+    buffer[36] = toHexChar16(GBS::VDS_UCOS_GAIN::read() & 0x0F);// 0-255 U Gain - low
 
     //Scanline Strength
     buffer[37] = toHexChar16(uopt->scanlineStrength >> 4);      // 0-5 Scanline Strength
@@ -678,8 +680,48 @@ void broadcastProStatus(WebSocketsServer& ws)
     buffer[43] = toHexChar16(uopt->advSaturation & 0x0F);    // 0-255 advSaturation - low
 
     //advHue
-    buffer[44] = toHexChar16(uopt->advHue >> 4);           // 0-255 advHue - high
-    buffer[45] = toHexChar16(uopt->advHue & 0x0F);         // 0-255 advHue - low
+    buffer[44] = toHexChar16(uopt->advHue >> 4);             // 0-255 advHue - high
+    buffer[45] = toHexChar16(uopt->advHue & 0x0F);           // 0-255 advHue - low
+
+    // Move H
+    uint16_t hMoveVal = (rto->videoStandardInput == 1 || rto->videoStandardInput == 2)
+                        ? GBS::IF_HBIN_SP::read()
+                        : GBS::IF_HB_SP2::read();
+    buffer[46] = toHexChar32(hMoveVal >> 4);
+    buffer[47] = toHexChar16(hMoveVal & 0x0F);
+
+    // Move V
+    uint16_t vMoveVal = GBS::IF_VB_ST::read();
+    buffer[48] = toHexChar16((vMoveVal >> 4) & 0x0F);
+    buffer[49] = toHexChar16(vMoveVal & 0x0F);
+
+    // Scale H
+    uint16_t hScaleVal = GBS::VDS_HSCALE::read();
+    buffer[50] = toHexChar32(hScaleVal >> 8);
+    buffer[51] = toHexChar16((hScaleVal >> 4) & 0x0F);
+    buffer[52] = toHexChar16(hScaleVal & 0x0F);
+
+    // Scale V
+    uint16_t vScaleVal = GBS::VDS_VSCALE::read();
+    buffer[53] = toHexChar32(vScaleVal >> 8);
+    buffer[54] = toHexChar16((vScaleVal >> 4) & 0x0F);
+    buffer[55] = toHexChar16(vScaleVal & 0x0F);
+
+    // Border H
+    uint16_t hBorderVal = GBS::VDS_DIS_HB_ST::read();
+    buffer[56] = toHexChar32(hBorderVal >> 8);
+    buffer[57] = toHexChar16((hBorderVal >> 4) & 0x0F);
+    buffer[58] = toHexChar16(hBorderVal & 0x0F);
+
+    // Border V
+    uint16_t vBorderVal = GBS::VDS_DIS_VB_ST::read();
+    buffer[59] = toHexChar32(vBorderVal >> 8);
+    buffer[60] = toHexChar16((vBorderVal >> 4) & 0x0F);
+    buffer[61] = toHexChar16(vBorderVal & 0x0F);
+
+    //adcGain
+    buffer[62] = toHexChar16(GBS::ADC_RGCTRL::read() >> 4);
+    buffer[63] = toHexChar16(GBS::ADC_RGCTRL::read() & 0x0F);
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

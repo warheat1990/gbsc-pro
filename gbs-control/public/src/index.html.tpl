@@ -625,33 +625,33 @@
               <li>Gain +/- adjusts the gain for the currently loaded preset.</li>
               <li>Auto Gain increases gain so bright areas are displayed as white, then decreases it when clipping is detected. Calibrate for a few seconds on a white screen.</li>
             </ul>
-            <div class="gbs-flex gbs-margin__bottom--16">
-              <button
-                gbs-message="o"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">-</div>
-                <div>Gain</div>
-              </button>
-              <button
-                gbs-message="n"
-                gbs-message-type="user"
-                gbs-click="repeat"
-                class="gbs-button gbs-button__control"
-              >
-                <div class="gbs-icon">+</div>
-                <div>Gain</div>
-              </button>
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+              <div class="gbs-slider-row">
+                <button
+                  gbs-message="o"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >-</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">ADC Gain</span>
+                  <span id="gbs-adcgain-value" class="gbs-slider-value">0</span>
+                </div>
+                <button
+                  gbs-message="n"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >+</button>
+              </div>
               <button
                 gbs-message="T"
                 gbs-message-type="action"
                 gbs-click="normal"
                 gbs-toggle="adcAutoGain"
-                class="gbs-button gbs-button__control gbs-button__secondary"
+                class="gbs-button gbs-button__secondary"
+                style="text-align: center; font-size: 12px; font-weight: 400;"
               >
-                <div class="gbs-icon">Ⓐ</div>
                 <div>Auto Gain</div>
               </button>
             </div>
@@ -762,8 +762,8 @@
               >
                 ▼
               </button>
-              <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                ↘
+              <button class="gbs-button gbs-button__control" active>
+                <div id="gbs-move-value" style="text-align: center;">0000/0000</div>
               </button>
             </div>
 
@@ -807,8 +807,8 @@
               >
                 ▼
               </button>
-              <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                ↘
+              <button class="gbs-button gbs-button__control" active>
+                <div id="gbs-scale-value" style="text-align: center;">0000/0000</div>
               </button>
             </div>
             <div class="gbs-flex">
@@ -845,7 +845,7 @@
                 active
               >
                 <div class="gbs-icon">⛶</div>
-                <div>borders</div>
+                <div>border</div>
               </button>
               <button
                 gbs-message="D"
@@ -855,8 +855,18 @@
               >
                 ▼
               </button>
-              <button class="gbs-button gbs-button__control gbs-icon" disabled>
-                ↘
+              <button class="gbs-button gbs-button__control" active>
+                <div id="gbs-border-value" style="text-align: center;">0000/0000</div>
+              </button>
+            </div>
+            <div class="gbs-flex">
+              <button
+                gbs-message="U"
+                gbs-message-type="action"
+                gbs-click="normal"
+                class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
+                <div class="gbs-icon">↲</div>
+                <div>Reset to Defaults</div>
               </button>
             </div>
           </fieldset>
@@ -1889,7 +1899,7 @@
             <div class="gbs-flex gbs-margin__bottom--16">
               <button class="gbs-button gbs-button__control" gbs-wifi-ap>
                 <div class="gbs-icon">၊၊||၊</div>
-                <div>Access Point</div>
+                <div>AP Mode</div>
               </button>
               <button class="gbs-button gbs-button__control" gbs-wifi-station>
                 <div class="gbs-icon">ᯤ</div>
