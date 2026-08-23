@@ -458,6 +458,10 @@ const createWebSocket = () => {
       // Adc Gain (62-63) - 0-255 encoded as two hex chars
       const adcGainValue = (fromHexChar(message.data[62] || "0") << 4) | fromHexChar(message.data[63] || "0");
 
+      // Volume (0-50) - encoded as two hex chars
+      const volValue = (fromHexChar(message.data[64] || "0") << 4) | fromHexChar(message.data[65] || "0");
+      const muteChar = message.data[66] || "0"; // 0=unmuted, 1=muted
+
       // Update input source buttons
       const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
       allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -710,6 +714,11 @@ const createWebSocket = () => {
       const adcGainSpan = document.getElementById('gbs-adcgain-value');
       if (adcGainSpan) adcGainSpan.textContent = (255 - adcGainValue).toString();
 
+      //Volume
+      const volSpan = document.getElementById('gbs-vol-value');
+      if (volSpan)
+          volSpan.textContent = volValue.toString();
+
       // Update Sharpness & Peaking Lock
       const isSharpnessActive = sharpnessChar === '1';
 
@@ -768,6 +777,18 @@ const createWebSocket = () => {
       // Scanlines strength
       const scanlineStrengthValueSpan = document.getElementById("gbs-scanlineStrength-value");
       if (scanlineStrengthValueSpan) scanlineStrengthValueSpan.textContent = "[" + scanlineStrengthValue + "]";
+
+      // Mute Volume
+      const muteToggle = document.querySelector('[gbs-toggle="muteVol"]');
+      if (muteToggle) {
+          const isMuted = muteChar === "1";
+          if (isMuted) {
+              muteToggle.setAttribute("active", "");
+          }
+          else {
+              muteToggle.removeAttribute("active");
+          }
+      }
 
     } else if (messageDataAt0 != "#") {
       GBSControl.queuedText += message.data;

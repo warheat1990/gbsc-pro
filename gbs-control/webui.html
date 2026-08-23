@@ -1513,42 +1513,37 @@ section[name="alert"] {
 
         <section name="control" hidden>
           <fieldset class="gbs-fieldset">
-            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div>ADC Gain (brightness)</div>
+            <legend class="gbs-fieldset__legend">
+              <div>Volume Control</div>
             </legend>
-            <!-- prettier-ignore -->
-            <ul class="gbs-help">
-              <li>Gain +/- adjusts the gain for the currently loaded preset.</li>
-              <li>Auto Gain increases gain so bright areas are displayed as white, then decreases it when clipping is detected. Calibrate for a few seconds on a white screen.</li>
-            </ul>
             <div class="gbs-slider-grid gbs-slider-grid--2col">
               <div class="gbs-slider-row">
                 <button
-                  gbs-message="o"
+                  gbs-message="J"
                   gbs-message-type="user"
                   gbs-click="repeat"
                   class="gbs-button gbs-slider-btn"
                 >-</button>
                 <div class="gbs-slider-center">
-                  <span class="gbs-slider-name">ADC Gain</span>
-                  <span id="gbs-adcgain-value" class="gbs-slider-value">0</span>
+                  <span class="gbs-slider-name">Volume</span>
+                  <span id="gbs-vol-value" class="gbs-slider-value">0</span>
                 </div>
                 <button
-                  gbs-message="n"
+                  gbs-message="G"
                   gbs-message-type="user"
                   gbs-click="repeat"
                   class="gbs-button gbs-slider-btn"
                 >+</button>
               </div>
               <button
-                gbs-message="T"
+                gbs-message="Q"
                 gbs-message-type="action"
                 gbs-click="normal"
-                gbs-toggle="adcAutoGain"
+                gbs-toggle="muteVol"
                 class="gbs-button gbs-button__secondary"
                 style="text-align: center; font-size: 12px; font-weight: 400;"
               >
-                <div>Auto Gain</div>
+                <div>Mute</div>
               </button>
             </div>
           </fieldset>
@@ -2007,6 +2002,46 @@ section[name="alert"] {
                 <li>Peaking increases contrast around horizontal brightness steps, and is recommended.</li>
                 <li>Step Response increases the sharpness of horizontal color steps, and is recommended.</li>
               </ul>
+          </fieldset>
+          <fieldset class="gbs-fieldset">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div>ADC Gain (brightness)</div>
+            </legend>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li>Gain +/- adjusts the gain for the currently loaded preset.</li>
+              <li>Auto Gain increases gain so bright areas are displayed as white, then decreases it when clipping is detected. Calibrate for a few seconds on a white screen.</li>
+            </ul>
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+              <div class="gbs-slider-row">
+                <button
+                  gbs-message="o"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >-</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">ADC Gain</span>
+                  <span id="gbs-adcgain-value" class="gbs-slider-value">0</span>
+                </div>
+                <button
+                  gbs-message="n"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >+</button>
+              </div>
+              <button
+                gbs-message="T"
+                gbs-message-type="action"
+                gbs-click="normal"
+                gbs-toggle="adcAutoGain"
+                class="gbs-button gbs-button__secondary"
+                style="text-align: center; font-size: 12px; font-weight: 400;"
+              >
+                <div>Auto Gain</div>
+              </button>
+            </div>
           </fieldset>
           <fieldset class="gbs-fieldset filters">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
@@ -3320,6 +3355,9 @@ const createWebSocket = () => {
             const borderVValue = (parseInt(message.data[59], 16) << 8) | (parseInt(message.data[60], 16) << 4) | parseInt(message.data[61], 16);
             // Adc Gain (62-63) - 0-255 encoded as two hex chars
             const adcGainValue = (fromHexChar(message.data[62] || "0") << 4) | fromHexChar(message.data[63] || "0");
+            // Volume (0-50) - encoded as two hex chars
+            const volValue = (fromHexChar(message.data[64] || "0") << 4) | fromHexChar(message.data[65] || "0");
+            const muteChar = message.data[66] || "0"; // 0=unmuted, 1=muted
             // Update input source buttons
             const allInputButtons = document.querySelectorAll("[gbs-role='input-source']");
             allInputButtons.forEach((btn) => btn.removeAttribute("active"));
@@ -3561,6 +3599,10 @@ const createWebSocket = () => {
             const adcGainSpan = document.getElementById('gbs-adcgain-value');
             if (adcGainSpan)
                 adcGainSpan.textContent = (255 - adcGainValue).toString();
+            //Volume
+            const volSpan = document.getElementById('gbs-vol-value');
+            if (volSpan)
+                volSpan.textContent = volValue.toString();
             // Update Sharpness & Peaking Lock
             const isSharpnessActive = sharpnessChar === '1';
             const btnSharpness = document.querySelector('[gbs-toggle="sharpness"]');
@@ -3618,6 +3660,17 @@ const createWebSocket = () => {
             const scanlineStrengthValueSpan = document.getElementById("gbs-scanlineStrength-value");
             if (scanlineStrengthValueSpan)
                 scanlineStrengthValueSpan.textContent = "[" + scanlineStrengthValue + "]";
+            // Mute Volume
+            const muteToggle = document.querySelector('[gbs-toggle="muteVol"]');
+            if (muteToggle) {
+                const isMuted = muteChar === "1";
+                if (isMuted) {
+                    muteToggle.setAttribute("active", "");
+                }
+                else {
+                    muteToggle.removeAttribute("active");
+                }
+            }
         }
         else if (messageDataAt0 != "#") {
             GBSControl.queuedText += message.data;
@@ -4060,7 +4113,7 @@ const BACKUP_MAGIC = [0x47, 0x42, 0x53, 0x43, 0x50, 0x52, 0x4f, 0x00]; // "GBSCP
 const BACKUP_FORMAT_VERSION = 0x01;
 const BACKUP_HEADER_SIZE = 32;
 // Replaced at build time by scripts/build.js from gbs-control-pro.h GBS_FW_VERSION.
-const FIRMWARE_VERSION_STRING = "2.4.1-W.1";
+const FIRMWARE_VERSION_STRING = "2.4.1-W2RC";
 const [FW_MAJOR, FW_MINOR, FW_PATCH] = (FIRMWARE_VERSION_STRING + ".0.0.0")
     .split(".")
     .slice(0, 3)

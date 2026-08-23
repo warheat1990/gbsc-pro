@@ -80,6 +80,8 @@ enum TVMODE_PresetPreference : uint8_t {
     uint8_t gbsColorR;              /* R channel (0-255, default 128) */ \
     uint8_t gbsColorG;              /* G channel (0-255, default 128) */ \
     uint8_t gbsColorB;              /* B channel (0-255, default 128) */ \
+    uint8_t yGain; \
+    uint8_t uGain; \
     /* ADV7280 Processing Settings */ \
     uint8_t advI2P;                 /* I2P - interlace to progressive (0-1, default 1) */ \
     uint8_t advSmooth;              /* Smooth interpolation (0-1, default 0) */ \

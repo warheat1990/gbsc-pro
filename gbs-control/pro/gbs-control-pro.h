@@ -31,7 +31,7 @@
 // Firmware Version Strings
 // ====================================================================================
 
-#define GBS_FW_VERSION "2.4.1-W.1"  // GBS Control firmware version (ESP8266)
+#define GBS_FW_VERSION "2.4.1-W2RC"  // GBS Control firmware version (ESP8266)
 #define ADV_FW_VERSION "2.4.1"  // ADV Controller firmware version (HC32)
 
 // ====================================================================================
@@ -220,6 +220,7 @@ void resetOLEDScreenSaverTimer();
 // ====================================================================================
 
 void applyRGBtoYUVConversion(void);
+void applyYUVGainSettings(void);
 void readYUVtoRGBConversion(void);
 
 // ====================================================================================

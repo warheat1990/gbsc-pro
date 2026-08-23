@@ -617,42 +617,37 @@
 
         <section name="control" hidden>
           <fieldset class="gbs-fieldset">
-            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
-              <div>ADC Gain (brightness)</div>
+            <legend class="gbs-fieldset__legend">
+              <div>Volume Control</div>
             </legend>
-            <!-- prettier-ignore -->
-            <ul class="gbs-help">
-              <li>Gain +/- adjusts the gain for the currently loaded preset.</li>
-              <li>Auto Gain increases gain so bright areas are displayed as white, then decreases it when clipping is detected. Calibrate for a few seconds on a white screen.</li>
-            </ul>
             <div class="gbs-slider-grid gbs-slider-grid--2col">
               <div class="gbs-slider-row">
                 <button
-                  gbs-message="o"
+                  gbs-message="J"
                   gbs-message-type="user"
                   gbs-click="repeat"
                   class="gbs-button gbs-slider-btn"
                 >-</button>
                 <div class="gbs-slider-center">
-                  <span class="gbs-slider-name">ADC Gain</span>
-                  <span id="gbs-adcgain-value" class="gbs-slider-value">0</span>
+                  <span class="gbs-slider-name">Volume</span>
+                  <span id="gbs-vol-value" class="gbs-slider-value">0</span>
                 </div>
                 <button
-                  gbs-message="n"
+                  gbs-message="G"
                   gbs-message-type="user"
                   gbs-click="repeat"
                   class="gbs-button gbs-slider-btn"
                 >+</button>
               </div>
               <button
-                gbs-message="T"
+                gbs-message="Q"
                 gbs-message-type="action"
                 gbs-click="normal"
-                gbs-toggle="adcAutoGain"
+                gbs-toggle="muteVol"
                 class="gbs-button gbs-button__secondary"
                 style="text-align: center; font-size: 12px; font-weight: 400;"
               >
-                <div>Auto Gain</div>
+                <div>Mute</div>
               </button>
             </div>
           </fieldset>
@@ -1111,6 +1106,46 @@
                 <li>Peaking increases contrast around horizontal brightness steps, and is recommended.</li>
                 <li>Step Response increases the sharpness of horizontal color steps, and is recommended.</li>
               </ul>
+          </fieldset>
+          <fieldset class="gbs-fieldset">
+            <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">
+              <div>ADC Gain (brightness)</div>
+            </legend>
+            <!-- prettier-ignore -->
+            <ul class="gbs-help">
+              <li>Gain +/- adjusts the gain for the currently loaded preset.</li>
+              <li>Auto Gain increases gain so bright areas are displayed as white, then decreases it when clipping is detected. Calibrate for a few seconds on a white screen.</li>
+            </ul>
+            <div class="gbs-slider-grid gbs-slider-grid--2col">
+              <div class="gbs-slider-row">
+                <button
+                  gbs-message="o"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >-</button>
+                <div class="gbs-slider-center">
+                  <span class="gbs-slider-name">ADC Gain</span>
+                  <span id="gbs-adcgain-value" class="gbs-slider-value">0</span>
+                </div>
+                <button
+                  gbs-message="n"
+                  gbs-message-type="user"
+                  gbs-click="repeat"
+                  class="gbs-button gbs-slider-btn"
+                >+</button>
+              </div>
+              <button
+                gbs-message="T"
+                gbs-message-type="action"
+                gbs-click="normal"
+                gbs-toggle="adcAutoGain"
+                class="gbs-button gbs-button__secondary"
+                style="text-align: center; font-size: 12px; font-weight: 400;"
+              >
+                <div>Auto Gain</div>
+              </button>
+            </div>
           </fieldset>
           <fieldset class="gbs-fieldset filters">
             <legend class="gbs-fieldset__legend gbs-fieldset__legend--help">

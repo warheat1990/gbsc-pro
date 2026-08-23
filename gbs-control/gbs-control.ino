@@ -4224,6 +4224,9 @@ void doPostPresetLoadSteps()
     // Pro: Apply GBS color balance
     applyRGBtoYUVConversion();
 
+    // Pro: Apply GBS YUV Gain
+    applyYUVGainSettings();
+
     // HDMI Limited Range (must be after applyRGBtoYUVConversion)
     applyHdmiLimitedRange();
 
@@ -4328,6 +4331,8 @@ static File initSlotsFile()
     emptySlot.gbsColorR = 128;
     emptySlot.gbsColorG = 128;
     emptySlot.gbsColorB = 128;
+    emptySlot.yGain = 128;
+    emptySlot.uGain = 28;
     // ADV7280 defaults
     emptySlot.advBrightness = 128;
     emptySlot.advContrast = 128;
@@ -4373,6 +4378,9 @@ static File initSlotsFile()
     emptySlot.slotSyncwatcherMode = 0;
     // Active Input Type (default RGBs)
     emptySlot.activeInputType = 1;
+    // Volume and Mute
+    emptySlot.volume = 45;      // Default 45/50
+    emptySlot.audioMuted = 0;   // Default unmuted
 
     for (int i = 0; i < SLOTS_TOTAL; i++) {
         emptySlot.slot = i;
@@ -4425,6 +4433,8 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.gbsColorR = uopt->gbsColorR;
     slotData.gbsColorG = uopt->gbsColorG;
     slotData.gbsColorB = uopt->gbsColorB;
+    slotData.yGain = uopt->yGain;
+    slotData.uGain = (uopt->uGain >= 8 && uopt->uGain <= 56) ? uopt->uGain : 28;
     // ADV7280 settings
     slotData.advSmooth = uopt->advSmooth;
     slotData.advI2P = uopt->advI2P;
@@ -4488,6 +4498,9 @@ bool saveSlotSettingsAt(int slotIndex, const char* name)
     slotData.slotSyncwatcherMode = uopt->slotSyncwatcherMode;
     // Active input type (RGBs, RGsB, YPbPr, VGA, SV, AV)
     slotData.activeInputType = uopt->activeInputType;
+    // Volume and mute settings
+    slotData.volume = uopt->volume;
+    slotData.audioMuted = uopt->audioMuted;
 
     // Update name if provided
     if (name != NULL) {
@@ -4558,6 +4571,8 @@ bool loadSlotSettings()
     uopt->gbsColorR = slotData.gbsColorR;
     uopt->gbsColorG = slotData.gbsColorG;
     uopt->gbsColorB = slotData.gbsColorB;
+    uopt->yGain = slotData.yGain;
+    uopt->uGain = slotData.uGain;
 
     // Load ADV7280 settings
     uopt->advSmooth = slotData.advSmooth;
@@ -4625,7 +4640,12 @@ bool loadSlotSettings()
     uopt->slotSyncwatcherMode = (slotData.slotSyncwatcherMode <= 2) ? slotData.slotSyncwatcherMode : 0;
     // Load active input type
     uopt->activeInputType = (slotData.activeInputType >= 1 && slotData.activeInputType <= 6) ? slotData.activeInputType : 1;
-    
+    // Volume and mute settings
+    uopt->volume = (slotData.volume >= 0 && slotData.volume <= 50) ? slotData.volume : 45;
+    uopt->audioMuted = slotData.audioMuted == 1 ? 1 : 0;
+    PT2257_setVolume(uopt->volume);
+    PT2257_mute(uopt->audioMuted);
+
     return true;
 }
 
@@ -7749,7 +7769,7 @@ void loadDefaultUserOptions()
     uopt->INPUT_presetPreference = MT_RGBs;       // Default: RGBs input
     uopt->SETTING_presetPreference = MT_I2P_OFF;  // Default: I2P off
     uopt->TVMODE_presetPreference = MT_MODE_AUTO; // Default: Auto TV mode
-    uopt->volume = 38;              // Default: 38/50 (50=max, 0=mute)
+    uopt->volume = 45;              // Default: 45/50 (50=max, 0=mute)
     uopt->audioMuted = 0;           // Default: unmuted
     uopt->activeInputType = 1;      // Default: RGBs (InputTypeRGBs)
     uopt->svVideoFormat = 0;        // Default: Auto
@@ -7761,6 +7781,8 @@ void loadDefaultUserOptions()
     uopt->gbsColorR = 128;
     uopt->gbsColorG = 128;
     uopt->gbsColorB = 128;
+    uopt->yGain = 128;
+    uopt->uGain = 28;
     // ADV Processing
     uopt->advI2P = 0;
     uopt->advSmooth = 0;
@@ -8183,7 +8205,7 @@ void setup()
 
             uopt->volume = (uint8_t)(f.read() - '0') * 10 + (uint8_t)(f.read() - '0');
             if (uopt->volume > 50)
-                uopt->volume = 38;
+                uopt->volume = 45;
 
             uopt->audioMuted = (uint8_t)(f.read() - '0');
             if (uopt->audioMuted > 1)
@@ -8281,6 +8303,11 @@ void setup()
             // ADV Hue
             uopt->advHue = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
             if (uopt->advHue > 254) uopt->advHue = 128;
+            // GBS Y/Color Gain
+            uopt->yGain = (uint8_t)((f.read() - '0') * 100 + (f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->yGain > 255) uopt->yGain = 128;
+            uopt->uGain = (uint8_t)((f.read() - '0') * 10 + (f.read() - '0'));
+            if (uopt->uGain < 8 || uopt->uGain > 56) uopt->uGain = 28;
 
             f.close();
         }
@@ -9588,6 +9615,13 @@ void loop()
                 setScreenVScale(0);
                 applyPresets(rto->videoStandardInput);
                 break;
+
+            case 'Q': // mute volume
+                uopt->audioMuted = !uopt->audioMuted;
+                PT2257_mute(uopt->audioMuted);
+                SerialM.print(F("Mute: "));
+                SerialM.println(uopt->audioMuted ? F("on") : F("off"));
+                break;
             default:
                 SerialM.print(F("unknown command "));
                 SerialM.println(serialCommand, HEX);
@@ -10447,39 +10481,35 @@ void handleType2Command(char argument)
             break;
         case 'N':
             // Y_Gain (Contrast) +
-            if (GBS::VDS_Y_GAIN::read() < 255) { 
-                GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() + 1);
-            }
+            uopt->yGain = MIN(uopt->yGain + 1, 255);
+            GBS::VDS_Y_GAIN::write(uopt->yGain);
             SerialM.print(F("Contrast + : "));
-            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            SerialM.println(uopt->yGain, DEC);
             break;
         case 'M':
             // Y_Gain (Contrast) -
-            if (GBS::VDS_Y_GAIN::read() > 0) { 
-                GBS::VDS_Y_GAIN::write(GBS::VDS_Y_GAIN::read() - 1);
-            }
+            uopt->yGain = MAX(0, uopt->yGain - 1);
+            GBS::VDS_Y_GAIN::write(uopt->yGain);
             SerialM.print(F("Contrast - : "));
-            SerialM.println(GBS::VDS_Y_GAIN::read(), DEC);
+            SerialM.println(uopt->yGain, DEC);
             break;
         case 'V':
             // Color +
-            if (GBS::VDS_UCOS_GAIN::read() < 56) {
-                GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() + 1);
-                GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() + 1);
-            }
+            uopt->uGain = MIN(uopt->uGain + 1, 56);
+            GBS::VDS_UCOS_GAIN::write(uopt->uGain);
+            GBS::VDS_VCOS_GAIN::write(uopt->uGain + 13);
             SerialM.print(F("Color + : "));
-            SerialM.println(GBS::VDS_UCOS_GAIN::read(), DEC);
-            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC);
+            SerialM.println(uopt->uGain, DEC);
+            SerialM.println(uopt->uGain + 13, DEC);
             break;
         case 'R':
             // Color -
-            if (GBS::VDS_UCOS_GAIN::read() > 8) {
-                GBS::VDS_UCOS_GAIN::write(GBS::VDS_UCOS_GAIN::read() - 1);
-                GBS::VDS_VCOS_GAIN::write(GBS::VDS_VCOS_GAIN::read() - 1);
-            }
+            uopt->uGain = MAX(8, uopt->uGain - 1);
+            GBS::VDS_UCOS_GAIN::write(uopt->uGain);
+            GBS::VDS_VCOS_GAIN::write(uopt->uGain + 13);
             SerialM.print(F("Color - : "));
-            SerialM.println(GBS::VDS_UCOS_GAIN::read(), DEC);
-            SerialM.println(GBS::VDS_VCOS_GAIN::read(), DEC);
+            SerialM.println(uopt->uGain, DEC);
+            SerialM.println(uopt->uGain + 13, DEC);
             break;
         case 'b':
             // RED +
@@ -10586,6 +10616,20 @@ void handleType2Command(char argument)
                 SerialM.println("IR remote: OFF");
                 irEnabled = 0;
             }
+            break;
+        case 'G':
+            // Volume +
+            uopt->volume = MIN(uopt->volume + 1, 50);
+            PT2257_setVolume(uopt->volume);
+            SerialM.print(F("Volume + : "));
+            SerialM.println(uopt->volume, DEC);
+            break;
+        case 'J':
+            // Volume -
+            uopt->volume = MAX(uopt->volume - 1, 0);
+            PT2257_setVolume(uopt->volume);
+            SerialM.print(F("Volume - : "));
+            SerialM.println(uopt->volume, DEC);
             break;
         default:
             break;
@@ -10918,6 +10962,7 @@ void startWebserver()
             }
             ADV_applySlotSettings();
             applyRGBtoYUVConversion();
+            applyYUVGainSettings();
             saveUserPrefs();
         }
         request->send(200, "application/json", result ? "true" : "false");
@@ -11866,6 +11911,12 @@ void saveUserPrefs()
     f.write(uopt->advHue / 100 + '0');
     f.write((uopt->advHue / 10) % 10 + '0');
     f.write(uopt->advHue % 10 + '0');
+    // YUV Gain
+    f.write(uopt->yGain / 100 + '0');
+    f.write((uopt->yGain / 10) % 10 + '0');
+    f.write(uopt->yGain % 10 + '0');
+    f.write(uopt->uGain / 10 + '0');
+    f.write(uopt->uGain % 10 + '0');
     f.close();
 }
 

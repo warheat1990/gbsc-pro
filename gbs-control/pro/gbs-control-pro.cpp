@@ -398,15 +398,17 @@ static void switchInput(const InputConfig& cfg, int8_t mode = -1) {
         rto->isInLowPowerMode = false;
     }
 
+    //COMMENTED TO PREVENT RGB VALUE RESET WHEN SWITCHING INPUTS
     // Reset colors to defaults for input type (RGB vs YUV/Component)
     // YUV/Component defaults (129,123,132) produce Y=-2, U=3, V=3 matching applyYuvPatches()
-    if (cfg.bcshMode == 0) {
-        uopt->gbsColorR = uopt->gbsColorG = uopt->gbsColorB = 128;
-    } else {
-        uopt->gbsColorR = 129;
-        uopt->gbsColorG = 123;
-        uopt->gbsColorB = 132;
-    }
+    // if (cfg.bcshMode == 0) {
+    //     uopt->gbsColorR = uopt->gbsColorG = uopt->gbsColorB = 128;
+    // } else {
+    //     uopt->gbsColorR = 129;
+    //     uopt->gbsColorG = 123;
+    //     uopt->gbsColorB = 132;
+    // }
+    
     applyRGBtoYUVConversion();
 
     saveUserPrefs();
@@ -500,6 +502,13 @@ void applyRGBtoYUVConversion(void)
     GBS::VDS_V_OFST::write(constrain(0.615f * r - 0.51499f * g - 0.10001f * b, -128, 127));
 }
 
+void applyYUVGainSettings(void)
+{
+    GBS::VDS_Y_GAIN::write(uopt->yGain);
+    GBS::VDS_UCOS_GAIN::write(uopt->uGain);
+    GBS::VDS_VCOS_GAIN::write(uopt->uGain + 13);
+}
+
 void readYUVtoRGBConversion(void)
 {
     int8_t y = (int8_t)GBS::VDS_Y_OFST::read();
@@ -590,8 +599,8 @@ void broadcastProStatus(WebSocketsServer& ws)
     //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanLines
     //            27-32=RGB 33-34=YGain 35-36=UGain 37=scanlineStrength
     //            38-39=advBrightness 40-41=advContrast 42-43=advSaturation 44-45=advHue
-    //            46-50=Move H/V 51-55=Scale H/V 56-60=Border H/V
-    constexpr size_t MESSAGE_LEN = 64;
+    //            46-50=Move H/V 51-55=Scale H/V 56-61=Border H/V 62-63=adcGain 64-65=Volume 66=Mute
+    constexpr size_t MESSAGE_LEN = 67;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -722,6 +731,13 @@ void broadcastProStatus(WebSocketsServer& ws)
     //adcGain
     buffer[62] = toHexChar16(GBS::ADC_RGCTRL::read() >> 4);
     buffer[63] = toHexChar16(GBS::ADC_RGCTRL::read() & 0x0F);
+
+    //Volume (0-50)
+    buffer[64] = toHexChar16(uopt->volume >> 4);
+    buffer[65] = toHexChar16(uopt->volume & 0x0F);
+
+    //Mute Volume
+    buffer[66] = '0' + (uopt->audioMuted ? 1 : 0);
 
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }

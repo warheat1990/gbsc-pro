@@ -44,6 +44,8 @@ typedef struct
     uint8_t gbsColorR;           // 0-255 (default 128)
     uint8_t gbsColorG;           // 0-255 (default 128)
     uint8_t gbsColorB;           // 0-255 (default 128)
+    uint8_t yGain;               // 0-255 (default 128)
+    uint8_t uGain;               // 0-255 (default 128)
     // --- PRO: ADV7280 settings (directly expandable) ---
     uint8_t advSmooth;           // 0=off, 1=on
     uint8_t advI2P;              // 0=off, 1=on (interlace to progressive)
@@ -108,8 +110,11 @@ typedef struct
     uint8_t  slotSyncwatcherMode;  // 0=inherit global, 1=force ON, 2=force OFF
 
     uint8_t activeInputType;    // 1=RGBs, 2=RGsB, 3=VGA, 4=YPbPr, 5=SV, 6=AV (0=unset)
+    // --- PRO: Volume and Mute ---
+    uint8_t volume;              // 0-50 (default 45)
+    uint8_t audioMuted;          // 0=unmuted, 1=muted (default 0)
     // --- Reserved for future expansion (do not use directly) ---
-    uint8_t reserved[21];        // Padding to make SlotMeta 128 bytes total
+    uint8_t reserved[17];        // Padding to make SlotMeta 128 bytes total
 } __attribute__((packed)) SlotMeta;
 
 // Ensure SlotMeta is exactly 128 bytes (webapp and firmware must match)
