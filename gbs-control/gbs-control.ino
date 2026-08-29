@@ -1635,6 +1635,17 @@ uint8_t detectAndSwitchToActiveInput()
                             GBS::SP_PRE_COAST::write(0x10); // increase from 9 to 16 (EGA 364)
                             delay(40);
                             rto->syncTypeCsync = true;
+
+                            // RGBs CSync false alarm might happened
+                            // Recheck to make sure before treating as RGBHV
+                            if (getInputSourceFromType(uopt->activeInputType) == InputSourceRGBs) {
+                                uint8_t detectedVideoMode = getVideoMode();
+                                if (detectedVideoMode >= 1 && detectedVideoMode <= 4) {
+                                    SerialM.println("Not RGBHV, Detected Video Mode: ");
+                                    SerialM.print(detectedVideoMode);
+                                    return 1;
+                                }
+                            }
                         } else {
                             SerialM.println();
                             rto->syncTypeCsync = false;
