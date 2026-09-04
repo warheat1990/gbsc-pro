@@ -1640,9 +1640,10 @@ uint8_t detectAndSwitchToActiveInput()
                             // Recheck to make sure before treating as RGBHV
                             if (getInputSourceFromType(uopt->activeInputType) == InputSourceRGBs) {
                                 uint8_t detectedVideoMode = getVideoMode();
+                                SerialM.print("Detected Video Mode: ");
+                                SerialM.println(detectedVideoMode);
                                 if (detectedVideoMode >= 1 && detectedVideoMode <= 4) {
-                                    SerialM.println("Not RGBHV, Detected Video Mode: ");
-                                    SerialM.print(detectedVideoMode);
+                                    SerialM.println("Not RGBHV");
                                     return 1;
                                 }
                             }
@@ -8573,6 +8574,10 @@ void updateWebSocketData()
                 case 0x16:
                     toSend[1] = '6';
                     break;
+                case 0x07:
+                case 0x17:
+                    toSend[1] = '7';
+                    break;
                 case PresetHdBypass: // bypass 1
                 case PresetBypassRGBHV: // bypass 2
                     toSend[1] = '8';
@@ -9625,6 +9630,9 @@ void loop()
                 setScreenHScale(0);
                 setScreenVScale(0);
                 applyPresets(rto->videoStandardInput);
+                break;
+            case 'O': //apply pillarbox
+                applyPillarbox();
                 break;
 
             case 'Q': // mute volume

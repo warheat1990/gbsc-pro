@@ -856,6 +856,14 @@
             </div>
             <div class="gbs-flex">
               <button
+                gbs-message="O"
+                gbs-message-type="action"
+                gbs-click="normal"
+                class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
+                <div class="gbs-icon">▏▕</div>
+                <div>Pillarbox</div>
+              </button>
+              <button
                 gbs-message="U"
                 gbs-message-type="action"
                 gbs-click="normal"

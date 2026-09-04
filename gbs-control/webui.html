@@ -1752,6 +1752,14 @@ section[name="alert"] {
             </div>
             <div class="gbs-flex">
               <button
+                gbs-message="O"
+                gbs-message-type="action"
+                gbs-click="normal"
+                class="gbs-button gbs-button__control gbs-button__secondary" style="flex: 1;">
+                <div class="gbs-icon">▏▕</div>
+                <div>Pillarbox</div>
+              </button>
+              <button
                 gbs-message="U"
                 gbs-message-type="action"
                 gbs-click="normal"
@@ -4113,7 +4121,7 @@ const BACKUP_MAGIC = [0x47, 0x42, 0x53, 0x43, 0x50, 0x52, 0x4f, 0x00]; // "GBSCP
 const BACKUP_FORMAT_VERSION = 0x01;
 const BACKUP_HEADER_SIZE = 32;
 // Replaced at build time by scripts/build.js from gbs-control-pro.h GBS_FW_VERSION.
-const FIRMWARE_VERSION_STRING = "2.4.1-W2RC";
+const FIRMWARE_VERSION_STRING = "2.4.1-W2RC3";
 const [FW_MAJOR, FW_MINOR, FW_PATCH] = (FIRMWARE_VERSION_STRING + ".0.0.0")
     .split(".")
     .slice(0, 3)

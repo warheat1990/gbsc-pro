@@ -773,3 +773,37 @@ void refreshMenusOnSignalChange()
         }
     }
 }
+
+// ====================================================================================
+// Letterbox Functions
+// ====================================================================================
+
+void applyPillarbox() //EXPERIMENTAL
+{
+    uint16_t hscale = 0, disHbSt = 0, disHbSp = 0, hbSt = 0, hbSp = 0;
+
+    switch (rto->presetID) {
+        case 0x04: //720x480
+        case 0x14: //768x576 - UNTESTED!
+            hscale = 683; disHbSt = 2198; disHbSp = 802; hbSt = 2224; hbSp = 646;
+            break;
+        case 0x03: //1280x720
+        case 0x13:
+            hscale = 683; disHbSt = 2030; disHbSp = 632; hbSt = 2068; hbSp = 458;
+            break;
+        case 0x01: //1280x960
+        case 0x11:
+        case 0x02: //1280x1024 - UNTESTED!
+        case 0x12:
+            hscale = 683; disHbSt = 2302; disHbSp = 904; hbSt = 2332; hbSp = 730;
+            break;
+        default:
+            return;
+    }
+
+    GBS::VDS_HSCALE::write(hscale);
+    GBS::VDS_DIS_HB_ST::write(disHbSt);
+    GBS::VDS_DIS_HB_SP::write(disHbSp);
+    GBS::VDS_HB_ST::write(hbSt);
+    GBS::VDS_HB_SP::write(hbSp);
+}
