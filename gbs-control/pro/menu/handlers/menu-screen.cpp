@@ -37,7 +37,7 @@ bool IR_handleScreenSettings(void)
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_ScreenSettings_FullHeight);
+                    Menu_navigateTo(OLED_ScreenSettings_DefaultScreen);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_ScreenSettings_Scale);
@@ -289,7 +289,7 @@ bool IR_handleScreenSettings(void)
                     Menu_navigateTo(OLED_ScreenSettings_Borders);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_ScreenSettings_Move);
+                    Menu_navigateTo(OLED_ScreenSettings_Pillarbox);
                     break;
                 case IR_KEY_RIGHT:
                 case IR_KEY_LEFT:
@@ -304,6 +304,64 @@ bool IR_handleScreenSettings(void)
                     }
                     applyVideoModePreset();
                 } break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_ScreenSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    if (oled_menuItem == OLED_ScreenSettings_Pillarbox) {
+        showMenu("Menu->Screen", "Pillarbox");
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE2_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_ScreenSettings_FullHeight);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_ScreenSettings_DefaultScreen);
+                    break;
+                case IR_KEY_OK:
+                    if (rto->presetID != 0x02 && rto->presetID != 0x12 &&
+                        rto->presetID != 0x05 && rto->presetID != 0x15 &&
+                        rto->presetID != 0x07 && rto->presetID != 0x17) {
+                        serialCommand = 'O';
+                    }
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_ScreenSettings);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
+    if (oled_menuItem == OLED_ScreenSettings_DefaultScreen) {
+        showMenu("Menu->Screen", "Default Screen");
+        OSD_handleCommand(OSD_CMD_SCREEN_PAGE2_VALUES);
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_ScreenSettings_Pillarbox);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_ScreenSettings_Move);
+                    break;
+                case IR_KEY_OK:
+                    serialCommand = 'U';
+                    break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_ScreenSettings);
                     break;

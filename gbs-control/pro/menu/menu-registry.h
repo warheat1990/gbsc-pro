@@ -98,6 +98,8 @@ typedef enum {
     OLED_ScreenSettings_MoveAdjust,
     OLED_ScreenSettings_ScaleAdjust,
     OLED_ScreenSettings_BordersAdjust,
+    OLED_ScreenSettings_Pillarbox,
+    OLED_ScreenSettings_DefaultScreen,
 
     // Color Settings submenu
     OLED_ColorSettings_ADCGain,
@@ -346,7 +348,9 @@ typedef struct {
     MENU_ITEM(OLED_ScreenSettings_Move,       OSD_CMD_SCREEN_PAGE1, 1) \
     MENU_ITEM(OLED_ScreenSettings_Scale,      OSD_CMD_SCREEN_PAGE1, 2) \
     MENU_ITEM(OLED_ScreenSettings_Borders,    OSD_CMD_SCREEN_PAGE1, 3) \
-    MENU_ITEM(OLED_ScreenSettings_FullHeight, OSD_CMD_SCREEN_PAGE2, 1)
+    MENU_ITEM(OLED_ScreenSettings_FullHeight, OSD_CMD_SCREEN_PAGE2, 1) \
+    MENU_ITEM(OLED_ScreenSettings_Pillarbox,  OSD_CMD_SCREEN_PAGE2, 2) \
+    MENU_ITEM(OLED_ScreenSettings_DefaultScreen, OSD_CMD_SCREEN_PAGE2, 3)
 
 // Color Settings Menu Mappings
 #define MENU_ITEMS_COLOR \

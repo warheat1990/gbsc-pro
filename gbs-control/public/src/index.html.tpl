@@ -856,6 +856,7 @@
             </div>
             <div class="gbs-flex">
               <button
+                id="gbs-pillarbox"
                 gbs-message="O"
                 gbs-message-type="action"
                 gbs-click="normal"

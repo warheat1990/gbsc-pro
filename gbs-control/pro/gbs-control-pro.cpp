@@ -780,30 +780,97 @@ void refreshMenusOnSignalChange()
 
 void applyPillarbox() //EXPERIMENTAL
 {
-    uint16_t hscale = 0, disHbSt = 0, disHbSp = 0, hbSt = 0, hbSp = 0;
+    uint16_t hsyncRst = 0; uint16_t hscale = 0;
+    uint16_t disHbSt = 0; uint16_t disHbSp = 0;
+    uint16_t hbSt = 0; uint16_t hbSp = 0;
+    uint16_t ifVbSt = 0; uint16_t ifVbSp = 0;
+    uint16_t ifHsyncRst = 0;
+    uint16_t ifHbinSp = 0; uint16_t ifLineSp = 0;
+    uint16_t ifHbSt2 = 0; uint16_t ifHbSp2 = 0;
 
-    switch (rto->presetID) {
-        case 0x04: //720x480
-        case 0x14: //768x576 - UNTESTED!
-            hscale = 683; disHbSt = 2198; disHbSp = 802; hbSt = 2224; hbSp = 646;
-            break;
-        case 0x03: //1280x720
-        case 0x13:
-            hscale = 683; disHbSt = 2030; disHbSp = 632; hbSt = 2068; hbSp = 458;
-            break;
-        case 0x01: //1280x960
-        case 0x11:
-        case 0x02: //1280x1024 - UNTESTED!
-        case 0x12:
-            hscale = 683; disHbSt = 2302; disHbSp = 904; hbSt = 2332; hbSp = 730;
-            break;
-        default:
-            return;
+    if (rto->videoStandardInput == 2 || rto->videoStandardInput == 4) { //PAL
+        switch (rto->presetID) {
+            case 0x14: //768x576
+                hsyncRst = 2582; hscale = 683;
+                disHbSt = 2232; disHbSp = 808;
+                hbSt = 2212; hbSp = 642;
+                ifVbSt = 40; ifVbSp = 42;
+                ifHsyncRst = 1172;
+                ifHbinSp = 92; ifLineSp = 1237;
+                ifHbSt2 = 1120; ifHbSp2 = 120;
+                break;
+            case 0x03: //1280x720
+            case 0x13:
+                hsyncRst = 2152; hscale = 750;
+                disHbSt = 1998; disHbSp = 370;
+                hbSt = 1738; hbSp = 384;
+                ifVbSt = 38; ifVbSp = 40;
+                ifHsyncRst = 1170;
+                ifHbinSp = 120; ifLineSp = 1235;
+                ifHbSt2 = 1124; ifHbSp2 = 112;
+                break;
+            case 0x02: //1280x1024 - BROKEN!
+            case 0x12:
+                hsyncRst = 2020; hscale = 781;
+                disHbSt = 1998; disHbSp = 354;
+                hbSt = 1671; hbSp = 439;
+                ifVbSt = 44; ifVbSp = 46;
+                ifHsyncRst = 1134;
+                ifHbinSp = 124; ifLineSp = 1199;
+                ifHbSt2 = 1096; ifHbSp2 = 112;
+                break;
+            default:
+                return;
+        }
+    }
+    else { //NTSC
+        switch (rto->presetID) {
+            case 0x04: //720x480
+                hsyncRst = 2573; hscale = 683;
+                disHbSt = 2234; disHbSp = 766;
+                hbSt = 2224; hbSp = 646;
+                ifVbSt = 4; ifVbSp = 6;
+                ifHsyncRst = 1172;
+                ifHbinSp = 136; ifLineSp = 1237;
+                ifHbSt2 = 1116; ifHbSp2 = 116;
+                break;
+            case 0x03: //1280x720
+            case 0x13:
+                hsyncRst = 2402; hscale = 683;
+                disHbSt = 2058; disHbSp = 604;
+                hbSt = 2068; hbSp = 458;
+                ifVbSt = 4; ifVbSp = 6;
+                ifHsyncRst = 1172;
+                ifHbinSp = 120; ifLineSp = 1237;
+                ifHbSt2 = 1124; ifHbSp2 = 116;
+                break;
+            case 0x01: //1280x960
+            case 0x11:
+                hsyncRst = 2704; hscale = 683;
+                disHbSt = 2314; disHbSp = 892;
+                hbSt = 2332; hbSp = 730;
+                ifVbSt = 6; ifVbSp = 8;
+                ifHsyncRst = 1172;
+                ifHbinSp = 114; ifLineSp = 1237;
+                ifHbSt2 = 1124; ifHbSp2 = 116;
+                break;
+            default:
+                return;
+        }
     }
 
+    GBS::VDS_HSYNC_RST::write(hsyncRst);
     GBS::VDS_HSCALE::write(hscale);
     GBS::VDS_DIS_HB_ST::write(disHbSt);
     GBS::VDS_DIS_HB_SP::write(disHbSp);
     GBS::VDS_HB_ST::write(hbSt);
     GBS::VDS_HB_SP::write(hbSp);
+    GBS::IF_VB_ST::write(ifVbSt);
+    GBS::IF_VB_SP::write(ifVbSp);
+
+    GBS::IF_HSYNC_RST::write(ifHsyncRst);
+    GBS::IF_HBIN_SP::write(ifHbinSp);
+    GBS::IF_LINE_SP::write(ifLineSp);
+    GBS::IF_HB_ST2::write(ifHbSt2);
+    GBS::IF_HB_SP2::write(ifHbSp2);
 }

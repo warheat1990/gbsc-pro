@@ -2660,6 +2660,20 @@ void printVideoTimings()
     SerialM.print(getCsVsStart());
     SerialM.print(F(" "));
     SerialM.println(getCsVsStop());
+
+    SerialM.print(F("IF_HSYNC_RST: "));
+    SerialM.println(GBS::IF_HSYNC_RST::read());
+
+    SerialM.print(F("IF_HBIN_SP:"));
+    SerialM.println(GBS::IF_HBIN_SP::read());
+
+    SerialM.print(F("IF_LINE_SP:"));
+    SerialM.println(GBS::IF_LINE_SP::read());
+
+    SerialM.print(F("IF HB ST2/SP2: "));
+    SerialM.print(GBS::IF_HB_ST2::read());
+    SerialM.print(" ");
+    SerialM.println(GBS::IF_HB_SP2::read());
 }
 
 void set_htotal(uint16_t htotal)
@@ -2905,6 +2919,11 @@ boolean runAutoBestHTotal()
                         // roll with it
                         bestHTotal = 4095;
                     }
+                }
+
+                // fix diagonal lines artifact on 480p/576p by increasing HTotal by 1 (known good value)
+                if ((rto->presetID == 0x04 || rto->presetID == 0x14) && bestHTotal < 4095) {
+                    bestHTotal++;
                 }
 
                 if (stableNow) {
@@ -9632,6 +9651,14 @@ void loop()
                 applyPresets(rto->videoStandardInput);
                 break;
             case 'O': //apply pillarbox
+                if (rto->videoStandardInput == 2 || rto->videoStandardInput == 4) {
+                    SerialM.println(F("Apply PAL pillarbox"));
+                } else {
+                    SerialM.println(F("Apply NTSC pillarbox"));
+                }
+
+                SerialM.print(F("Current preset: "));
+                SerialM.println(rto->presetID);
                 applyPillarbox();
                 break;
 

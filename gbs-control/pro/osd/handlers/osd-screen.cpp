@@ -43,6 +43,13 @@ void handle_ScreenSettings_Page2(void)
     OSD_writePageIcons(true, '2', false);
     OSD_writeStringAtRow(1, 1, "Full height");
     OSD_drawDashRange(1, 12, 22);
+
+    bool pillarboxAvailable = rto->presetID != 0x02 && rto->presetID != 0x12 &&
+                              rto->presetID != 0x05 && rto->presetID != 0x15 &&
+                              rto->presetID != 0x07 && rto->presetID != 0x17;
+                              
+    OSD_writeStringAtRow(2, 1, "Pillarbox", pillarboxAvailable ? OSD_COLOR_AUTO : OSD_TEXT_DISABLED);
+    OSD_writeStringAtRow(3, 1, "Default Screen");
 }
 
 void handle_ScreenSettings_Page2_Values(void)

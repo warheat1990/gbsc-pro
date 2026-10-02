@@ -906,6 +906,13 @@ const createWebSocket = () => {
           }
         });
       }
+
+      const btnPillarbox = document.getElementById("gbs-pillarbox") as HTMLButtonElement | null;
+      if (btnPillarbox) {
+        btnPillarbox.disabled = messageDataAt1 === "2" ||
+          messageDataAt1 === "5" ||
+          messageDataAt1 === "7";
+      }
     }
   };
 };
