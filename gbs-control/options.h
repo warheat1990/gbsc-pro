@@ -11,6 +11,7 @@ enum PresetPreference : uint8_t {
     OutputDownscale = 6,
     OutputBypass = 10,
     Output1200P = 7,
+    Output768P = 8,
 };
 
 // GBSC-PRO: Include Pro-specific enums and field definitions
@@ -20,7 +21,7 @@ enum PresetPreference : uint8_t {
 struct userOptions
 {
     // 0 - normal, 1 - x480/x576, 2 - customized, 3 - 1280x720, 4 - 1280x1024, 5 - 1920x1080,
-    // 6 - downscale, 10 - bypass, 7 - 1920x1200
+    // 6 - downscale, 7 - 1920x1200, 8 - 1024x768, 10 - bypass
     PresetPreference presetPreference;
     Ascii8 presetSlot;
     uint8_t enableFrameTimeLock;

@@ -201,6 +201,16 @@
               </button>
               <button
                 class="gbs-button gbs-button__resolution"
+                gbs-message="?"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1024x768"
+                gbs-role="preset"
+              >
+                1024 <span>x768</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
                 gbs-message="h"
                 gbs-message-type="user"
                 gbs-click="normal"
@@ -209,32 +219,6 @@
               >
                 480p 576p
               </button>
-              <!-- PRO: 15KHz Downscale and Pass Through not supported
-              <button
-                gbs-message="L"
-                gbs-message-type="user"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="button15kHzScaleDown"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">tv</div>
-                <div>15KHz</div>
-              </button>
-              <button
-                gbs-message="K"
-                gbs-message-type="action"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="buttonSourcePassThrough"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">swap_calls</div>
-                <div class="gbs-button__resolution--pass-through">
-                  Pass Through
-                </div>
-              </button>
-              -->
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">

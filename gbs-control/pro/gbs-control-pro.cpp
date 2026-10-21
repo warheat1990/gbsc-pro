@@ -599,8 +599,8 @@ void broadcastProStatus(WebSocketsServer& ws)
     //            19=combLumaN 20=combChromaN 21=combTapsN 22=combLumaP 23=combChromaP 24=combTapsP 25=hue 26=scanLines
     //            27-32=RGB 33-34=YGain 35-36=UGain 37=scanlineStrength
     //            38-39=advBrightness 40-41=advContrast 42-43=advSaturation 44-45=advHue
-    //            46-50=Move H/V 51-55=Scale H/V 56-61=Border H/V 62-63=adcGain 64-65=Volume 66=Mute
-    constexpr size_t MESSAGE_LEN = 67;
+    //            46-50=Move H/V 51-55=Scale H/V 56-61=Border H/V 62-63=adcGain 64-65=Volume 66=Mute 67=isPalGroup
+    constexpr size_t MESSAGE_LEN = 68;
     char buffer[MESSAGE_LEN];
     buffer[0] = '$';
 
@@ -739,6 +739,9 @@ void broadcastProStatus(WebSocketsServer& ws)
     //Mute Volume
     buffer[66] = '0' + (uopt->audioMuted ? 1 : 0);
 
+    //isPalGroup
+    buffer[67] = (rto->videoStandardInput == 2 || rto->videoStandardInput == 4) ? '1' : '0';
+
     ws.broadcastTXT(buffer, MESSAGE_LEN);
 }
 
@@ -833,6 +836,16 @@ void applyPillarbox() //EXPERIMENTAL
                 ifHsyncRst = 1172;
                 ifHbinSp = 136; ifLineSp = 1237;
                 ifHbSt2 = 1116; ifHbSp2 = 116;
+                break;
+            case 0x08:
+            case 0x18: //1024x768
+                hsyncRst = 2683; hscale = 645;
+                disHbSt = 2386; disHbSp = 820;
+                hbSt = 2389; hbSp = 692;
+                ifVbSt = 522; ifVbSp = 524;
+                ifHsyncRst = 1172;
+                ifHbinSp = 106; ifLineSp = 1237;
+                ifHbSt2 = 1124; ifHbSp2 = 116;
                 break;
             case 0x03: //1280x720
             case 0x13:

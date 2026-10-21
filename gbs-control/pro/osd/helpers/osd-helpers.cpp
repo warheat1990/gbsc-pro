@@ -147,6 +147,7 @@ const char* getOutputResolutionName(uint8_t presetID) {
         case 0x01: case 0x11: return "1280x960";
         case 0x02: case 0x12: return "1280x1024";
         case 0x03: case 0x13: return "1280x720";
+        case 0x08: case 0x18: return "1024x768";
         case 0x05: case 0x15: return "1920x1080";
         case 0x07: case 0x17: return "1920x1200";
         case 0x06: case 0x16: return "Downscale";

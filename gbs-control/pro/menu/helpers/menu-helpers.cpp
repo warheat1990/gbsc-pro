@@ -275,6 +275,7 @@ char IR_getResolutionCommand(uint8_t resolution)
         case Output1024P: return 'p';  // 1280x1024
         case Output1080P: return 's';  // 1920x1080
         case Output1200P: return 'L';  // 1920x1200
+        case Output768P:  return '?';  // 1024x768
         default:          return 'g';  // Default to 720p
     }
 }

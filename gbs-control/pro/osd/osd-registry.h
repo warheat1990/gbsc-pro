@@ -67,7 +67,8 @@ typedef enum : uint8_t {
 
     // Output Resolution
     OSD_CMD_OUTPUT_1200_1080_1024,
-    OSD_CMD_OUTPUT_960_720_480,
+    OSD_CMD_OUTPUT_960_720_768,
+    OSD_CMD_OUTPUT_480,
     // OSD_CMD_OUTPUT_1080_1024_960,
     // OSD_CMD_OUTPUT_720_480,
 
@@ -198,7 +199,8 @@ void handle_Preferences_Page1_Values(void);
 // ====================================================================================
 
 void handle_OutputRes_1200_1080_1024(void);
-void handle_OutputRes_960_720_480(void);
+void handle_OutputRes_960_720_768(void);
+void handle_OutputRes_480(void);
 // void handle_OutputRes_1080_1024_960(void);
 // void handle_OutputRes_720_480(void);
 
@@ -350,7 +352,8 @@ void handle_FactoryResetConfirm(void);
     \
     /* Output Resolution */ \
     DISPATCH_ENTRY(OSD_CMD_OUTPUT_1200_1080_1024, handle_OutputRes_1200_1080_1024) \
-    DISPATCH_ENTRY(OSD_CMD_OUTPUT_960_720_480, handle_OutputRes_960_720_480) \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_960_720_768, handle_OutputRes_960_720_768) \
+    DISPATCH_ENTRY(OSD_CMD_OUTPUT_480, handle_OutputRes_480) \
     \
     /* Screen Settings */ \
     DISPATCH_ENTRY(OSD_CMD_SCREEN_PAGE1,        handle_ScreenSettings_Page1) \

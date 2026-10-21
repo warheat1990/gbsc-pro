@@ -172,7 +172,8 @@ const GBSControl = {
         4: "button720x480",
         5: "button1920x1080",
         7: "button1920x1200",
-        // PRO: 6 (15kHzScaleDown) and 8 (PassThrough) not supported
+        8: "button1024x768",
+        // PRO: 6 (15kHzDownscale) is not supported
         9: "buttonLoadCustomPreset",
     },
     controlKeysMobileMode: "move",
@@ -501,6 +502,16 @@ const createWebSocket = () => {
             }
             else {
                 formatValue = 0; // Default to Auto
+            }
+            // disable 1024x768 and 1920x1200 for PAL
+            const isPalInput = message.data[67] === "1";
+            const preset1024x768 = document.querySelector('[gbs-element-ref="button1024x768"]');
+            if (preset1024x768) {
+                preset1024x768.disabled = isPalInput;
+            }
+            const preset1920x1200 = document.querySelector('[gbs-element-ref="button1920x1200"]');
+            if (preset1920x1200) {
+                preset1920x1200.disabled = isPalInput;
             }
             const formatButton = document.getElementById("gbs-pro-format");
             if (formatButton) {
@@ -1003,6 +1014,9 @@ const getSlotPresetName = (presetID) => {
         case 0x03:
         case 0x013:
             return "1280x720";
+        case 0x08:
+        case 0x018:
+            return "1024x768";
         case 0x05:
         case 0x015:
             return "1920x1080";

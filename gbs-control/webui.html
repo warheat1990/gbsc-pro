@@ -1097,6 +1097,16 @@ section[name="alert"] {
               </button>
               <button
                 class="gbs-button gbs-button__resolution"
+                gbs-message="?"
+                gbs-message-type="user"
+                gbs-click="normal"
+                gbs-element-ref="button1024x768"
+                gbs-role="preset"
+              >
+                1024 <span>x768</span>
+              </button>
+              <button
+                class="gbs-button gbs-button__resolution"
                 gbs-message="h"
                 gbs-message-type="user"
                 gbs-click="normal"
@@ -1105,32 +1115,6 @@ section[name="alert"] {
               >
                 480p 576p
               </button>
-              <!-- PRO: 15KHz Downscale and Pass Through not supported
-              <button
-                gbs-message="L"
-                gbs-message-type="user"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="button15kHzScaleDown"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">tv</div>
-                <div>15KHz</div>
-              </button>
-              <button
-                gbs-message="K"
-                gbs-message-type="action"
-                gbs-click="normal"
-                class="gbs-button gbs-button__resolution gbs-button__resolution--center gbs-button__secondary"
-                gbs-element-ref="buttonSourcePassThrough"
-                gbs-role="preset"
-              >
-                <div class="gbs-icon">swap_calls</div>
-                <div class="gbs-button__resolution--pass-through">
-                  Pass Through
-                </div>
-              </button>
-              -->
             </div>
           </fieldset>
           <fieldset class="gbs-fieldset" style="padding: 8px 2px">
@@ -3143,7 +3127,8 @@ const GBSControl = {
         4: "button720x480",
         5: "button1920x1080",
         7: "button1920x1200",
-        // PRO: 6 (15kHzScaleDown) and 8 (PassThrough) not supported
+        8: "button1024x768",
+        // PRO: 6 (15kHzDownscale) is not supported
         9: "buttonLoadCustomPreset",
     },
     controlKeysMobileMode: "move",
@@ -3472,6 +3457,16 @@ const createWebSocket = () => {
             }
             else {
                 formatValue = 0; // Default to Auto
+            }
+            // disable 1024x768 and 1920x1200 for PAL
+            const isPalInput = message.data[67] === "1";
+            const preset1024x768 = document.querySelector('[gbs-element-ref="button1024x768"]');
+            if (preset1024x768) {
+                preset1024x768.disabled = isPalInput;
+            }
+            const preset1920x1200 = document.querySelector('[gbs-element-ref="button1920x1200"]');
+            if (preset1920x1200) {
+                preset1920x1200.disabled = isPalInput;
             }
             const formatButton = document.getElementById("gbs-pro-format");
             if (formatButton) {
@@ -3974,6 +3969,9 @@ const getSlotPresetName = (presetID) => {
         case 0x03:
         case 0x013:
             return "1280x720";
+        case 0x08:
+        case 0x018:
+            return "1024x768";
         case 0x05:
         case 0x015:
             return "1920x1080";
@@ -4128,7 +4126,7 @@ const BACKUP_MAGIC = [0x47, 0x42, 0x53, 0x43, 0x50, 0x52, 0x4f, 0x00]; // "GBSCP
 const BACKUP_FORMAT_VERSION = 0x01;
 const BACKUP_HEADER_SIZE = 32;
 // Replaced at build time by scripts/build.js from gbs-control-pro.h GBS_FW_VERSION.
-const FIRMWARE_VERSION_STRING = "2.4.1-W2RC4";
+const FIRMWARE_VERSION_STRING = "2.4.1-W2RC5";
 const [FW_MAJOR, FW_MINOR, FW_PATCH] = (FIRMWARE_VERSION_STRING + ".0.0.0")
     .split(".")
     .slice(0, 3)

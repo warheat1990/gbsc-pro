@@ -11,6 +11,7 @@
 
 extern char userCommand;
 extern void saveUserPrefs();
+extern struct runTimeOptions *rto;
 
 // ====================================================================================
 // IR_handleOutputResolution - Output Resolution Menu
@@ -33,7 +34,9 @@ bool IR_handleOutputResolution(void)
                     Menu_navigateTo(OLED_OutputResolution_1080);
                     break;
                 case IR_KEY_OK:
-                    userCommand = 'L';
+                    if (rto->videoStandardInput != 2 && rto->videoStandardInput != 4) {
+                        userCommand = 'L';
+                    }
                     break;
                 case IR_KEY_EXIT:
                     Menu_navigateTo(OLED_OutputResolution);
@@ -95,6 +98,34 @@ bool IR_handleOutputResolution(void)
         return true;
     }
 
+    if (oled_menuItem == OLED_OutputResolution_768) {
+        showMenu("Menu->Output", "1024x768");
+
+        if (irDecode()) {
+            switch (results.value) {
+                case IR_KEY_MENU:
+                    exitMenu();
+                    break;
+                case IR_KEY_UP:
+                    Menu_navigateTo(OLED_OutputResolution_720);
+                    break;
+                case IR_KEY_DOWN:
+                    Menu_navigateTo(OLED_OutputResolution_480);
+                    break;
+                case IR_KEY_OK:
+                    if (rto->videoStandardInput != 2 && rto->videoStandardInput != 4) {
+                        userCommand = '?';
+                    }
+                    break;
+                case IR_KEY_EXIT:
+                    Menu_navigateTo(OLED_OutputResolution);
+                    break;
+            }
+            irResume();
+        }
+        return true;
+    }
+
     if (oled_menuItem == OLED_OutputResolution_960) {
         showMenu("Menu->Output", "1280x960");
 
@@ -133,7 +164,7 @@ bool IR_handleOutputResolution(void)
                     Menu_navigateTo(OLED_OutputResolution_960);
                     break;
                 case IR_KEY_DOWN:
-                    Menu_navigateTo(OLED_OutputResolution_480);
+                    Menu_navigateTo(OLED_OutputResolution_768);
                     break;
                 case IR_KEY_OK:
                     userCommand = 'g';
@@ -156,7 +187,7 @@ bool IR_handleOutputResolution(void)
                     exitMenu();
                     break;
                 case IR_KEY_UP:
-                    Menu_navigateTo(OLED_OutputResolution_720);
+                    Menu_navigateTo(OLED_OutputResolution_768);
                     break;
                 case IR_KEY_DOWN:
                     Menu_navigateTo(OLED_OutputResolution_1200);  // Wrap to first

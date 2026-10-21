@@ -4,11 +4,13 @@
 #include "pal_768x576.h"
 #include "ntsc_1280x720.h"
 #include "ntsc_1280x1024.h"
+#include "ntsc_1024x768.h"
 #include "ntsc_1920x1080.h"
 #include "ntsc_1920x1200.h"
 #include "ntsc_downscale.h"
 #include "pal_1280x720.h"
 #include "pal_1280x1024.h"
+#include "pal_1024x768.h"
 #include "pal_1920x1080.h"
 #include "pal_downscale.h"
 #include "presetMdSection.h"
@@ -1039,6 +1041,7 @@ void applyHdmiLimitedRange()
                  pid == 0x05 || pid == 0x15);      // 1920x1080
     bool isSD = (pid == 0x01 || pid == 0x11 ||    // 1280x960
                  pid == 0x02 || pid == 0x12 ||    // 1280x1024
+                 pid == 0x08 || pid == 0x18 ||    // 1024x768
                  pid == 0x04 ||                    // 720x480
                  pid == 0x14);                     // 768x576
 
@@ -2921,11 +2924,6 @@ boolean runAutoBestHTotal()
                     }
                 }
 
-                // fix diagonal lines artifact on 480p/576p by increasing HTotal by 1 (known good value)
-                if ((rto->presetID == 0x04 || rto->presetID == 0x14) && bestHTotal < 4095) {
-                    bestHTotal++;
-                }
-
                 if (stableNow) {
                     for (uint8_t i = 0; i < 24; i++) {
                         delay(1);
@@ -4268,6 +4266,8 @@ void doPostPresetLoadSteps()
         SerialM.print(F("1280x1024"));
     else if (rto->presetID == 0x03 || rto->presetID == 0x13)
         SerialM.print(F("1280x720"));
+    else if (rto->presetID == 0x08 || rto->presetID == 0x18)
+        SerialM.print(F("1024x768"));
     else if (rto->presetID == 0x07 || rto->presetID == 0x17)
         SerialM.print(F("1920x1200"));
     else if (rto->presetID == 0x05 || rto->presetID == 0x15)
@@ -4859,6 +4859,8 @@ void applyPresets(uint8_t result)
             writeProgramArrayNew(ntsc_720x480, false);
         } else if (uopt->presetPreference == 3) {
             writeProgramArrayNew(ntsc_1280x720, false);
+        } else if (uopt->presetPreference == Output768P) {
+            writeProgramArrayNew(ntsc_1024x768, false);
         }
 #if defined(ESP8266)
         else if (uopt->presetPreference == OutputCustomized) {
@@ -4896,6 +4898,8 @@ void applyPresets(uint8_t result)
             writeProgramArrayNew(pal_768x576, false);
         } else if (uopt->presetPreference == 3) {
             writeProgramArrayNew(pal_1280x720, false);
+        } else if (uopt->presetPreference == Output768P) {
+            writeProgramArrayNew(pal_768x576, false);
         }
 #if defined(ESP8266)
         else if (uopt->presetPreference == OutputCustomized) {
@@ -5372,12 +5376,18 @@ void updateSpDynamic(boolean withCurrentVideoModeCheck)
 
                 // get hpw to ht ratio. stability depends on hpll lock
                 double ratioHs, ratioHsAverage = 0.0;
+                double ratioHsMin = 1.0, ratioHsMax = 0.0;
                 uint8_t testOk = 0;
+                uint16_t hlowLast = 0, htotalLast = 0;
                 for (int i = 0; i < 30; i++) {
-                    ratioHs = (double)GBS::STATUS_SYNC_PROC_HLOW_LEN::read() / (double)(GBS::STATUS_SYNC_PROC_HTOTAL::read() + 1);
+                    hlowLast = GBS::STATUS_SYNC_PROC_HLOW_LEN::read();
+                    htotalLast = GBS::STATUS_SYNC_PROC_HTOTAL::read();
+                    ratioHs = (double)hlowLast / (double)(htotalLast + 1);
                     if (ratioHs > 0.041 && ratioHs < 0.152) { // 0.152 : (354 / 2345) is 9.5uS on NTSC (crtemudriver)
                         testOk++;
                         ratioHsAverage += ratioHs;
+                        if (ratioHs < ratioHsMin) ratioHsMin = ratioHs;
+                        if (ratioHs > ratioHsMax) ratioHsMax = ratioHs;
                         if (testOk == 12) {
                             ratioHs = ratioHsAverage / testOk;
                             break;
@@ -5395,6 +5405,7 @@ void updateSpDynamic(boolean withCurrentVideoModeCheck)
                 //Serial.print(" (debug) ignoreBase: 0x");  Serial.println(ignoreLength,HEX);
                 uint16_t pllDiv = GBS::PLLAD_MD::read();
                 ignoreLength = ignoreLength + (pllDiv * (ratioHs * 0.38)); // for factor: crtemudriver tests
+                uint16_t calculatedIgnoreLength = ignoreLength;
                 //SerialM.print(" (debug) ign.length: 0x"); SerialM.println(ignoreLength, HEX);
 
                 // > check relies on sync instability (potentially from too large ign. length) getting cought earlier
@@ -5405,11 +5416,42 @@ void updateSpDynamic(boolean withCurrentVideoModeCheck)
                     if (ignoreLength >= 0x1A && ignoreLength <= 0x42) {
                         ignoreLength = 0x1A; // at the low end should stick to 0x1A
                     }
-                    if (ignoreLength != GBS::SP_H_PULSE_IGNOR::read()) {
+                    uint16_t oldIgnoreLength = GBS::SP_H_PULSE_IGNOR::read();
+                    if (ignoreLength != oldIgnoreLength) {
                         GBS::SP_H_PULSE_IGNOR::write(ignoreLength);
                         rto->coastPositionIsSet = 0; // mustn't be skipped, needed when input changes dotclock / Hz
-                        SerialM.print(F(" (debug) ign. length: 0x"));
-                        SerialM.println(ignoreLength, HEX);
+                        SerialM.print(F(" (debug) ign. length: old=0x"));
+                        SerialM.print(oldIgnoreLength, HEX);
+                        SerialM.print(F(" new=0x"));
+                        SerialM.print(ignoreLength, HEX);
+                        SerialM.print(F(" calc=0x"));
+                        SerialM.print(calculatedIgnoreLength, HEX);
+                        SerialM.print(F(" hPeriod="));
+                        SerialM.print(hPeriod);
+                        SerialM.print(F(" hlow="));
+                        SerialM.print(hlowLast);
+                        SerialM.print(F(" htotal="));
+                        SerialM.print(htotalLast);
+                        SerialM.print(F(" ratio="));
+                        SerialM.print(ratioHs, 5);
+                        SerialM.print(F(" ratioRange="));
+                        SerialM.print(ratioHsMin, 5);
+                        SerialM.print('-');
+                        SerialM.print(ratioHsMax, 5);
+                        SerialM.print(F(" samples="));
+                        SerialM.print(testOk);
+                        SerialM.print(F(" pllDiv="));
+                        SerialM.print(pllDiv);
+                        SerialM.print(F(" pllLock="));
+                        SerialM.print(GBS::STATUS_MISC_PLLAD_LOCK::read());
+                        SerialM.print(F(" mode="));
+                        SerialM.print(vidModeReadout);
+                        SerialM.print('/');
+                        SerialM.print(rto->videoStandardInput);
+                        SerialM.print(F(" noSync="));
+                        SerialM.print(rto->noSyncCounter);
+                        SerialM.print(F(" stable="));
+                        SerialM.println(rto->continousStableCounter);
                     }
                 }
             }
@@ -8597,9 +8639,13 @@ void updateWebSocketData()
                 case 0x17:
                     toSend[1] = '7';
                     break;
+                case 0x08:
+                case 0x18:
+                    toSend[1] = '8';
+                    break;
                 case PresetHdBypass: // bypass 1
                 case PresetBypassRGBHV: // bypass 2
-                    toSend[1] = '8';
+                    toSend[1] = '0'; // no resolution button for bypass
                     break;
                 default:
                     toSend[1] = '0';
@@ -10127,7 +10173,8 @@ void handleType2Command(char argument)
         case 'h':
         case 'p':
         case 's':
-        case 'L': {
+        case 'L':
+        case '?': {
             // load preset via webui
             uint8_t videoMode = getVideoMode();
             if (videoMode == 0 && GBS::STATUS_SYNC_PROC_HSACT::read())
@@ -10146,6 +10193,8 @@ void handleType2Command(char argument)
                 uopt->presetPreference = Output1080P; // 1920x1080
             if (argument == 'L')
                 uopt->presetPreference = Output1200P; // 1920x1200
+            if (argument == '?')
+                uopt->presetPreference = Output768P; // 1024x768
             // if (argument == 'L')
             //   uopt->presetPreference = OutputDownscale; // downscale
 
