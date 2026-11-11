@@ -23,6 +23,7 @@
 // ====================================================================================
 
 extern SSD1306Wire display;
+extern volatile uint32_t webRemoteKey;
 extern OLEDMenuManager oledMenu;
 extern unsigned long oledMenuFreezeStartTime;
 extern unsigned long oledMenuFreezeTimeoutInMS;
@@ -79,7 +80,19 @@ void exitMenu() {
 // IR Receiver Helpers
 // ====================================================================================
 
-bool irDecode() {
+bool irDecode(bool consumeWebVolume) {
+    if (webRemoteKey != 0) {
+        // handle volume
+        bool isWebVolumeKey = webRemoteKey == IR_KEY_VOL_UP || webRemoteKey == IR_KEY_VOL_DN;
+        if (isWebVolumeKey && !consumeWebVolume && oled_menuItem != OLED_Volume_Adjust) {
+            return false;
+        }
+
+        results.value = webRemoteKey;
+        webRemoteKey = 0;
+        irDecodedFlag = 1;
+        return true;
+    }
     if (irrecv.decode(&results)) {
         irDecodedFlag = 1;
         return true;

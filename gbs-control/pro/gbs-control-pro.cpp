@@ -64,6 +64,7 @@ extern bool areScanLinesAllowed();
 static const int kRecvPin = 2;
 IRrecv irrecv(kRecvPin);
 decode_results results;
+volatile uint32_t webRemoteKey = 0;
 
 // ====================================================================================
 // Global Variables - Timing

@@ -1798,6 +1798,38 @@ const initMenuButtons = () => {
   );
 };
 
+const initIRRemoteButtons = () => {
+  const keys = nodelistToArray<HTMLButtonElement>(
+    document.querySelectorAll("[data-ir-key]")
+  );
+  const status = document.querySelector<HTMLElement>(".gbs-irremote__status");
+  keys.forEach((button) => {
+    let repeatTimer: number | null = null;
+    const sendKey = (phase: "press" | "repeat" = "press") => {
+      const key = button.getAttribute("data-ir-key");
+      fetch(`/ir?key=${key}&phase=${phase}&${+new Date()}`).catch(() => {
+        if (status) status.textContent = "Could not reach device";
+      });
+      if (status) status.textContent = `${key.toUpperCase()} sent`;
+    };
+    const start = (event: PointerEvent) => {
+      event.preventDefault();
+      sendKey("press");
+      if (button.hasAttribute("data-repeat") && repeatTimer === null) {
+        repeatTimer = window.setInterval(() => sendKey("repeat"), 300);
+      }
+    };
+    const stop = () => {
+      if (repeatTimer !== null) window.clearInterval(repeatTimer);
+      repeatTimer = null;
+    };
+    button.addEventListener("pointerdown", start);
+    button.addEventListener("pointerup", stop);
+    button.addEventListener("pointercancel", stop);
+    button.addEventListener("pointerleave", stop);
+  });
+};
+
 const initGBSButtons = () => {
   const actions = {
     user: loadUser,
@@ -2737,6 +2769,7 @@ const initUI = () => {
   initSlotButtons();
   initLegendHelpers();
   initMenuButtons();
+  initIRRemoteButtons();
   initGBSButtons();
   initProButtons();
   initClearButton();

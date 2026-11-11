@@ -322,7 +322,7 @@ static void IR_handleVolumeKeyPress(uint32_t key)
 
 void IR_handleInput()
 {
-    if (!irDecode()) {
+    if (!irDecode(true)) {
         return;
     }
 

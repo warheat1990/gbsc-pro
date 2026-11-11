@@ -132,6 +132,7 @@
         >
           ⌥
         </button>
+        <button gbs-section="irremote" class="gbs-button gbs-button__menu" aria-label="IR Remote">IR</button>
       </div>
       <div class="gbs-scroll">
         <section name="presets">
@@ -1971,6 +1972,34 @@
                 </button>
               </div>
             </fieldset>
+          </fieldset>
+        </section>
+        <section name="irremote" hidden>
+          <fieldset class="gbs-fieldset">
+            <legend class="gbs-fieldset__legend"><div>IR Remote</div></legend>
+            <div class="gbs-irremote__controls">
+              <div class="gbs-irremote__row gbs-irremote__top">
+                <button class="gbs-button gbs-irremote__key" data-ir-key="menu">☰<span>Menu</span></button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="exit">↩<span>Exit</span></button>
+              </div>
+              <div class="gbs-irremote__pad" aria-label="IR remote directional pad">
+                <button class="gbs-button gbs-irremote__key" data-ir-key="up" data-repeat aria-label="Up">▲</button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="left" data-repeat aria-label="Left">◀</button>
+                <button class="gbs-button gbs-irremote__key gbs-irremote__ok" data-ir-key="ok" aria-label="OK">OK</button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="right" data-repeat aria-label="Right">▶</button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="down" data-repeat aria-label="Down">▼</button>
+              </div>
+              <div class="gbs-irremote__row gbs-irremote__functions">
+                <button class="gbs-button gbs-irremote__key" data-ir-key="mute">◖<span>Mute</span></button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="save">▣<span>Save</span></button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="info">▤<span>Info</span></button>
+              </div>
+              <div class="gbs-irremote__row gbs-irremote__volume">
+                <button class="gbs-button gbs-irremote__key" data-ir-key="voldn" data-repeat aria-label="Volume down">◀<span>Vol −</span></button>
+                <button class="gbs-button gbs-irremote__key" data-ir-key="volup" data-repeat aria-label="Volume up">▶<span>Vol +</span></button>
+              </div>
+            </div>
+            <p class="gbs-irremote__status" aria-live="polite">Ready</p>
           </fieldset>
         </section>
         <section name="prompt" hidden>

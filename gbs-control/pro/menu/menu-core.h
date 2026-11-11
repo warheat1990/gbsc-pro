@@ -49,7 +49,7 @@ void exitMenu();
 // ====================================================================================
 
 // Decode IR input and set flag
-bool irDecode();
+bool irDecode(bool consumeWebVolume = false);
 
 // Resume IR receiver after handling
 void irResume();

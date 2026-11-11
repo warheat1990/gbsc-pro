@@ -31,7 +31,7 @@
 // Firmware Version Strings
 // ====================================================================================
 
-#define GBS_FW_VERSION "2.4.1-W2RC5"  // GBS Control firmware version (ESP8266)
+#define GBS_FW_VERSION "2.4.1-W3RC"  // GBS Control firmware version (ESP8266)
 #define ADV_FW_VERSION "2.4.1"  // ADV Controller firmware version (HC32)
 
 // ====================================================================================
@@ -67,6 +67,7 @@ template <uint8_t> class TV5725;
 
 extern IRrecv irrecv;
 extern decode_results results;
+extern volatile uint32_t webRemoteKey;
 
 // ====================================================================================
 // Input Source Helper

@@ -10816,6 +10816,31 @@ void startWebserver()
         }
     });
 
+    server.on("/ir", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (request->hasParam("key")) {
+            String key = request->getParam("key")->value();
+            String phase = request->hasParam("phase") ? request->getParam("phase")->value() : "press";
+            bool isVolumeUp = key == "volup";
+            bool isVolumeDown = key == "voldn";
+            if (phase == "repeat" && (isVolumeUp || isVolumeDown)) {
+                webRemoteKey = 0xFFFFFFFF;
+            }
+            else if (key == "up") webRemoteKey = IR_KEY_UP;
+            else if (key == "down") webRemoteKey = IR_KEY_DOWN;
+            else if (key == "left") webRemoteKey = IR_KEY_LEFT;
+            else if (key == "right") webRemoteKey = IR_KEY_RIGHT;
+            else if (key == "ok") webRemoteKey = IR_KEY_OK;
+            else if (key == "menu") webRemoteKey = IR_KEY_MENU;
+            else if (key == "exit") webRemoteKey = IR_KEY_EXIT;
+            else if (key == "mute") webRemoteKey = IR_KEY_MUTE;
+            else if (key == "save") webRemoteKey = IR_KEY_SAVE;
+            else if (key == "info") webRemoteKey = IR_KEY_INFO;
+            else if (isVolumeDown) webRemoteKey = IR_KEY_VOL_DN;
+            else if (isVolumeUp) webRemoteKey = IR_KEY_VOL_UP;
+        }
+        request->send(200);
+    });
+
     server.on("/wifi/connect", HTTP_POST, [](AsyncWebServerRequest *request) {
         AsyncWebServerResponse *response =
             request->beginResponse(200, "application/json", "true");
